@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # ----------------------------------------------------------------------------
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
-file(GLOB_RECURSE TEST_FILES test/*.cpp)
+file(GLOB_RECURSE TEST_FILES tests/*.cpp)
 
 # ----------------------------------------------------------------------------
 # Main application
