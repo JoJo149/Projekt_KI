@@ -1,10 +1,10 @@
 # Projekt Symbolische Künstliche Intelligenz
 
-## 
+## short info
 Build of an small KI for the 2 player game "Guard and Towers".
 To optimize the Project we will us: bitboard, ...
 
-## Getting started
+## getting started
 
 ```
 cd existing_repo
@@ -13,10 +13,29 @@ git branch -M main
 git push -uf origin main
 ```
 
-##  Tools
+If u use CLION u should just richt-click the cmake file and reload it.\
+Afterwards u should be able to pick the run config: ``` projekt_ki ``` and the test config: ``` tests ```\
+\
+If u plan on using the Terminal here are the needed instructions:
+Initialization:
+```
+mkdir -p build
+cd build
+cmake ..
+```
+First we create an local build folder.\
+Afterwards we generate the build files.\
+Now u can build the project using ``` cmake --build . ``` or a particular target ``` cmake --build . --target tests ```.\
+Lastly u are now ready to run the binary ``` ./projekt_ki ``` or other generated binary like ``` ./tests ```.
+
+##  tools
 
 We use external libraries saved in the Directory /ext .\
 For testing and performance analysis we use [catch2](https://github.com/catchorg/Catch2).
+
+## interesting references 
+
+[Bitboards](https://ameye.dev/notes/chess-engine/)
 
 ## following stuff if I have time 
 ## Collaborate with your team
