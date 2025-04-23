@@ -1,29 +1,24 @@
 # Projekt Symbolische Künstliche Intelligenz
 
-
+## 
+Build of an small KI for the 2 player game "Guard and Towers".
+To optimize the Project we will us: bitboard, ...
 
 ## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
 ```
 cd existing_repo
-git remote add origin https://git.tu-berlin.de/hallo123/projekt-symbolische-kuenstliche-intelligenz.git
+git remote add origin https://git.tu-berlin.de/hallo123/projekt-ki.git
 git branch -M main
 git push -uf origin main
 ```
 
-## Integrate with your tools
+##  Tools
 
-- [ ] [Set up project integrations](https://git.tu-berlin.de/hallo123/projekt-symbolische-kuenstliche-intelligenz/-/settings/integrations)
+We use external libraries saved in the Directory /ext .\
+For testing and performance analysis we use [catch2](https://github.com/catchorg/Catch2).
 
+## following stuff if I have time 
 ## Collaborate with your team
 
 - [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)

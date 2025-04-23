@@ -18,6 +18,7 @@ target_include_directories(projekt_ki PRIVATE include)
 # Tests
 Include(FetchContent)
 
+# references the git repository directly -> folder in ext seems empty
 FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
