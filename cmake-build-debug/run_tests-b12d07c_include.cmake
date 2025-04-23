@@ -1,5 +1,0 @@
-if(EXISTS "/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-debug/run_tests-b12d07c_tests.cmake")
-  include("/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-debug/run_tests-b12d07c_tests.cmake")
-else()
-  add_test(run_tests_NOT_BUILT-b12d07c run_tests_NOT_BUILT-b12d07c)
-endif()
