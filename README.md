@@ -28,6 +28,10 @@ Afterwards we generate the build files.\
 Now u can build the project using ``` cmake --build . ``` or a particular target ``` cmake --build . --target tests ```.\
 Lastly u are now ready to run the binary ``` ./projekt_ki ``` or other generated binary like ``` ./tests ```.
 
+## contribution guidelines
+Variable names in snake_case.\
+Class names in CamelCase.
+
 ##  tools
 
 We use external libraries saved in the Directory /ext .\
