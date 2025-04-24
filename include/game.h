@@ -6,43 +6,49 @@ namespace basic {
     class BitBoard{
     public:
         unsigned long long bitfield : 49;
-
         BitBoard() : bitfield(0) {}
     };
 
     class Game {
     private:
         BitBoard bitBoards[18];
+        bool active_player;
 
     public:
-        static const char* boardNames[18];
+        static const char* boardNames[16];
 
         Game();
+        Game(bool start_player);
 
         void stringToGame(std::string game_string);
         [[nodiscard]] std::string gameToString() const;
         void printGame() const;
     };
 
+    enum playerName : bool {
+        blue = true,
+        red = false
+    };
+
+    // color + height/guard
     enum board_name {
-        mask_1=0,
-        mask_2,
-        mask_3,
-        mask_4,
-        mask_5,
-        mask_6,
-        mask_7,
-        mask_8,
-        mask_9,
-        mask_10,
-        mask_11,
-        mask_12,
-        mask_13,
-        mask_14,
-        mask_15,
-        mask_16,
-        mask_17,
-        mask_18
+        B_1=0,
+        B_2,
+        B_3,
+        B_4,
+        B_5,
+        B_6,
+        B_7,
+        B_G,
+
+        R_1,
+        R_2,
+        R_3,
+        R_4,
+        R_5,
+        R_6,
+        R_7,
+        R_G
     };
 }
 

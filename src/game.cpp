@@ -6,15 +6,20 @@
 
 
 namespace basic {
-    const char* Game::boardNames[18] = {
-        "mask_1", "mask_2", "mask_3", "mask_4", "mask_5", "mask_6",
-        "mask_7", "mask_8", "mask_9", "mask_10", "mask_11", "mask_12",
-        "mask_13", "mask_14", "mask_15", "mask_16", "mask_17", "mask_18"
+    const char* Game::boardNames[16] = {
+        "blue tower h=1", "blue tower h=2", "blue tower h=3", "blue tower h=4",
+        "blue tower h=5", "blue tower h=6","blue tower h=7", "blue guard",
+        "red tower h=1", "red tower h=2", "red tower h=3", "red tower h=4",
+        "red tower h=5", "red tower h=6","red tower h=7", "red guard"
     };
 
     // Constructor (no need to initialize static array here)
-    Game::Game() {
-        // Constructor logic here
+    Game::Game(const bool start_player) {
+        this->active_player = start_player;
+        this->bitBoards[B_1].bitfield = 0b110001100101000001000000000000000000000000000000;
+        this->bitBoards[B_G].bitfield = 0b000100000000000000000000000000000000000000000000;
+        this->bitBoards[R_1].bitfield = 0b000000000000000000000000000000100000101001100011;
+        this->bitBoards[R_G].bitfield = 0b000000000000000000000000000000000000000000001000;
     }
 
     // shows gamestate as well as current player
@@ -31,16 +36,17 @@ namespace basic {
 
     //Prints every bitmask values for debugging purpose
     void Game::printGame() const {
-        for (int i = 0; i < 18; i++) {
-            std::cout << "Mask " << boardNames[i] << " corresponds to bitmask value:" << std::endl;
+        for (int i = 0; i < 16; i++) {
+            std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
             const auto bit_board = this->bitBoards[i].bitfield;
-            for (int j = 0; j < 49; j++) {
-                std::cout << ((bit_board >> j) & 1);
-                if ((j + 1) % 7 == 0) {
-                    std::cout << std::endl;
+            for (int row = 0; row < 7; ++row) {
+                for (int col = 0; col < 7; ++col) {
+                    int bit_index = 48 - (row * 7 + col);  // From top-left (bit 48) to bottom-right (bit 0)
+                    std::cout << ((bit_board >> bit_index) & 1);
                 }
+                std::cout << std::endl;
             }
-            i!=17 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
+            i!=15 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
         }
     }
 }
