@@ -1,27 +1,49 @@
 #ifndef GAME_H
 #define GAME_H
-
-#include <cstdint>
+#include <string>
 
 namespace basic {
-    enum BitMask : uint8_t {
-        MASK_NONE    = 0b00000000,
-        MASK_BIT_0   = 0b00000001,
-        MASK_BIT_1   = 0b00000010,
-        MASK_BIT_2   = 0b00000100,
-        MASK_BIT_3   = 0b00001000,
-        MASK_LOWER_4 = 0b00001111,
-        MASK_UPPER_4 = 0b11110000,
-        MASK_ALL     = 0b11111111
+    class BitMask{
+    private:
+        unsigned long long bitmask : 49;
+
+    public:
+        BitMask() : bitmask(0) {}
+        [[nodiscard]] unsigned long long getGameState() const{ return bitmask; }
+        void setGameState(unsigned long long mask) const{ mask = bitmask; }
     };
 
     class Game {
     private:
-        uint8_t data = 0;
+        BitMask bitmasks[18];
 
     public:
-        void setBits(uint8_t bits, uint8_t mask);
-        uint8_t getBits() const;
+        static const char* maskNames[18];
+        Game();
+        void stringToGame(std::string game_string);
+        [[nodiscard]] std::string gameToString() const;
+        void printGame() const;
+    };
+
+    enum maskName {
+        mask_1=0,
+        mask_2,
+        mask_3,
+        mask_4,
+        mask_5,
+        mask_6,
+        mask_7,
+        mask_8,
+        mask_9,
+        mask_10,
+        mask_11,
+        mask_12,
+        mask_13,
+        mask_14,
+        mask_15,
+        mask_16,
+        mask_17,
+        mask_18
     };
 }
 
