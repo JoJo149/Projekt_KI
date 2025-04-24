@@ -3,29 +3,28 @@
 #include <string>
 
 namespace basic {
-    class BitMask{
-    private:
-        unsigned long long bitmask : 49;
-
+    class BitBoard{
     public:
-        BitMask() : bitmask(0) {}
-        [[nodiscard]] unsigned long long getGameState() const{ return bitmask; }
-        void setGameState(unsigned long long mask) const{ mask = bitmask; }
+        unsigned long long bitfield : 49;
+
+        BitBoard() : bitfield(0) {}
     };
 
     class Game {
     private:
-        BitMask bitmasks[18];
+        BitBoard bitBoards[18];
 
     public:
-        static const char* maskNames[18];
+        static const char* boardNames[18];
+
         Game();
+
         void stringToGame(std::string game_string);
         [[nodiscard]] std::string gameToString() const;
         void printGame() const;
     };
 
-    enum maskName {
+    enum board_name {
         mask_1=0,
         mask_2,
         mask_3,
