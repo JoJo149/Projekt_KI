@@ -15,8 +15,8 @@ namespace basic {
     };
 
     // Constructor (no need to initialize static array here)
-    Game::Game(const bool start_player) {
-        this->active_player = start_player;
+    Game::Game(playerName p_name) {
+        this->active_player = p_name;
     }
 
     // shows gamestate as well as current player
@@ -32,6 +32,21 @@ namespace basic {
     }
 
     //Prints every bitmask values for debugging purpose
+    void Game::debugPrintGame() {
+        for (int i = 0; i < 16; i++) {
+            std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
+            const auto bit_board = this->bitBoards[i].getBitfield();
+            for (int row = 0; row < 7; ++row) {
+                for (int col = 0; col < 7; ++col) {
+                    int bit_index = (row * 8 + col);
+                    std::cout << ((bit_board >> bit_index) & 1);
+                }
+                std::cout << std::endl;
+            }
+            i!=15 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
+        }
+    }
+
     void Game::printGame() {
         for (int i = 0; i < 16; i++) {
             std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
