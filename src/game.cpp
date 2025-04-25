@@ -16,17 +16,17 @@ namespace basic {
     // Constructor (no need to initialize static array here)
     Game::Game(const bool start_player) {
         this->active_player = start_player;
-        this->bitBoards[B_1].bitfield = 0b110001100101000001000000000000000000000000000000;
-        this->bitBoards[B_G].bitfield = 0b000100000000000000000000000000000000000000000000;
-        this->bitBoards[R_1].bitfield = 0b000000000000000000000000000000100000101001100011;
-        this->bitBoards[R_G].bitfield = 0b000000000000000000000000000000000000000000001000;
+        this->bitBoards[B_1].getBitfield() = 0b000100000101001100011ULL;
+        this->bitBoards[B_G].getBitfield() = 0b0001000ULL;
+        this->bitBoards[R_1].getBitfield() = 0b110001100101000001000ULL << 28;
+        this->bitBoards[R_G].getBitfield() = 0b000100ULL << 43;
     }
 
     // shows gamestate as well as current player
     // converts our game to an string of Format:
     // r1r11RG1r1r1/2r14/4r22/7/3b23/2b14/b1b11BG1b1b1 b
-    std::string Game::gameToString() const {
-        return std::to_string((this->bitBoards[0].bitfield));
+    std::string Game::gameToString() {
+        return std::to_string((this->bitBoards[0].getBitfield()));
     }
 
     // reads in the string and sets the bitmaps correspondingly
@@ -35,10 +35,10 @@ namespace basic {
     }
 
     //Prints every bitmask values for debugging purpose
-    void Game::printGame() const {
+    void Game::printGame() {
         for (int i = 0; i < 16; i++) {
             std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
-            const auto bit_board = this->bitBoards[i].bitfield;
+            const auto bit_board = this->bitBoards[i].getBitfield();
             for (int row = 0; row < 7; ++row) {
                 for (int col = 0; col < 7; ++col) {
                     int bit_index = 48 - (row * 7 + col);  // From top-left (bit 48) to bottom-right (bit 0)

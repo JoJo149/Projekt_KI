@@ -4,9 +4,16 @@
 
 namespace basic {
     class BitBoard{
+    private:
+        uint64_t bitfield;
+        static constexpr uint64_t BITMASK_49 = (1ULL << 49) - 1;
+
     public:
-        unsigned long long bitfield : 49;
         BitBoard() : bitfield(0) {}
+        [[nodiscard]] uint64_t& getBitfield() {
+            bitfield &= BITMASK_49;
+            return bitfield;
+        }
     };
 
     class Game {
@@ -21,8 +28,8 @@ namespace basic {
         Game(bool start_player);
 
         void stringToGame(std::string game_string);
-        [[nodiscard]] std::string gameToString() const;
-        void printGame() const;
+        [[nodiscard]] std::string gameToString();
+        void printGame();
     };
 
     enum playerName : bool {
