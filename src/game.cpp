@@ -16,10 +16,6 @@ namespace basic {
     // Constructor (no need to initialize static array here)
     Game::Game(const bool start_player) {
         this->active_player = start_player;
-        this->bitBoards[B_1].getBitfield() = 0b000100000101001100011ULL;
-        this->bitBoards[B_G].getBitfield() = 0b0001000ULL;
-        this->bitBoards[R_1].getBitfield() = 0b110001100101000001000ULL << 28;
-        this->bitBoards[R_G].getBitfield() = 0b000100ULL << 43;
     }
 
     // shows gamestate as well as current player
@@ -41,7 +37,7 @@ namespace basic {
             const auto bit_board = this->bitBoards[i].getBitfield();
             for (int row = 0; row < 7; ++row) {
                 for (int col = 0; col < 7; ++col) {
-                    int bit_index = 48 - (row * 7 + col);  // From top-left (bit 48) to bottom-right (bit 0)
+                    int bit_index = (row * 8 + col);
                     std::cout << ((bit_board >> bit_index) & 1);
                 }
                 std::cout << std::endl;

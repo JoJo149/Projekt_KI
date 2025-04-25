@@ -6,14 +6,10 @@ namespace basic {
     class BitBoard{
     private:
         uint64_t bitfield;
-        static constexpr uint64_t BITMASK_49 = (1ULL << 49) - 1;
 
     public:
         BitBoard() : bitfield(0) {}
-        [[nodiscard]] uint64_t& getBitfield() {
-            bitfield &= BITMASK_49;
-            return bitfield;
-        }
+        [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
     };
 
     class Game {
@@ -36,6 +32,7 @@ namespace basic {
         blue = true,
         red = false
     };
+
 
     // color + height/guard
     enum board_name {
