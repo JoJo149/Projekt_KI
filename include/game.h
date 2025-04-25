@@ -1,6 +1,7 @@
 #ifndef GAME_H
 #define GAME_H
 #include <string>
+#include <cstdint>
 
 namespace basic {
     class BitBoard{

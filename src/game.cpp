@@ -3,6 +3,7 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+#include <cstdint>
 
 
 namespace basic {
