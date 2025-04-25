@@ -4,36 +4,10 @@
 #include <cstdint>
 
 namespace basic {
-    class BitBoard{
-    private:
-        uint64_t bitfield;
-
-    public:
-        BitBoard() : bitfield(0) {}
-        [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
-    };
-
-    class Game {
-    private:
-        BitBoard bitBoards[18];
-        bool active_player;
-
-    public:
-        static const char* boardNames[16];
-
-        Game();
-        Game(bool start_player);
-
-        void stringToGame(std::string game_string);
-        [[nodiscard]] std::string gameToString();
-        void printGame();
-    };
-
     enum playerName : bool {
         blue = true,
         red = false
     };
-
 
     // color + height/guard
     enum board_name {
@@ -54,6 +28,33 @@ namespace basic {
         R_6,
         R_7,
         R_G
+    };
+
+    class BitBoard{
+    private:
+        uint64_t bitfield;
+
+    public:
+        BitBoard() : bitfield(0) {}
+        [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
+    };
+
+    class Game {
+    private:
+        BitBoard bitBoards[18];
+        playerName active_player;
+        void printColor(std::string text, playerName);
+
+    public:
+        static const char* boardNames[16];
+
+        Game();
+        Game(playerName);
+
+        void stringToGame(std::string game_string);
+        [[nodiscard]] std::string gameToString();
+        void debugPrintGame();
+        void printGame();
     };
 }
 

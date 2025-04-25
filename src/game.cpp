@@ -15,7 +15,7 @@ namespace basic {
     };
 
     // Constructor (no need to initialize static array here)
-    Game::Game(const bool start_player) {
+    Game::Game(playerName start_player) {
         this->active_player = start_player;
     }
 
