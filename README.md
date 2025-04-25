@@ -8,9 +8,14 @@ To optimize the Project we will us: bitboard, ...
 
 ```
 cd existing_repo
-git remote add origin https://git.tu-berlin.de/hallo123/projekt-ki.git
-git branch -M main
-git push -uf origin main
+```
+if u use ssh:
+```
+git clone git@git.tu-berlin.de:hallo123/projekt-ki.git
+```
+if u use https:
+```
+git clone https://git.tu-berlin.de/hallo123/projekt-ki.git
 ```
 
 If u use CLION u should just richt-click the cmake file and reload it.\
