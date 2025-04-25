@@ -28,6 +28,17 @@ Afterwards we generate the build files.\
 Now u can build the project using ``` cmake --build . ``` or a particular target ``` cmake --build . --target tests ```.\
 Lastly u are now ready to run the binary ``` ./projekt_ki ``` or other generated binary like ``` ./tests ```.
 
+## TODO bis 02.05.
+- gameString zu Game and back
+- Gameplay
+  - Zuggenerator (alle möglichen Züge generieren)
+  - Spielendeerkennung
+  - zufällige Auswahl eines Zuges
+- Gamezocken in Konsole gegen Computer
+- Unit-Tests und Benchmarks
+- Foliensatz oder Text für Abgabe
+- Screencast für Abgabe
+
 ## contribution guidelines
 Variable names in snake_case.\
 Class names in CamelCase.
