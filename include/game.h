@@ -24,7 +24,7 @@ namespace basic {
         Game();
         Game(bool start_player);
 
-        void stringToGame(std::string game_string);
+        void stringToGame(const std::string& game_string);
         [[nodiscard]] std::string gameToString();
         void printGame();
     };

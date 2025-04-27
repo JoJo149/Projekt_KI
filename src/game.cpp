@@ -27,8 +27,29 @@ namespace basic {
     }
 
     // reads in the string and sets the bitmaps correspondingly
-    void stringToGame(const std::string& game_string){
+    void Game::stringToGame(const std::string& game_string){
+        for (size_t i = 0; i < game_string.length(); ++i) {
+            char c = game_string[i];
+            if (c >= '0' && c <= '7') {
+                continue;
+            }
+            else if (c == 'r') {
 
+            }
+            else if (c == 'b') {
+
+            }
+            else if (c == 'R') {
+                c++;
+            }
+            else if (c == 'B') {
+                c++;
+            }
+            else if (c == ' ') {
+
+                break;
+            }
+        }
     }
 
     //Prints every bitmask values for debugging purpose
