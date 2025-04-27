@@ -43,7 +43,7 @@ namespace basic {
     private:
         BitBoard bitBoards[18];
         playerName active_player;
-        void printColor(std::string text, playerName);
+        void printField(int);
 
     public:
         static const char* boardNames[16];
