@@ -15,27 +15,29 @@ namespace basic {
 
     void Game::printField(int bit_index) {
         std::string output = "\033[38;5;239m0\033[0m";
-        for (int i = 0; i < 8; i++) {
+
+        for (int i = 0; i < 8; ++i) {
             bool bitSet = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
-            if (!bitSet)
-                continue;
+            if (!bitSet) continue;
 
             bool isBlue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
-            output = isBlue ? "\033[1;34m" : "\033[1;31m";
-            if (i < 6)
-                 output += std::to_string(i+1) + "\033[0m";
+            std::string color = isBlue ? "\033[1;34m" : "\033[1;31m";
+
             if (i == 7)
-                output += "G\033[0m";
+                output = color + "G\033[0m";
+            else
+                output = color + std::to_string(i + 1) + "\033[0m";
 
             break;
         }
+
         std::cout << output << " ";
     }
 
     // Constructor (no need to initialize static array here)
     Game::Game(playerName p_name) {
         this->active_player = p_name;
-        this->bitBoards[T_2].getBitfield() =
+        this->bitBoards[T_1].getBitfield() =
             (1ULL << 55) | (1ULL << 61) |
             (1ULL << 46) | (1ULL << 52) |
             (1ULL << 37) | (1ULL << 43) |
@@ -43,10 +45,10 @@ namespace basic {
             (1ULL << 19) | (1ULL << 25) |
             (1ULL << 10) | (1ULL << 16) |
             (1ULL << 1)  | (1ULL << 7);
-        this->bitBoards[C_B].getBitfield() = this->bitBoards[T_2].getBitfield();
-        this->bitBoards[T_6].getBitfield() =
+        this->bitBoards[C_B].getBitfield() = this->bitBoards[T_1].getBitfield();
+        this->bitBoards[T_G].getBitfield() =
             (1ULL << 57) | (1ULL << 59);
-        this->bitBoards[C_R].getBitfield() = this->bitBoards[T_6].getBitfield();
+        this->bitBoards[C_B].getBitfield() |= this->bitBoards[T_G].getBitfield();
     }
 
     // shows gamestate as well as current player
