@@ -16,21 +16,22 @@ namespace basic {
 
     void Game::printField(int bit_index) {
         std::string output = "\033[38;5;239m0\033[0m";
-        for (int i = 0; i < 16; i++) {
-            auto val = this->bitBoards[i].getBitfield() >> bit_index & 1;
-            // if blue board
-            if (val == 1) {
-                if (i < 7)
-                    output = "\033[1;34m" + std::to_string(i+1) + "\033[0m";
-                if (i == 7)
-                    output = "\033[1;34mG\033[0m";
-                if(i > 7)
-                    output = "\033[1;31m" + std::to_string(i-7) + "\033[0m";
-                if (i == 15)
-                    output = "\033[1;31mG\033[0m";
-                break;
-            }
+
+        for (int i = 0; i < 8; ++i) {
+            bool bitSet = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
+            if (!bitSet) continue;
+
+            bool isBlue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
+            std::string color = isBlue ? "\033[1;34m" : "\033[1;31m";
+
+            if (i == 7)
+                output = color + "G\033[0m";
+            else
+                output = color + std::to_string(i + 1) + "\033[0m";
+
+            break;
         }
+
         std::cout << output << " ";
     }
 
