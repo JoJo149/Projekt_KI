@@ -53,7 +53,7 @@ x b b b b b b b x \
 x b b b b b b b x \
 x b b b b b b b x \
 x b b b b b b b x] \
-63-----------------0 \
+63-----------------0
 - b are the bits used for the board
 - x are the separating bits
 
