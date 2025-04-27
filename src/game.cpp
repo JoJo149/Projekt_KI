@@ -7,11 +7,10 @@
 
 
 namespace basic {
-    const char* Game::boardNames[16] = {
-        "blue tower h=1", "blue tower h=2", "blue tower h=3", "blue tower h=4",
-        "blue tower h=5", "blue tower h=6","blue tower h=7", "blue guard",
-        "red tower h=1", "red tower h=2", "red tower h=3", "red tower h=4",
-        "red tower h=5", "red tower h=6","red tower h=7", "red guard"
+    const char* Game::boardNames[10] = {
+        "tower h=1", "tower h=2", "tower h=3", "tower h=4",
+        "tower h=5", "tower h=6","tower h=7", "guard",
+        "tower red", "tower blue"
     };
 
     void Game::printField(int bit_index) {
@@ -37,7 +36,7 @@ namespace basic {
     // Constructor (no need to initialize static array here)
     Game::Game(playerName p_name) {
         this->active_player = p_name;
-        this->bitBoards[B_2].getBitfield() =
+        this->bitBoards[T_2].getBitfield() =
             (1ULL << 55) | (1ULL << 61) |
             (1ULL << 46) | (1ULL << 52) |
             (1ULL << 37) | (1ULL << 43) |
@@ -45,8 +44,10 @@ namespace basic {
             (1ULL << 19) | (1ULL << 25) |
             (1ULL << 10) | (1ULL << 16) |
             (1ULL << 1)  | (1ULL << 7);
-        this->bitBoards[R_6].getBitfield() =
+        this->bitBoards[C_B].getBitfield() = this->bitBoards[T_2].getBitfield();
+        this->bitBoards[T_6].getBitfield() =
             (1ULL << 57) | (1ULL << 59);
+        this->bitBoards[C_R].getBitfield() = this->bitBoards[T_6].getBitfield();
     }
 
     // shows gamestate as well as current player
@@ -63,7 +64,7 @@ namespace basic {
 
     //Prints every bitmask values for debugging purpose
     void Game::debugPrintGame() {
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 10; i++) {
             std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
             const auto bit_board = this->bitBoards[i].getBitfield();
             for (int row = 0; row < 7; row++) {
@@ -73,7 +74,7 @@ namespace basic {
                 }
                 std::cout << std::endl;
             }
-            i!=15 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
+            i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
         }
     }
 
