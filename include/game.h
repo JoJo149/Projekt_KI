@@ -38,6 +38,7 @@ namespace basic {
         BitBoard bitBoards[10];
         playerName active_player;
         void printField(int);
+        void clearField();
 
     public:
         static const char* boardNames[10];
@@ -45,8 +46,8 @@ namespace basic {
         Game();
         Game(playerName);
 
-        void stringToGame(const std::string& game_string);
-        [[nodiscard]] std::string gameToString();
+        void stringToGame(const char*);
+        void gameToString(char*);
         void debugPrintGame();
         void printGame();
     };

@@ -14,15 +14,21 @@ namespace basic {
         "tower red", "tower blue"
     };
 
+    void Game::clearField() {
+        for (auto bit_board: this->bitBoards) {
+            bit_board.getBitfield() = 0;
+        }
+    }
+
     void Game::printField(int bit_index) {
         std::string output = "\033[38;5;239m0\033[0m";
-
         for (int i = 0; i < 8; ++i) {
-            bool bitSet = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
-            if (!bitSet) continue;
+            bool bit_set = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
 
-            bool isBlue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
-            std::string color = isBlue ? "\033[1;34m" : "\033[1;31m";
+            if (!bit_set) continue;
+
+            bool is_blue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
+            std::string color = is_blue ? "\033[1;34m" : "\033[1;31m";
 
             if (i == 7)
                 output = color + "G\033[0m";
@@ -35,6 +41,7 @@ namespace basic {
         std::cout << output << " ";
     }
 
+    Game::Game(){}
     // Constructor (no need to initialize static array here)
     Game::Game(playerName p_name) {
         if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
@@ -44,109 +51,104 @@ namespace basic {
     // shows gamestate as well as current player
     // converts our game to an string of Format:
     // r1r11RG1r1r1/2r14/4r22/7/3b23/2b14/b1b11BG1b1b1 b
-    std::string Game::gameToString() {
-
-        char strBuff[200] = {0};
-        int strBuffCounter = 0;
-        int shiftAmount = 0;
-        uint64_t total = this->bitBoards[8].getBitfield() | this->bitBoards[9].getBitfield();
+    // 1b11b11b11/1b11b11b11/1r11r11r11/1r11r11r11/1r11b11GB1/1RG5/7 b
+    void Game::gameToString(char* output) {
+        int str_buff_counter = 0;
+        int shift_amount = 0;
+        int empty_cells = 0;
+        uint64_t total_bits = this->bitBoards[8].getBitfield() | this->bitBoards[9].getBitfield();
 
         for (int row = 0; row < 7; row++) {
-            int emptyCells = 0;
-            shiftAmount++;
+            empty_cells = 0;
+            shift_amount++;
             for (int col = 0; col < 7; col++) {
-                if ((total >> shiftAmount) & 1) {
-                    if (emptyCells != 0) {
-                        strBuff[strBuffCounter] = char(emptyCells + '0');
-                        emptyCells = 0;
-                        strBuffCounter++;
-                    }
-
-                    if ((this->bitBoards[8].getBitfield() >> shiftAmount) & 1) {
-                        strBuff[strBuffCounter] = 'r';
-                    }else {
-                        strBuff[strBuffCounter] = 'b';
+                if (total_bits >> shift_amount & 1) {
+                    if (empty_cells != 0) {
+                        output[str_buff_counter] = char(empty_cells + '0');
+                        empty_cells = 0;
+                        str_buff_counter++;
                     }
                     for (int i = 0; i < 7; i++) {
-                        if ((this->bitBoards[i].getBitfield() >> shiftAmount) & 1) {
-                            strBuff[strBuffCounter + 1] = char(i + 1 + '0');
+                        if ((this->bitBoards[i].getBitfield() >> shift_amount) & 1) {
+                            if ((this->bitBoards[8].getBitfield() >> shift_amount) & 1) {
+                                output[str_buff_counter] = 'r';
+                            }else {
+                                output[str_buff_counter] = 'b';
+                            }
+                            output[str_buff_counter + 1] = char(i + 1 + '0');
                             break;
                         }
                     }
                     // Guard
-                    if ((this->bitBoards[7].getBitfield() >> shiftAmount) & 1){
-                        if ((this->bitBoards[8].getBitfield() >> shiftAmount) & 1) {
-                            strBuff[strBuffCounter] = 'R';
-                            strBuff[strBuffCounter + 1] = 'G';
+                    if ((this->bitBoards[7].getBitfield() >> shift_amount) & 1){
+                        if ((this->bitBoards[8].getBitfield() >> shift_amount) & 1) {
+                            output[str_buff_counter] = 'R';
+                            output[str_buff_counter + 1] = 'G';
                         }else {
-                            strBuff[strBuffCounter] = 'B';
-                            strBuff[strBuffCounter + 1] = 'G';
+                            output[str_buff_counter] = 'B';
+                            output[str_buff_counter + 1] = 'G';
                         }
                     }
-                    strBuffCounter = strBuffCounter + 2;
+                    str_buff_counter = str_buff_counter + 2;
 
                 }else {
-                    emptyCells++;
+                    empty_cells++;
                 }
-                shiftAmount++;
+                shift_amount++;
             }
-            if (emptyCells != 0) {
-                strBuff[strBuffCounter] = char(emptyCells + '0');
-                strBuffCounter++;
+            if (empty_cells != 0) {
+                output[str_buff_counter] = char(empty_cells + '0');
+                str_buff_counter++;
             }
-            strBuff[strBuffCounter] = '/';
-            strBuffCounter++;
-            shiftAmount++;
+            output[str_buff_counter] = '/';
+            str_buff_counter++;
+            shift_amount++;
         }
 
-        strBuff[strBuffCounter - 1] = ' ';
+        output[str_buff_counter - 1] = ' ';
         if (this->active_player == basic::playerName::red) {
-            strBuff[strBuffCounter] = 'r';
+            output[str_buff_counter] = 'r';
         }else {
-            strBuff[strBuffCounter] = 'b';
+            output[str_buff_counter] = 'b';
         }
-        strBuffCounter++;
-
-        char returnString[strBuffCounter + 1];
-        memcpy(returnString, strBuff, strBuffCounter);
-        returnString[strBuffCounter] = '\0';
-
-        return returnString;
-
+        str_buff_counter++;
+        output[str_buff_counter] = '\0';
     }
 
     // reads in the string and sets the bitmaps correspondingly
-    void Game::stringToGame(const std::string& game_string){
-        uint64_t boardPos = 2ULL; //second-lowest bit set to 1
-        for (size_t i = 0; i < game_string.length(); ++i) {
+    void Game::stringToGame(const char* game_string){
+        clearField();
+
+        uint64_t board_pos = 0b10ULL; //second-lowest bit set to 1
+        for (size_t i = 0; i < 64; ++i) {
             char c = game_string[i];
             if (c >= '0' && c <= '7') {
-                boardPos <<= (c - '0');
+                board_pos <<= (c - '0');
             }
             else if (c == 'r' || c == 'b') {
-                int colorIndex = (c == 'r') ? 8 : 9;
-                int towerHeight = (game_string[i + 1] - '0') - 1;
-                bitBoards[towerHeight].getBitfield() |= boardPos;
-                bitBoards[colorIndex].getBitfield() |= boardPos;
-                boardPos <<= 1;
+                int color_index = (c == 'r') ? 8 : 9;
+                int tower_height = (game_string[i + 1] - '0') - 1;
+                bitBoards[tower_height].getBitfield() |= board_pos;
+                bitBoards[color_index].getBitfield() |= board_pos;
+                board_pos <<= 1;
                 i++;
             }
             else if (c == 'R' || c == 'B') {
-                int colorIndex = (c == 'R') ? 8 : 9;
-                bitBoards[7].getBitfield() |= boardPos;
-                bitBoards[colorIndex].getBitfield() |= boardPos;
-                boardPos <<= 1;
+                int color_index = (c == 'R') ? 8 : 9;
+                bitBoards[7].getBitfield() |= board_pos;
+                bitBoards[color_index].getBitfield() |= board_pos;
+                board_pos <<= 1;
                 i++;
             }
             else if (c == '/') {
-                boardPos <<= 2;
+                board_pos <<= 2;
             }
             else if (c == ' ') {
                 char player = game_string[i+1];
                 if (player == 'r') {
-                    this->active_player = basic::playerName::red;
+                    this->active_player = red;
                 }else {
-                    this->active_player = basic::playerName::blue;
+                    this->active_player = blue;
                 }
                 break;
             }
