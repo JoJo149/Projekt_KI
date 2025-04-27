@@ -45,7 +45,7 @@ namespace basic {
         Game();
         Game(playerName);
 
-        void stringToGame(std::string game_string);
+        void stringToGame(const std::string& game_string);
         [[nodiscard]] std::string gameToString();
         void debugPrintGame();
         void printGame();
