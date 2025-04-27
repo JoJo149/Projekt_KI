@@ -25,7 +25,7 @@ namespace basic {
                 if (i == 7)
                     output = "\033[1;34mG\033[0m";
                 if(i > 7)
-                    output = "\033[1;31m" + std::to_string(i-8) + "\033[0m";
+                    output = "\033[1;31m" + std::to_string(i-7) + "\033[0m";
                 if (i == 15)
                     output = "\033[1;31mG\033[0m";
                 break;
@@ -37,10 +37,16 @@ namespace basic {
     // Constructor (no need to initialize static array here)
     Game::Game(playerName p_name) {
         this->active_player = p_name;
-        this->bitBoards[B_2].getBitfield() = 0xb010011ULL;
-        this->bitBoards[R_G].getBitfield() = 0xb001100ULL;
-        this->bitBoards[B_G].getBitfield() = 0xb01ULL;
-        this->bitBoards[B_6].getBitfield() = 0xb0000000001ULL;
+        this->bitBoards[B_2].getBitfield() =
+            (1ULL << 55) | (1ULL << 61) |
+            (1ULL << 46) | (1ULL << 52) |
+            (1ULL << 37) | (1ULL << 43) |
+            (1ULL << 28) | (1ULL << 34) |
+            (1ULL << 19) | (1ULL << 25) |
+            (1ULL << 10) | (1ULL << 16) |
+            (1ULL << 1)  | (1ULL << 7);
+        this->bitBoards[R_6].getBitfield() =
+            (1ULL << 57) | (1ULL << 59);
     }
 
     // shows gamestate as well as current player
@@ -60,9 +66,9 @@ namespace basic {
         for (int i = 0; i < 16; i++) {
             std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
             const auto bit_board = this->bitBoards[i].getBitfield();
-            for (int row = 0; row < 7; ++row) {
-                for (int col = 0; col < 7; ++col) {
-                    int bit_index = (row * 8 + col);
+            for (int row = 0; row < 7; row++) {
+                for (int col = 1; col < 8; col++) {
+                    const int bit_index = (row * 9 + col);
                     std::cout << ((bit_board >> bit_index) & 1) << " ";
                 }
                 std::cout << std::endl;
@@ -72,10 +78,10 @@ namespace basic {
     }
 
     void Game::printGame() {
-        for (int row = 0; row < 7; ++row) {
-            std::cout << 8-(row + 1) << " ";
-            for (int col = 0; col < 7; ++col) {
-                int bit_index = (row * 8 + col);
+        for (int row = 0; row < 7; row++) {
+            std::cout << 8 - (row + 1) << " ";
+            for (int col = 1; col < 8; col++) {
+                const int bit_index = (row * 9 + col);
                 printField(bit_index);
             }
             std::cout << std::endl;

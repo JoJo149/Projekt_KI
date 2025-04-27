@@ -5,6 +5,6 @@
 int main() {
     basic::Game game(basic::playerName::blue);
     game.printGame();
-    // game.debugPrintGame();
+    game.debugPrintGame();
     return 0;
 }
