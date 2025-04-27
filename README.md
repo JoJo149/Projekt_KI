@@ -21,8 +21,7 @@ git clone https://git.tu-berlin.de/hallo123/projekt-ki.git
 If u use CLION u should just richt-click the cmake file and reload it.\
 Afterwards u should be able to pick the run config: ``` projekt_ki ``` and the test config: ``` tests ```\
 \
-If u plan on using the Terminal here are the needed instructions:
-Initialization:
+If u plan on using the Terminal here are the needed instructions for  Initialization:
 ```
 mkdir -p build
 cd build
@@ -43,6 +42,20 @@ Lastly u are now ready to run the binary ``` ./projekt_ki ``` or other generated
 - Unit-Tests und Benchmarks
 - Foliensatz oder Text für Abgabe
 - Screencast für Abgabe
+
+## Bit Board definition
+We us 64 Bit, which get used as followed:\
+[x \
+x b b b b b b b x \
+x b b b b b b b x \
+x b b b b b b b x \
+x b b b b b b b x \
+x b b b b b b b x \
+x b b b b b b b x \
+x b b b b b b b x] \
+63-----------------0 \
+- b are the bits used for the board
+- x are the separating bits
 
 ## contribution guidelines
 Variable names in snake_case.\
