@@ -20,6 +20,14 @@ namespace basic {
         }
     }
 
+    void Game::clearSeperatingBits() {
+        for (auto bit_board: this->bitBoards) {
+            constexpr uint64_t mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
+            bit_board.getBitfield() &= mask;
+        }
+    }
+
+
     void Game::printField(int bit_index) {
         std::string output = "\033[38;5;239m0\033[0m";
         for (int i = 0; i < 8; ++i) {

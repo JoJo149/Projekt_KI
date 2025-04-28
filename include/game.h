@@ -39,6 +39,7 @@ namespace basic {
         playerName active_player;
         void printField(int);
         void clearField();
+        void clearSeperatingBits();
 
     public:
         static const char* boardNames[10];
