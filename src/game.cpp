@@ -190,4 +190,14 @@ namespace basic {
         }
         std::cout << "  A B C D E F G" << std::endl;
     }
+
+    void Game::MoveGenerator() {
+        uint64_t board_pos = 0b1ULL;
+        uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+        
+        for (int i = 0; i < 63; i++) {
+            board_pos <<= 1;
+
+        }
+    }
 }
