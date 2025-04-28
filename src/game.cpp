@@ -192,11 +192,66 @@ namespace basic {
     }
 
     void Game::MoveGenerator() {
+        constexpr int left_shift = 1;
+        constexpr int right_shift = - 1;
+        constexpr int up_shift = 9;
+        constexpr int down_shift = -9;
         uint64_t board_pos = 0b1ULL;
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
-
+        uint64_t enemy_board = (active_player == blue) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+        for (auto bit_board: this->moves) {
+            bit_board.getBitfield() = 0;
+        }
+        int stoner = 0;
+        int used_boards = 0;
         for (int i = 0; i < 63; i++) {
             board_pos <<= 1;
+            if (player_board & board_pos != 0) {
+                for (int h = 0; h < 8; h++) {
+                    if (bitBoards[h].getBitfield() & board_pos != 0) {
+                        if (h == 7) {
+                            stoner++;
+                            used_boards++;
+                            // Guard
+                            break;
+                        }
+                        if (h == 0) {
+                            break;
+                        }
+                        if (h == 1) {
+                            break;
+                        }
+
+                        for (int l = 0; l < h + 1; h++) {
+                            uint64_t possible_move = board_pos << (left_shift * l);
+                            if(possible_move & player_board) {
+                                moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
+                                break;
+                            }
+                            if(possible_move & enemy_board) {
+                                for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
+                                    if (enemy_h == 7) {
+                                        moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
+                                        break;
+                                    }
+                                    if (possible_move & bitBoards[enemy_h].getBitfield() != 0) {
+                                        if (enemy_h < h) {
+                                            moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
+                                        }
+                                        break;
+                                    }
+                                }
+                                break;
+                            }
+                            moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
+                        }
+
+                        stoner += h + 1;
+                        used_boards++;
+                        break;
+                    }
+                }
+            }
 
         }
     }
