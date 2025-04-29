@@ -49,7 +49,13 @@ namespace basic {
         BitBoard bitBoards[10];
         BitBoard moves[56];
         playerName active_player;
-        void printField(int);
+
+        void printGameHelper(int);
+        int generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
+        void generatorBaseCase(const int &shift_dir, const int &tower_height, const int &used_boards,
+                                     const uint64_t &board_pos,
+                                     const uint64_t &player_board, const uint64_t &enemy_board);
+
         void clearField();
         void clearSeperatingBits();
 
@@ -61,9 +67,13 @@ namespace basic {
 
         void stringToGame(const char*);
         void gameToString(char*);
-        void debugPrintGame();
+
+        void generateMoves();
+
         void printGame();
-        void MoveGenerator();
+
+        void debugPrintGame();
+        void debugPrintMove();
     };
 }
 

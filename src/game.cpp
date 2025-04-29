@@ -28,7 +28,7 @@ namespace basic {
     }
 
 
-    void Game::printField(int bit_index) {
+    void Game::printGameHelper(int bit_index) {
         std::string output = "\033[38;5;239m0\033[0m";
         for (int i = 0; i < 8; ++i) {
             bool bit_set = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
@@ -178,78 +178,118 @@ namespace basic {
             i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
         }
     }
+    void Game::debugPrintMove() {
+        for (int i = 0; i < 56; i++) {
+            std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
+            const auto bit_board = this->moves[i].getBitfield();
+            for (int row = 0; row < 7; row++) {
+                for (int col = 1; col < 8; col++) {
+                    const int bit_index = (row * 9 + col);
+                    std::cout << ((bit_board >> bit_index) & 1) << " ";
+                }
+                std::cout << std::endl;
+            }
+            i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
+        }
+    }
 
     void Game::printGame() {
         for (int row = 0; row < 7; row++) {
             std::cout << 8 - (row + 1) << " ";
             for (int col = 1; col < 8; col++) {
                 const int bit_index = (row * 9 + col);
-                printField(bit_index);
+                printGameHelper(bit_index);
             }
             std::cout << std::endl;
         }
         std::cout << "  A B C D E F G" << std::endl;
     }
 
-    void Game::MoveGenerator() {
-        constexpr int left_shift = 1;
-        constexpr int right_shift = - 1;
-        constexpr int up_shift = 9;
-        constexpr int down_shift = -9;
+    void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
+            const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board)
+    {
+        for (int i = 0; i < tower_height; i++) {
+            uint64_t possible_move = board_pos << (shift_dir * i);
+            if(possible_move & player_board) {
+                moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                break;
+            }
+            if(possible_move & enemy_board) {
+                for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
+                    if (enemy_h == 7) {
+                        moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+                        break;
+                    }
+                    if (possible_move & bitBoards[enemy_h].getBitfield() != 0) {
+                        if (enemy_h < tower_height - 1) {
+                            moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+                        }
+                        break;
+                    }
+                }
+                break;
+            }
+            moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+        }
+    }
+
+    // called if u have found an active player tower
+    // return how many Stones the Tower has
+    int Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
+        constexpr int shifts[4] = {1, -1, 9, -9};
+        for (int h = 0; h < 8; h++) {
+            // if tower board does not have pos biot set -> got to next loop
+            if (bitBoards[h].getBitfield() & board_pos == 0) {
+                continue;
+            }
+
+            if (h == 7) {
+                used_boards++;
+                // Guard
+                return 1;
+            }
+            // TODO base case for Tower of height 1 and 2
+            /*
+            if (h == 0) {
+                return 1;
+            }
+            if (h == 1) {
+                return 2;
+            }*/
+
+            // base case for tower of height 3-7
+            for (int i = 0; i < 4; i++) {
+                generatorBaseCase(shifts[i],h+1,
+                        used_boards, board_pos, player_board, enemy_board);
+            }
+            used_boards++;
+            return h+1;
+        }
+
+        // should never be the case
+        return 0;
+    }
+
+    void Game::generateMoves() {
+        // left-, right-, up-, down-shift
+
         uint64_t board_pos = 0b1ULL;
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
         uint64_t enemy_board = (active_player == blue) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+
+        //clear Move Boards
         for (auto bit_board: this->moves) {
             bit_board.getBitfield() = 0;
         }
-        int stoner = 0;
+
+        int stones_visited = 0;
         int used_boards = 0;
         for (int i = 0; i < 63; i++) {
             board_pos <<= 1;
             if (player_board & board_pos != 0) {
-                for (int h = 0; h < 8; h++) {
-                    if (bitBoards[h].getBitfield() & board_pos != 0) {
-                        if (h == 7) {
-                            stoner++;
-                            used_boards++;
-                            // Guard
-                            break;
-                        }
-                        if (h == 0) {
-                            break;
-                        }
-                        if (h == 1) {
-                            break;
-                        }
-
-                        for (int l = 0; l < h + 1; h++) {
-                            uint64_t possible_move = board_pos << (left_shift * l);
-                            if(possible_move & player_board) {
-                                moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
-                                break;
-                            }
-                            if(possible_move & enemy_board) {
-                                for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
-                                    if (enemy_h == 7) {
-                                        moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
-                                        break;
-                                    }
-                                    if (possible_move & bitBoards[enemy_h].getBitfield() != 0) {
-                                        if (enemy_h < h) {
-                                            moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
-                                        }
-                                        break;
-                                    }
-                                }
-                                break;
-                            }
-                            moves[used_boards * 7 + h + 1].getBitfield() |= possible_move;
-                        }
-
-                        stoner += h + 1;
-                        used_boards++;
-                        break;
-                    }
+                stones_visited += generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
+                if (stones_visited == 8) {
+                    break;
                 }
             }
 
