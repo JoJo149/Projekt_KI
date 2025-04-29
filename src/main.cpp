@@ -3,16 +3,36 @@
 #include <bitset>
 
 int main() {
-    basic::Game game(basic::playerName::blue);
-    
-    //game.stringToGame("7/6r5/2r14/2RGb13/2b2r42BG/7/6r2 r");
-    game.printGame();
-    game.generateMoves();
-    game.debugPrintMove();
+    using namespace basic;
 
-    // char output[64];
-    // game.gameToString(output);
-    // std::cout << output << std::endl;
-    // game.debugPrintGame();
+    std::string input;
+    std::cout << "Do you want to play first? (y/n): ";
+    std::cin >> input;
+
+    bool playerStarts = (input == "y" || input == "Y");
+    basic::Game game(basic::playerName::blue);
+
+    game.printGame();
+    if (!playerStarts) {
+        std::cout << "KI starts...\n";
+        game.generateMoves(); // KI move first
+        game.printGame();
+    }
+
+    while (true){//!game.isOver()) {
+        std::cout << "all possible Moves: \n";
+        std::cout << "Your move: \n";
+        input = "";
+        std::cin >> input;
+
+        game.printGame();
+
+        std::cout << "KI move...\n";
+        game.generateMoves(); // KI move
+        game.printGame();
+        break;
+    }
+
+    std::cout << "Game over!\n";
     return 0;
 }
