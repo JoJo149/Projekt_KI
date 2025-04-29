@@ -217,19 +217,19 @@ namespace basic {
             if(possible_move & enemy_board) {
                 for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
                     if (enemy_h == 7) {
-                        moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+                        moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
                         break;
                     }
-                    if (possible_move & bitBoards[enemy_h].getBitfield() != 0) {
-                        if (enemy_h < tower_height - 1) {
-                            moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+                    if ((possible_move & bitBoards[enemy_h].getBitfield()) != 0) {
+                        if (enemy_h + 1 <= tower_height) {
+                            moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
                         }
                         break;
                     }
                 }
                 break;
             }
-            moves[used_boards * 7 + tower_height].getBitfield() |= possible_move;
+            moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
         }
     }
 
