@@ -6,11 +6,15 @@ int main() {
     using namespace basic;
 
     std::string input;
-    std::cout << "Do you want to play first? (y/n): ";
+    std::cout << "Do you want to play first? (y/n): \n";
     std::cin >> input;
 
+
+    // our player is blue
     bool playerStarts = (input == "y" || input == "Y");
-    basic::Game game(basic::playerName::blue);
+
+    playerName start_color = playerStarts ? blue : red;
+    basic::Game game(start_color);
 
     game.printGame();
     if (!playerStarts) {
@@ -20,6 +24,7 @@ int main() {
     }
 
     while (true){//!game.isOver()) {
+        game.generateMoves();
         std::cout << "all possible Moves: \n";
         std::cout << "Your move: \n";
         input = "";
