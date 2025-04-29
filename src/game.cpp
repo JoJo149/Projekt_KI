@@ -5,6 +5,7 @@
 #include <string>
 #include <cstring>
 #include <cstdint>
+#include <vector>
 
 
 namespace basic {
@@ -141,6 +142,17 @@ namespace basic {
         }
     }
 
+    void printBitboard (BitBoard bitboard) {
+        for (int row = 0; row < 7; row++) {
+            for (int col = 1; col < 8; col++) {
+                const int bit_index = (row * 9 + col);
+                std::cout << ((bitboard.getBitfield() >> bit_index) & 1) << " ";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+
     //Prints every bitmask values for debugging purpose
     void Game::debugPrintGame() {
         for (int i = 0; i < 10; i++) {
@@ -156,18 +168,13 @@ namespace basic {
             i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
         }
     }
+
     void Game::debugPrintMove() {
         for (int i = 0; i < 56; i++) {
             if (this->moves[i].getBitfield() != 0) {
                 std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
-                const auto bit_board = this->moves[i].getBitfield();
-                for (int row = 0; row < 7; row++) {
-                    for (int col = 1; col < 8; col++) {
-                        const int bit_index = (row * 9 + col);
-                        std::cout << ((bit_board >> bit_index) & 1) << " ";
-                    }
-                    std::cout << std::endl;
-                }
+                const auto bit_board = this->moves[i];
+                printBitboard(bit_board);
                 i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
             }
         }
@@ -316,7 +323,7 @@ namespace basic {
         uint64_t enemy_board = (active_player == blue) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
 
         //clear Move Boards
-        for (auto bit_board: this->moves) {
+        for (auto& bit_board: this->moves) {
             bit_board.getBitfield() = 0;
         }
 
@@ -333,5 +340,58 @@ namespace basic {
             }
 
         }
+    }
+
+    // TODO bessere Suche (Masken wie bei Errorcorrection)
+    std::vector<std::string> Game::readableMoves() {
+        std::vector<std::string> move_list = {};
+        int player_row = 0;
+        int player_col = 0;
+        for (int t = 0; t < 8; t++) {
+            if (moves[t * 7].getBitfield() == 0) {
+                break;
+            }
+            uint64_t player_pos = moves[t * 7].getBitfield();
+            //printBitboard(moves[t * 7]);
+            uint64_t board_pos = 0b1ULL;
+            for (player_row = 0; player_row < 7; player_row++) {
+                bool brk = false;
+                for (player_col = 0; player_col < 9; player_col++) {
+                    board_pos <<= 1;
+                    if ((player_pos & board_pos) != 0) {
+                        brk = true;
+                        break;
+                    }
+                }
+                if (brk == true) {
+                    break;
+                }
+            }
+            //std::cout << char(player_col + 'A') << char('7' - player_row) << std::endl;
+            for (int m = 1; m < 7; m++) {
+
+                if (this->moves[t * 7 + m].getBitfield() != 0) {
+
+                    board_pos = 0b1ULL;
+                    for (int move_row = 0; move_row < 7; move_row++) {
+                        for (int move_col = 0; move_col < 9; move_col++) {
+                            board_pos <<= 1;
+                            if ((moves[t * 7 + m].getBitfield() & board_pos) != 0) {
+                                char player_c1 = char(player_col + 'A');
+                                char player_c2 = char('7' - player_row);
+                                char move_c1 = char(move_col + 'A');
+                                char move_c2 = char('7' - move_row);
+
+                                int steps = abs(player_row - move_row) + abs(player_col - move_col);
+                                std::string move = {player_c1, player_c2, '-', move_c1, move_c2, '-', char(steps + '0')};
+                                //std::cout << move << std::endl;
+                                move_list.push_back(move);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return move_list;
     }
 }

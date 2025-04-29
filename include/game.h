@@ -2,6 +2,7 @@
 #define GAME_H
 #include <string>
 #include <cstdint>
+#include <vector>
 
 namespace basic {
     enum playerName : bool {
@@ -42,6 +43,7 @@ namespace basic {
     public:
         BitBoard() : bitfield(0) {}
         [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
+        void printBitboard (BitBoard);
     };
 
     class Game {
@@ -70,6 +72,7 @@ namespace basic {
 
         void generateMoves();
         bool isGameOver();
+        [[nodiscard]] std::vector<std::string> readableMoves();
 
         void printGame();
 

@@ -26,6 +26,11 @@ int main() {
     while (!game.isGameOver()) {
         game.generateMoves();
         std::cout << "all possible Moves: \n";
+        std::vector<std::string> moves = game.readableMoves();
+        for (const auto& move: moves) {
+            std::cout << move << ", " ;
+        }
+        std::cout << std::endl;
         std::cout << "Your move: \n";
         input = "";
         std::cin >> input;
