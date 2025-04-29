@@ -4,6 +4,8 @@
 
 int main() {
     basic::Game game(basic::playerName::blue);
+    
+    //game.stringToGame("7/6r5/2r14/2RGb13/2b2r42BG/7/6r2 r");
     game.printGame();
     game.generateMoves();
     game.debugPrintMove();

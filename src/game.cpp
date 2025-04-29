@@ -15,13 +15,13 @@ namespace basic {
     };
 
     void Game::clearField() {
-        for (auto bit_board: this->bitBoards) {
+        for (auto& bit_board: this->bitBoards) {
             bit_board.getBitfield() = 0;
         }
     }
 
     void Game::clearSeperatingBits() {
-        for (auto bit_board: this->bitBoards) {
+        for (auto& bit_board: this->bitBoards) {
             constexpr uint64_t mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
             bit_board.getBitfield() &= mask;
         }
@@ -180,16 +180,18 @@ namespace basic {
     }
     void Game::debugPrintMove() {
         for (int i = 0; i < 56; i++) {
-            std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
-            const auto bit_board = this->moves[i].getBitfield();
-            for (int row = 0; row < 7; row++) {
-                for (int col = 1; col < 8; col++) {
-                    const int bit_index = (row * 9 + col);
-                    std::cout << ((bit_board >> bit_index) & 1) << " ";
+            if (this->moves[i].getBitfield() != 0) {
+                std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
+                const auto bit_board = this->moves[i].getBitfield();
+                for (int row = 0; row < 7; row++) {
+                    for (int col = 1; col < 8; col++) {
+                        const int bit_index = (row * 9 + col);
+                        std::cout << ((bit_board >> bit_index) & 1) << " ";
+                    }
+                    std::cout << std::endl;
                 }
-                std::cout << std::endl;
+                i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
             }
-            i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
         }
     }
 
@@ -209,19 +211,40 @@ namespace basic {
             const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board)
     {
         for (int i = 0; i < tower_height; i++) {
-            uint64_t possible_move = board_pos << (shift_dir * i);
-            if(possible_move & player_board) {
+            uint64_t possible_move = 0;
+            if (shift_dir > 0) {
+                possible_move = board_pos << (shift_dir * (i + 1));
+            }else {
+                possible_move = board_pos >> (-shift_dir * (i + 1));
+            }
+            // Zug über seitlichen Rand
+            constexpr uint64_t seperating_bit_mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
+            if ((possible_move | seperating_bit_mask) != seperating_bit_mask) {
+                break;
+            }
+            // Guard can not go on top of player tower
+            if((possible_move & player_board) && (tower_height != 8)) {
+                // tower can not go on top of Guard
+                if ((possible_move & bitBoards[T_G].getBitfield()) != 0){
+                    break;
+                }
                 moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
                 break;
             }
             if(possible_move & enemy_board) {
                 for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
+                    // player tower is Guard
+                    if (tower_height == 8) {
+                        moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                        break;
+                    }
+                    // enemy is Guard
                     if (enemy_h == 7) {
                         moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
                         break;
                     }
                     if ((possible_move & bitBoards[enemy_h].getBitfield()) != 0) {
-                        if (enemy_h + 1 <= tower_height) {
+                        if ((enemy_h) <= i) {
                             moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
                         }
                         break;
@@ -230,24 +253,24 @@ namespace basic {
                 break;
             }
             moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+            if (tower_height == 8) {
+                break;
+            }
         }
     }
 
     // called if u have found an active player tower
     // return how many Stones the Tower has
     int Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
+        //                   left, right, up, down
         constexpr int shifts[4] = {1, -1, 9, -9};
         for (int h = 0; h < 8; h++) {
             // if tower board does not have pos biot set -> got to next loop
-            if (bitBoards[h].getBitfield() & board_pos == 0) {
+            if ((bitBoards[h].getBitfield() & board_pos) == 0) {
                 continue;
             }
 
-            if (h == 7) {
-                used_boards++;
-                // Guard
-                return 1;
-            }
+
             // TODO base case for Tower of height 1 and 2
             /*
             if (h == 0) {
@@ -263,6 +286,9 @@ namespace basic {
                         used_boards, board_pos, player_board, enemy_board);
             }
             used_boards++;
+            if (h == 7) {
+                return 1;
+            }
             return h+1;
         }
 
@@ -271,8 +297,6 @@ namespace basic {
     }
 
     void Game::generateMoves() {
-        // left-, right-, up-, down-shift
-
         uint64_t board_pos = 0b1ULL;
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
         uint64_t enemy_board = (active_player == blue) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
@@ -286,7 +310,8 @@ namespace basic {
         int used_boards = 0;
         for (int i = 0; i < 63; i++) {
             board_pos <<= 1;
-            if (player_board & board_pos != 0) {
+            if ((player_board & board_pos) != 0) {
+                moves[used_boards * 7].getBitfield() = board_pos;
                 stones_visited += generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
                 if (stones_visited == 8) {
                     break;
