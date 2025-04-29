@@ -23,19 +23,26 @@ int main() {
         game.printGame();
     }
 
-    while (true){//!game.isOver()) {
+    while (!game.isGameOver()) {
         game.generateMoves();
         std::cout << "all possible Moves: \n";
         std::cout << "Your move: \n";
         input = "";
         std::cin >> input;
 
+        if (game.isGameOver()) {
+            std::cout << "U won nice" << std::endl;
+            break;
+        }
         game.printGame();
 
         std::cout << "KI move...\n";
         game.generateMoves(); // KI move
         game.printGame();
-        break;
+        if (game.isGameOver()) {
+            std::cout << "KI won unlucky" << std::endl;
+            break;
+        }
     }
 
     std::cout << "Game over!\n";

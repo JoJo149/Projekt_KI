@@ -69,6 +69,7 @@ namespace basic {
         void gameToString(char*);
 
         void generateMoves();
+        bool isGameOver();
 
         void printGame();
 

@@ -27,28 +27,6 @@ namespace basic {
         }
     }
 
-
-    void Game::printGameHelper(int bit_index) {
-        std::string output = "\033[38;5;239m0\033[0m";
-        for (int i = 0; i < 8; ++i) {
-            bool bit_set = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
-
-            if (!bit_set) continue;
-
-            bool is_blue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
-            std::string color = is_blue ? "\033[1;34m" : "\033[1;31m";
-
-            if (i == 7)
-                output = color + "G\033[0m";
-            else
-                output = color + std::to_string(i + 1) + "\033[0m";
-
-            break;
-        }
-
-        std::cout << output << " ";
-    }
-
     Game::Game(){}
     // Constructor (no need to initialize static array here)
     Game::Game(playerName p_name) {
@@ -195,6 +173,26 @@ namespace basic {
         }
     }
 
+    void Game::printGameHelper(int bit_index) {
+        std::string output = "\033[38;5;239m0\033[0m";
+        for (int i = 0; i < 8; ++i) {
+            bool bit_set = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
+
+            if (!bit_set) continue;
+
+            bool is_blue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
+            std::string color = is_blue ? "\033[1;34m" : "\033[1;31m";
+
+            if (i == 7)
+                output = color + "G\033[0m";
+            else
+                output = color + std::to_string(i + 1) + "\033[0m";
+
+            break;
+        }
+
+        std::cout << output << " ";
+    }
     void Game::printGame() {
         for (int row = 0; row < 7; row++) {
             std::cout << 8 - (row + 1) << " ";
@@ -205,6 +203,22 @@ namespace basic {
             std::cout << std::endl;
         }
         std::cout << "  A B C D E F G" << std::endl;
+    }
+
+    bool Game::isGameOver() {
+        constexpr uint64_t guard_pos_up = 0b0000010000000000000000000000000000000000000000000000000000000000;
+        constexpr uint64_t guard_pos_down = 0b0000000000000000000000000000000000000000000000000000000000010000;
+
+        // if red guard is in bot guard field
+        if (this->bitBoards[T_G].getBitfield() & this->bitBoards[C_R].getBitfield() & guard_pos_down != 0) {
+            return true;
+        }
+        // if blue guard is in top guard field
+        if (this->bitBoards[T_G].getBitfield() & this->bitBoards[C_B].getBitfield() & guard_pos_up != 0) {
+            return true;
+        }
+        // check if one of the guards got killed
+        return __builtin_popcountll(this->bitBoards[T_G].getBitfield()) == 1;
     }
 
     void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
