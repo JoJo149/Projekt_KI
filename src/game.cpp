@@ -381,9 +381,8 @@ namespace basic {
                                 char player_c2 = char('7' - player_row);
                                 char move_c1 = char(move_col + 'A');
                                 char move_c2 = char('7' - move_row);
-
-                                int steps = abs(player_row - move_row) + abs(player_col - move_col);
-                                std::string move = {player_c1, player_c2, '-', move_c1, move_c2, '-', char(steps + '0')};
+                                
+                                std::string move = {player_c1, player_c2, '-', move_c1, move_c2, '-', char(m + '0')};
                                 //std::cout << move << std::endl;
                                 move_list.push_back(move);
                             }
