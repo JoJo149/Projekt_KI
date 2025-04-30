@@ -12,10 +12,12 @@ cd existing_repo
 if u use ssh:
 ```
 git clone git@git.tu-berlin.de:hallo123/projekt-ki.git
+git submodule update --init --recursive --remote
 ```
 if u use https:
 ```
 git clone https://git.tu-berlin.de/hallo123/projekt-ki.git
+git submodule update --init --recursive --remote
 ```
 
 If u use CLION u should just richt-click the cmake file and reload it.\
