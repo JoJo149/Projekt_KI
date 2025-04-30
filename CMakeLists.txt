@@ -15,17 +15,6 @@ add_executable(projekt_ki ${SRC_FILES})
 target_include_directories(projekt_ki PRIVATE include)
 
 # ----------------------------------------------------------------------------
-# Tests
-Include(FetchContent)
-
-# references the git repository directly -> folder in ext seems empty
-FetchContent_Declare(
-        Catch2
-        GIT_REPOSITORY https://github.com/catchorg/Catch2.git
-        GIT_TAG        v3.4.0 # or a later release
-)
-
-FetchContent_MakeAvailable(Catch2)
 
 # DONT INCLUDE MAIN
 set(SRC_FILES_NO_MAIN "")
@@ -35,12 +24,21 @@ foreach(file ${SRC_FILES})
     endif()
 endforeach()
 
+add_subdirectory(ext/csv-parser)
+add_subdirectory(ext/Catch2)
+
+
 add_executable(tests
         ${TEST_FILES}
         ${SRC_FILES_NO_MAIN}
 )
+
 target_include_directories(tests PRIVATE include ext/Catch2/single_include)
-target_link_libraries(tests PRIVATE Catch2::Catch2WithMain)
+target_link_libraries(tests
+        PRIVATE
+        csv
+        Catch2::Catch2WithMain
+)
 
 # ----------------------------------------------------------------------------
 # Enable test discovery
@@ -54,3 +52,17 @@ catch_discover_tests(tests
         --benchmark-samples 500
         --benchmark-warmup-time 100ms
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    find_program(CLANG_PATH clang++)
+    execute_process(
+            COMMAND ${CLANG_PATH} --print-resource-dir
+            OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+            OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+
+    target_link_libraries(tests
+            PRIVATE
+            ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
+    )
+endif()
