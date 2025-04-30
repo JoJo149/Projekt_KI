@@ -69,6 +69,7 @@ namespace basic {
 
         void stringToGame(const char*);
         void gameToString(char*);
+        [[nodiscard]] static std::pair<uint64_t, uint64_t> stringToBitboard (std::string);
 
         void generateMoves();
         bool isGameOver();

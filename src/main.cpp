@@ -15,15 +15,15 @@ int main() {
 
     playerName start_color = playerStarts ? blue : red;
     basic::Game game(start_color);
-
-
+    
     if (!playerStarts) {
         std::cout << "KI starts...\n";
         game.generateMoves(); // KI move first
     }
     game.printGame();
 
-    while (!game.isGameOver()) {
+    while (!game.isGameOver() || playerStarts) {
+        playerStarts = false;
         game.generateMoves();
         std::cout << "ur turn...\n";
         std::cout << "all possible Moves: \n";

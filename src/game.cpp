@@ -142,11 +142,11 @@ namespace basic {
         }
     }
 
-    void printBitboard (BitBoard bitboard) {
+    void printBitboard (uint64_t bitboard) {
         for (int row = 0; row < 7; row++) {
             for (int col = 1; col < 8; col++) {
                 const int bit_index = (row * 9 + col);
-                std::cout << ((bitboard.getBitfield() >> bit_index) & 1) << " ";
+                std::cout << ((bitboard >> bit_index) & 1) << " ";
             }
             std::cout << std::endl;
         }
@@ -173,7 +173,7 @@ namespace basic {
         for (int i = 0; i < 56; i++) {
             if (this->moves[i].getBitfield() != 0) {
                 std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
-                const auto bit_board = this->moves[i];
+                const auto bit_board = this->moves[i].getBitfield();
                 printBitboard(bit_board);
                 i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
             }
@@ -352,7 +352,7 @@ namespace basic {
                 break;
             }
             uint64_t player_pos = moves[t * 7].getBitfield();
-            //printBitboard(moves[t * 7]);
+            //printBitboard(moves[t * 7]).getBitfield();
             uint64_t board_pos = 0b1ULL;
             for (player_row = 0; player_row < 7; player_row++) {
                 bool brk = false;
@@ -392,5 +392,15 @@ namespace basic {
             }
         }
         return move_list;
+    }
+
+    std::pair<uint64_t, uint64_t> Game::stringToBitboard (std::string str) {
+        std::pair<uint64_t, uint64_t> player_move = {0,0};
+        player_move.first = 0b1 << (str[0] - 'A' + 1);
+        player_move.first <<= (('7' - str[1]) * 9);
+
+        player_move.second = 0b1 << (str[3] - 'A' + 1);
+        player_move.second <<= (('7' - str[4]) * 9);
+        return player_move;
     }
 }
