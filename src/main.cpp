@@ -16,29 +16,33 @@ int main() {
     playerName start_color = playerStarts ? blue : red;
     basic::Game game(start_color);
 
-    game.printGame();
+
     if (!playerStarts) {
         std::cout << "KI starts...\n";
         game.generateMoves(); // KI move first
-        game.printGame();
     }
+    game.printGame();
 
     while (!game.isGameOver()) {
         game.generateMoves();
+        std::cout << "ur turn...\n";
         std::cout << "all possible Moves: \n";
         std::vector<std::string> moves = game.readableMoves();
         for (const auto& move: moves) {
             std::cout << move << ", " ;
         }
         std::cout << std::endl;
-        std::cout << "Your move: \n";
-        input = "";
-        std::cin >> input;
 
         if (game.isGameOver()) {
             std::cout << "U won nice" << std::endl;
             break;
         }
+
+        std::cout << "Your move: \n";
+        input = "";
+        std::cin >> input;
+
+
         game.printGame();
 
         std::cout << "KI move...\n";

@@ -224,8 +224,8 @@ namespace basic {
         if (this->bitBoards[T_G].getBitfield() & this->bitBoards[C_B].getBitfield() & guard_pos_up != 0) {
             return true;
         }
-        // check if one of the guards got killed
-        return __builtin_popcountll(this->bitBoards[T_G].getBitfield()) == 1;
+        // check if move possible and if one of the guards got killed
+        return this->moves[0].getBitfield() == 0 || __builtin_popcountll(this->bitBoards[T_G].getBitfield()) == 1;
     }
 
     void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
