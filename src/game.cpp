@@ -231,50 +231,58 @@ namespace basic {
     void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
             const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board)
     {
-        for (int i = 0; i < tower_height; i++) {
+        for (int move_len = 0; move_len < tower_height; move_len++) {
             uint64_t possible_move = 0;
             if (shift_dir > 0) {
-                possible_move = board_pos << (shift_dir * (i + 1));
+                possible_move = board_pos << (shift_dir * (move_len + 1));
             }else {
-                possible_move = board_pos >> (-shift_dir * (i + 1));
+                possible_move = board_pos >> (-shift_dir * (move_len + 1));
             }
             // Zug über seitlichen Rand
-            constexpr uint64_t seperating_bit_mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
-            if ((possible_move | seperating_bit_mask) != seperating_bit_mask) {
+            constexpr uint64_t seperating_bit_mask = 0b1100000001100000001100000001100000001100000001100000001100000001;
+            if ((possible_move & seperating_bit_mask) != 0) {
                 break;
             }
+
             // Guard can not go on top of player tower
-            if((possible_move & player_board) && (tower_height != 8)) {
+            if((possible_move & player_board) && (tower_height-1 == T_G)){
+                break;
+            }
+
+            // if own tower in the way
+            if(possible_move & player_board) {
                 // tower can not go on top of Guard
                 if ((possible_move & bitBoards[T_G].getBitfield()) != 0){
                     break;
                 }
-                moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
                 break;
             }
+
             if(possible_move & enemy_board) {
                 for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
                     // player tower is Guard
-                    if (tower_height == 8) {
-                        moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                    if (tower_height-1 == T_G) {
+                        moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
                         break;
                     }
                     // enemy is Guard
-                    if (enemy_h == 7) {
-                        moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                    if (enemy_h == T_G) {
+                        moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
                         break;
                     }
                     if ((possible_move & bitBoards[enemy_h].getBitfield()) != 0) {
-                        if ((enemy_h) <= i) {
-                            moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
+                        if (enemy_h <= move_len) {
+                            moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
                         }
                         break;
                     }
                 }
                 break;
             }
-            moves[used_boards * 7 + i + 1].getBitfield() |= possible_move;
-            if (tower_height == 8) {
+            moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
+            // if u are a guard tower u can only move one step
+            if (tower_height-1 == T_G) {
                 break;
             }
         }
@@ -283,10 +291,10 @@ namespace basic {
     // called if u have found an active player tower
     // return how many Stones the Tower has
     int Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
-        //                   left, right, up, down
+        // left, right, up, down
         constexpr int shifts[4] = {1, -1, 9, -9};
         for (int h = 0; h < 8; h++) {
-            // if tower board does not have pos biot set -> got to next loop
+            // if tower board does not have pos bit set -> got to next loop
             if ((bitBoards[h].getBitfield() & board_pos) == 0) {
                 continue;
             }
@@ -306,8 +314,18 @@ namespace basic {
                 generatorBaseCase(shifts[i],h+1,
                         used_boards, board_pos, player_board, enemy_board);
             }
-            used_boards++;
-            if (h == 7) {
+            // check if u found moves
+            if ((moves[used_boards * 7 + 1].getBitfield()
+                | moves[used_boards * 7 + 2].getBitfield()
+                | moves[used_boards * 7 + 3].getBitfield()
+                | moves[used_boards * 7 + 4].getBitfield()
+                | moves[used_boards * 7 + 5].getBitfield()
+                | moves[used_boards * 7 + 6].getBitfield()) != 0
+                ) {
+                used_boards++;
+            }
+
+            if (h == T_G) {
                 return 1;
             }
             return h+1;
@@ -332,14 +350,25 @@ namespace basic {
         int used_boards = 0;
         for (int i = 0; i < 63; i++) {
             board_pos <<= 1;
+            // if we found player tower
             if ((player_board & board_pos) != 0) {
                 moves[used_boards * 7].getBitfield() = board_pos;
                 stones_visited += generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
+                // TODO maybe save player stones number
                 if (stones_visited == 8) {
                     break;
                 }
             }
-
+        }
+        // check if first board has no moves saved:
+        if ((moves[1].getBitfield()
+               | moves[2].getBitfield()
+               | moves[3].getBitfield()
+               | moves[4].getBitfield()
+               | moves[5].getBitfield()
+               | moves[6].getBitfield()) == 0
+               ) {
+            moves[0].getBitfield() = 0;
         }
     }
 
