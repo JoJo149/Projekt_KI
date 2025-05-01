@@ -4,7 +4,18 @@
 
 int main() {
     using namespace basic;
+    Game  game;
+    game.stringToGame("BGb3r24/b4r25/r66/7/7/7/3RG3 b");
+    game.printGame();
+    if (game.active_player == blue)
+        std::cout << "Blau am Zug\n";
+    else
+        std::cout << "Rot am Zug\n";
 
+    game.generateMoves();
+    game.debugPrintMove();
+
+    /*
     std::string input;
     std::cout << "Do you want to play first? (y/n): \n";
     std::cin >> input;
@@ -55,5 +66,6 @@ int main() {
     }
 
     std::cout << "Game over!\n";
+    */
     return 0;
 }

@@ -317,10 +317,11 @@ namespace basic {
         return 0;
     }
 
+    // TODO check ob zieh höhe reicht zum schlagen nicht Tower höhe !!!!
     void Game::generateMoves() {
         uint64_t board_pos = 0b1ULL;
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
-        uint64_t enemy_board = (active_player == blue) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+        uint64_t enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
 
         //clear Move Boards
         for (auto& bit_board: this->moves) {

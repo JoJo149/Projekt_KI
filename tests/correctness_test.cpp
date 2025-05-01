@@ -77,13 +77,12 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
 
         char output[64];
         game.gameToString(output);
-
-        // Capture the values for debugging on failure
-        CAPTURE(i);
-        CAPTURE(input);
-        CAPTURE(std::string(output));
-
         CHECK(strcmp(output, input) == 0);
+        if (strcmp(output, input) != 0) {
+            INFO("Row: " << i);
+            INFO("input: " << input);
+            INFO("output: " << std::string(output));
+        }
 
         game.generateMoves();
 
@@ -92,7 +91,10 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
 
         std::sort(moves_vec_sol.begin(), moves_vec_sol.end());
         std::sort(moves_vec_calc.begin(), moves_vec_calc.end());
-
+        auto sol_input = getColumn(5)[i];
+        CAPTURE(i);
+        CAPTURE(input);
+        CAPTURE(sol_input);
         CAPTURE(moves_vec_sol);
         CAPTURE(moves_vec_calc);
         CHECK(moves_vec_sol == moves_vec_calc);

@@ -50,7 +50,6 @@ namespace basic {
     private:
         BitBoard bitBoards[10];
         BitBoard moves[56];
-        playerName active_player;
 
         void printGameHelper(int);
         int generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
@@ -62,6 +61,7 @@ namespace basic {
         void clearSeperatingBits();
 
     public:
+        playerName active_player;
         static const char* boardNames[10];
 
         Game();
