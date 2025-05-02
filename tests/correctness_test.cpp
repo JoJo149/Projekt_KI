@@ -14,7 +14,7 @@ using namespace csv;
 
 std::vector<std::string> getColumn(int col_index) {
     std::vector<std::string> column;
-    CSVReader reader("../ext/test_daten.csv");
+    CSVReader reader("../tests/test_daten.csv");
 
     for (CSVRow& row : reader) {
         if (col_index < row.size()) {
