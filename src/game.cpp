@@ -306,6 +306,7 @@ namespace basic {
                 generatorBaseCase(shifts[i],h+1,
                         used_boards, board_pos, player_board, enemy_board);
             }
+
             break;
         }
 
