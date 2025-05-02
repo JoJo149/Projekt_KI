@@ -86,14 +86,27 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
         std::vector<std::string>& moves_vec_sol = possible_moves[i];
         std::vector<std::string> moves_vec_calc = game.readableMoves();
 
+
         std::sort(moves_vec_sol.begin(), moves_vec_sol.end());
         std::sort(moves_vec_calc.begin(), moves_vec_calc.end());
+
+        std::string calc_string;
+        for (int i = 0; i < moves_vec_calc.size(); i++) {
+            if (i == moves_vec_calc.size() - 1) {
+                calc_string += moves_vec_calc[i];
+            }else{
+                calc_string += moves_vec_calc[i] + ", ";
+            }
+        }
+
         auto sol_input = getColumn(5)[i];
         CAPTURE(i);
         CAPTURE(input);
         CAPTURE(sol_input);
+        CAPTURE(calc_string);
         CAPTURE(moves_vec_sol);
         CAPTURE(moves_vec_calc);
+
         CHECK(moves_vec_sol == moves_vec_calc);
     }
 }
