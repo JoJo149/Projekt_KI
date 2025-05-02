@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(projekt_ki LANGUAGES CXX VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # ----------------------------------------------------------------------------
 # Source files
@@ -15,8 +15,7 @@ add_executable(projekt_ki ${SRC_FILES})
 target_include_directories(projekt_ki PRIVATE include)
 
 # ----------------------------------------------------------------------------
-
-# DONT INCLUDE MAIN
+# Exclude main.cpp for tests
 set(SRC_FILES_NO_MAIN "")
 foreach(file ${SRC_FILES})
     if(NOT file MATCHES "src/main\\.cpp$")
@@ -24,16 +23,20 @@ foreach(file ${SRC_FILES})
     endif()
 endforeach()
 
+# ----------------------------------------------------------------------------
+# External dependencies
 add_subdirectory(ext/csv-parser)
 add_subdirectory(ext/Catch2)
 
-
+# ----------------------------------------------------------------------------
+# Test executable
 add_executable(tests
         ${TEST_FILES}
         ${SRC_FILES_NO_MAIN}
 )
 
 target_include_directories(tests PRIVATE include ext/Catch2/single_include)
+
 target_link_libraries(tests
         PRIVATE
         csv
@@ -44,7 +47,6 @@ target_link_libraries(tests
 # Enable test discovery
 include(CTest)
 include(Catch)
-catch_discover_tests(tests)
 
 catch_discover_tests(tests
         TEST_PREFIX "UnitTests."
@@ -53,14 +55,17 @@ catch_discover_tests(tests
         --benchmark-warmup-time 100ms
 )
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+# ----------------------------------------------------------------------------
+# Code coverage (optional per platform)
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_link_libraries(tests PRIVATE gcov)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_program(CLANG_PATH clang++)
     execute_process(
             COMMAND ${CLANG_PATH} --print-resource-dir
             OUTPUT_VARIABLE CLANG_RESOURCE_DIR
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
-
     target_link_libraries(tests
             PRIVATE
             ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
