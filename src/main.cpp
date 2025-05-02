@@ -5,7 +5,7 @@
 int main() {
     using namespace basic;
     Game  game;
-    game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
+    game.stringToGame("3RG1r1r1/r1r1r11r12/3r13/7/3b33/2b11b12/3BG1b1b1 r");
     game.printGame();
     if (game.active_player == blue)
         std::cout << "Blau am Zug\n";
@@ -13,7 +13,7 @@ int main() {
         std::cout << "Rot am Zug\n";
 
     game.generateMoves();
-    game.debugPrintMove();
+    //game.debugPrintMove();
     std::vector<std::string> moves = game.readableMoves();
     for (int i = 0; i < moves.size(); i++) {
         if (i == moves.size() - 1) {
