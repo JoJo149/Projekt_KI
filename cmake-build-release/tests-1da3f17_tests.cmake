@@ -1,0 +1,3 @@
+add_test( [==[UnitTests.Test correctness of: stringToGame, gameToString, generateMoves, readableMoves]==] /Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release/tests [==[Test correctness of: stringToGame\, gameToString\, generateMoves\, readableMoves]==] --benchmark-samples 500 --benchmark-warmup-time 100ms  )
+set_tests_properties( [==[UnitTests.Test correctness of: stringToGame, gameToString, generateMoves, readableMoves]==] PROPERTIES WORKING_DIRECTORY /Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release SKIP_RETURN_CODE 4)
+set( tests_TESTS [==[UnitTests.Test correctness of: stringToGame, gameToString, generateMoves, readableMoves]==])

@@ -72,7 +72,7 @@ catch_discover_tests(benchmarks
         TEST_PREFIX "benchmarks_abgabe"
         EXTRA_ARGS
         --benchmark-samples 10000
-        --benchmark-warmup-time 100ms
+        --benchmark-warmup-time 500ms
 )
 
 # ----------------------------------------------------------------------------
