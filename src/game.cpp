@@ -389,7 +389,7 @@ namespace basic {
         return move_list;
     }
 
-    std::pair<uint64_t, uint64_t> Game::stringToBitboard (std::string str) {
+    std::pair<uint64_t, uint64_t> Game::moveStringToBitboard (const std::string& str) {
         std::pair<uint64_t, uint64_t> player_move = {0,0};
         player_move.first = 0b1 << (str[0] - 'A' + 1);
         player_move.first <<= (('7' - str[1]) * 9);

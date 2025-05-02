@@ -1,8 +1,11 @@
 #include "game.h"
 #include <iostream>
-#include <bitset>
+#include <random>
 
 int main() {
+
+    std::random_device rd;  // Seed
+    std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
     /*
     Game  game;
@@ -42,8 +45,12 @@ int main() {
 
     if (!playerStarts) {
         std::cout << "KI starts..." << std::endl;
-        // PICK RANDOM MOVE
-        // game.makeMove(); // MAKE MOVE
+        std::vector<std::string> move_list = game.readableMoves();
+        std::uniform_int_distribution<> distrib(0, move_list.size() - 1);
+
+        const std::string& random_entry = move_list[distrib(gen)];
+        std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(random_entry);
+        game.makeMove(move.first,move.second,(random_entry[5] - '0')); // MAKE MOVE
         std::cout << "KI did the Move:" << std::endl;
         game.printGame();
         // now player is active Player
@@ -59,12 +66,13 @@ int main() {
         }
         std::cout << std::endl;
 
-        // TODO maybe make extra func for it
         std::cout << "U make the move: ";
         std::cin >> input;
         std::cout << std::endl;
 
-        // DO MOVE
+        std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(input);
+        game.makeMove(move.first,move.second,(input[5] - '0'));
+
         game.active_player = red;
         game.generateMoves();
         if (game.isGameOver()) {
@@ -76,8 +84,12 @@ int main() {
         game.printGame();
 
         std::cout << "KI starts..." << std::endl;
-        // PICK RANDOM MOVE
-        // game.makeMove(); // MAKE MOVE
+        std::vector<std::string> move_list = game.readableMoves();
+        std::uniform_int_distribution<> distrib(0, move_list.size() - 1);
+
+        const std::string& random_entry = move_list[distrib(gen)];
+        move = Game::moveStringToBitboard(random_entry);
+        game.makeMove(move.first,move.second,(random_entry[5] - '0')); // MAKE MOVE
         std::cout << "KI did the Move:" << std::endl;
         game.printGame();
 
