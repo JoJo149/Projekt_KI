@@ -210,6 +210,7 @@ namespace basic {
             std::cout << std::endl;
         }
         std::cout << "  A B C D E F G" << std::endl;
+        std::cout << std::endl;
     }
 
     bool Game::isGameOver() {

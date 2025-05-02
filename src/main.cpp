@@ -4,6 +4,7 @@
 
 int main() {
     using namespace basic;
+    /*
     Game  game;
     game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
     game.printGame();
@@ -23,46 +24,66 @@ int main() {
         }
     }
     std::cout << std::endl;
+    */
 
-    /*
     std::string input;
     std::cout << "Do you want to play first? (y/n): \n";
     std::cin >> input;
-
 
     // our player is blue
     bool playerStarts = (input == "y" || input == "Y");
 
     playerName start_color = playerStarts ? blue : red;
-    basic::Game game(start_color);
-    
-    if (!playerStarts) {
-        std::cout << "KI starts...\n";
-        game.generateMoves(); // KI move first
-    }
+    Game game(start_color);
+    game.generateMoves();
+
+    std::cout << "current Board:" << std::endl;
     game.printGame();
 
-    while (!game.isGameOver() || playerStarts) {
-        playerStarts = false;
+    if (!playerStarts) {
+        std::cout << "KI starts..." << std::endl;
+        // PICK RANDOM MOVE
+        // game.makeMove(); // MAKE MOVE
+        std::cout << "KI did the Move:" << std::endl;
+        game.printGame();
+        // now player is active Player
+        game.active_player = blue;
         game.generateMoves();
-        std::cout << "ur turn...\n";
-        std::cout << "all possible Moves: \n";
+    }
 
+    while (!game.isGameOver()) {
+        std::cout << "Ur turn..." << std::endl;
+        std::cout << "all possible Moves:";
+        for (auto& move: game.readableMoves()) {
+            std::cout << " " << move;
+        }
+        std::cout << std::endl;
+
+        // TODO maybe make extra func for it
+        std::cout << "U make the move: ";
+        std::cin >> input;
+        std::cout << std::endl;
+
+        // DO MOVE
+        game.active_player = red;
+        game.generateMoves();
         if (game.isGameOver()) {
             std::cout << "U won nice" << std::endl;
             break;
         }
 
-        std::cout << "Your move: \n";
-        input = "";
-        std::cin >> input;
-
-
+        std::cout << "current Board:" << std::endl;
         game.printGame();
 
-        std::cout << "KI move...\n";
-        game.generateMoves(); // KI move
+        std::cout << "KI starts..." << std::endl;
+        // PICK RANDOM MOVE
+        // game.makeMove(); // MAKE MOVE
+        std::cout << "KI did the Move:" << std::endl;
         game.printGame();
+
+        // now player is active Player
+        game.active_player = blue;
+        game.generateMoves();
         if (game.isGameOver()) {
             std::cout << "KI won unlucky" << std::endl;
             break;
@@ -70,6 +91,6 @@ int main() {
     }
 
     std::cout << "Game over!\n";
-    */
+
     return 0;
 }
