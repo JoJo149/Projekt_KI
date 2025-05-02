@@ -1,5 +1,0 @@
-if(EXISTS "/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release/benchmarks-2f93d80_tests.cmake")
-  include("/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release/benchmarks-2f93d80_tests.cmake")
-else()
-  add_test(benchmarks_NOT_BUILT-2f93d80 benchmarks_NOT_BUILT-2f93d80)
-endif()

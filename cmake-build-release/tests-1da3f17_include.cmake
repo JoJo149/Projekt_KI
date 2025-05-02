@@ -1,5 +1,0 @@
-if(EXISTS "/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release/tests-1da3f17_tests.cmake")
-  include("/Users/jonasmueller/Desktop/Semester_6/Projekt_KI/projekt-ki/cmake-build-release/tests-1da3f17_tests.cmake")
-else()
-  add_test(tests_NOT_BUILT-1da3f17 tests_NOT_BUILT-1da3f17)
-endif()
