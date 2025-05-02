@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB_RECURSE TEST_FILES tests/*.cpp)
+file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
 
 # ----------------------------------------------------------------------------
 # Main application
@@ -43,6 +44,18 @@ target_link_libraries(tests
         Catch2::Catch2WithMain
 )
 
+add_executable(benchmarks
+        ${BENCHMARKS}
+        ${SRC_FILES_NO_MAIN}
+)
+
+target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include)
+
+target_link_libraries(benchmarks
+        PRIVATE
+        csv
+        Catch2::Catch2WithMain
+)
 # ----------------------------------------------------------------------------
 # Enable test discovery
 include(CTest)
@@ -55,10 +68,18 @@ catch_discover_tests(tests
         --benchmark-warmup-time 100ms
 )
 
+catch_discover_tests(benchmarks
+        TEST_PREFIX "benchmarks_abgabe"
+        EXTRA_ARGS
+        --benchmark-samples 10000
+        --benchmark-warmup-time 100ms
+)
+
 # ----------------------------------------------------------------------------
 # Code coverage (optional per platform)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(tests PRIVATE gcov)
+    target_link_libraries(benchmarks PRIVATE gcov)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     find_program(CLANG_PATH clang++)
     execute_process(
@@ -67,6 +88,10 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
             OUTPUT_STRIP_TRAILING_WHITESPACE
     )
     target_link_libraries(tests
+            PRIVATE
+            ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
+    )
+    target_link_libraries(benchmarks
             PRIVATE
             ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
     )
