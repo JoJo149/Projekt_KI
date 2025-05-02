@@ -418,7 +418,7 @@ namespace basic {
             if ((enemy_board & end_pos) != 0) {
                 enemy_board ^= end_pos;
                 for (int i = 0; i < 8; i++) {
-                    bitBoards[i].getBitfield() ^= end_pos;
+                    bitBoards[i].getBitfield() &= ~end_pos;
                 }
             }
             player_board |= end_pos;
@@ -455,7 +455,7 @@ namespace basic {
         if ((enemy_board & end_pos) != 0) {
             enemy_board ^= end_pos;
             for (int i = 0; i < 8; i++) {
-                bitBoards[i].getBitfield() ^= end_pos;
+                bitBoards[i].getBitfield() &= ~end_pos;
             }
             player_board |= end_pos;
         }
