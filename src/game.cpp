@@ -397,4 +397,54 @@ namespace basic {
         player_move.second <<= (('7' - str[4]) * 9);
         return player_move;
     }
+
+    void Game::makeMove(uint64_t& start_pos, uint64_t& end_pos, int move_lenth) {
+        int tower_height = 0;
+        for (tower_height = 0; tower_height < 8; tower_height++) {
+            if ((bitBoards[tower_height].getBitfield() & start_pos) != 0) {
+                break;
+            }
+        }
+        tower_height++;
+
+        uint64_t& player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+        uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
+        // tower leaves start_pos fully
+        if (tower_height == move_lenth || tower_height - 1 == T_G) {
+            player_board ^= start_pos;
+        }
+        else {
+            bitBoards[tower_height - move_lenth - 1].getBitfield() |= start_pos;
+        }
+        bitBoards[tower_height - 1].getBitfield() ^= start_pos;
+
+
+
+        // we move onto mate tower
+        if ((player_board & end_pos) != 0) {
+            // get tower height on which we move
+            int tower_mate_height = 0;
+            for (tower_mate_height = 0; tower_mate_height < 8; tower_mate_height++) {
+                if ((bitBoards[tower_mate_height].getBitfield() & start_pos) != 0) {
+                    break;
+                }
+            }
+            tower_mate_height++;
+            bitBoards[tower_mate_height - 1].getBitfield() ^= end_pos;
+            bitBoards[tower_mate_height + move_lenth - 1].getBitfield() |= end_pos;
+            return;
+        }
+        // we move onto enemy tower
+        if ((enemy_board & end_pos) != 0) {
+            enemy_board ^= end_pos;
+            for (int i = 0; i < 8; i++) {
+                bitBoards[i].getBitfield() ^= end_pos;
+            }
+            player_board |= end_pos;
+        }
+
+        bitBoards[move_lenth - 1].getBitfield() |= end_pos;
+
+
+    }
 }

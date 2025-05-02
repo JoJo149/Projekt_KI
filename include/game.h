@@ -74,6 +74,7 @@ namespace basic {
         void generateMoves();
         bool isGameOver();
         [[nodiscard]] std::vector<std::string> readableMoves();
+        void makeMove(uint64_t&, uint64_t&, int);
 
         void printGame();
 
