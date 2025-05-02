@@ -290,7 +290,7 @@ namespace basic {
 
     // called if u have found an active player tower
     // return how many Stones the Tower has
-    int Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
+    void Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
         // left, right, up, down
         constexpr int shifts[4] = {1, -1, 9, -9};
         for (int h = 0; h < 8; h++) {
@@ -299,40 +299,16 @@ namespace basic {
                 continue;
             }
 
+            // TODO base case for Tower of height 1 and 2 OR GPU-CODE
 
-            // TODO base case for Tower of height 1 and 2
-            /*
-            if (h == 0) {
-                return 1;
-            }
-            if (h == 1) {
-                return 2;
-            }*/
-
-            // base case for tower of height 3-7
+            // base case
             for (int i = 0; i < 4; i++) {
                 generatorBaseCase(shifts[i],h+1,
                         used_boards, board_pos, player_board, enemy_board);
             }
-            // check if u found moves
-            if ((moves[used_boards * 7 + 1].getBitfield()
-                | moves[used_boards * 7 + 2].getBitfield()
-                | moves[used_boards * 7 + 3].getBitfield()
-                | moves[used_boards * 7 + 4].getBitfield()
-                | moves[used_boards * 7 + 5].getBitfield()
-                | moves[used_boards * 7 + 6].getBitfield()) != 0
-                ) {
-                used_boards++;
-            }
-
-            if (h == T_G) {
-                return 1;
-            }
-            return h+1;
+            break;
         }
 
-        // should never be the case
-        return 0;
     }
 
     // TODO check ob zieh höhe reicht zum schlagen nicht Tower höhe !!!!
@@ -346,76 +322,63 @@ namespace basic {
             bit_board.getBitfield() = 0;
         }
 
-        int stones_visited = 0;
         int used_boards = 0;
         for (int i = 0; i < 63; i++) {
             board_pos <<= 1;
             // if we found player tower
             if ((player_board & board_pos) != 0) {
                 moves[used_boards * 7].getBitfield() = board_pos;
-                stones_visited += generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
-                // TODO maybe save player stones number
-                if (stones_visited == 8) {
-                    break;
+                generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
+                if (moves[used_boards * 7 + 1].getBitfield() == 0){
+                    moves[used_boards * 7].getBitfield() = 0;
+                }else {
+                    used_boards++;
                 }
             }
-        }
-        // check if first board has no moves saved:
-        if ((moves[1].getBitfield()
-               | moves[2].getBitfield()
-               | moves[3].getBitfield()
-               | moves[4].getBitfield()
-               | moves[5].getBitfield()
-               | moves[6].getBitfield()) == 0
-               ) {
-            moves[0].getBitfield() = 0;
         }
     }
 
     // TODO bessere Suche (Masken wie bei Errorcorrection)
     std::vector<std::string> Game::readableMoves() {
         std::vector<std::string> move_list = {};
-        int player_row = 0;
-        int player_col = 0;
+        int start_row = 0;
+        int start_col = 0;
         for (int t = 0; t < 8; t++) {
             if (moves[t * 7].getBitfield() == 0) {
                 break;
             }
-            uint64_t player_pos = moves[t * 7].getBitfield();
-            //printBitboard(moves[t * 7]).getBitfield();
-            uint64_t board_pos = 0b1ULL;
-            for (player_row = 0; player_row < 7; player_row++) {
-                bool brk = false;
-                for (player_col = 0; player_col < 9; player_col++) {
-                    board_pos <<= 1;
-                    if ((player_pos & board_pos) != 0) {
-                        brk = true;
+            uint64_t start_pos = moves[t * 7].getBitfield();
+            uint64_t tmp_pos = 0b1ULL;
+            for (start_row = 0; start_row < 7; start_row++) {
+                bool found_pos = false;
+                for (start_col = 0; start_col < 9; start_col++) {
+                    tmp_pos <<= 1;
+                    if ((start_pos & tmp_pos) != 0) {
+                        found_pos = true;
                         break;
                     }
                 }
-                if (brk == true) {
+                if (found_pos == true) {
                     break;
                 }
             }
-            //std::cout << char(player_col + 'A') << char('7' - player_row) << std::endl;
             for (int m = 1; m < 7; m++) {
+                if (this->moves[t * 7 + m].getBitfield() == 0) {
+                    continue;
+                }
 
-                if (this->moves[t * 7 + m].getBitfield() != 0) {
+                tmp_pos = 0b1ULL;
+                for (int move_row = 0; move_row < 7; move_row++) {
+                    for (int move_col = 0; move_col < 9; move_col++) {
+                        tmp_pos <<= 1;
+                        if ((moves[t * 7 + m].getBitfield() & tmp_pos) != 0) {
+                            char start_c1 = char(start_col + 'A');
+                            char start_c2 = char('7' - start_row);
+                            char end_c1 = char(move_col + 'A');
+                            char end_c2 = char('7' - move_row);
 
-                    board_pos = 0b1ULL;
-                    for (int move_row = 0; move_row < 7; move_row++) {
-                        for (int move_col = 0; move_col < 9; move_col++) {
-                            board_pos <<= 1;
-                            if ((moves[t * 7 + m].getBitfield() & board_pos) != 0) {
-                                char player_c1 = char(player_col + 'A');
-                                char player_c2 = char('7' - player_row);
-                                char move_c1 = char(move_col + 'A');
-                                char move_c2 = char('7' - move_row);
-                                
-                                std::string move = {player_c1, player_c2, '-', move_c1, move_c2, '-', char(m + '0')};
-                                //std::cout << move << std::endl;
-                                move_list.push_back(move);
-                            }
+                            std::string move = {start_c1, start_c2, '-', end_c1, end_c2, '-', char(m + '0')};
+                            move_list.push_back(move);
                         }
                     }
                 }

@@ -5,7 +5,7 @@
 int main() {
     using namespace basic;
     Game  game;
-    game.stringToGame("3RG3/3r33/3b33/7/7/7/3BG3 r");
+    game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
     game.printGame();
     if (game.active_player == blue)
         std::cout << "Blau am Zug\n";

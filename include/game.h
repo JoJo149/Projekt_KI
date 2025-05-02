@@ -52,7 +52,7 @@ namespace basic {
         BitBoard moves[56];
 
         void printGameHelper(int);
-        int generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
+        void generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
         void generatorBaseCase(const int &shift_dir, const int &tower_height, const int &used_boards,
                                      const uint64_t &board_pos,
                                      const uint64_t &player_board, const uint64_t &enemy_board);
