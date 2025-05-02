@@ -410,8 +410,24 @@ namespace basic {
 
         uint64_t& player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
         uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
+
+        // Guard special case
+        if (tower_height - 1 == T_G) {
+            player_board ^= start_pos;
+            bitBoards[T_G].getBitfield() ^= start_pos;
+            if ((enemy_board & end_pos) != 0) {
+                enemy_board ^= end_pos;
+                for (int i = 0; i < 8; i++) {
+                    bitBoards[i].getBitfield() ^= end_pos;
+                }
+            }
+            player_board |= end_pos;
+            bitBoards[T_G].getBitfield() |= end_pos;
+            return;
+        }
+
         // tower leaves start_pos fully
-        if (tower_height == move_lenth || tower_height - 1 == T_G) {
+        if (tower_height == move_lenth) {
             player_board ^= start_pos;
         }
         else {
@@ -426,7 +442,7 @@ namespace basic {
             // get tower height on which we move
             int tower_mate_height = 0;
             for (tower_mate_height = 0; tower_mate_height < 8; tower_mate_height++) {
-                if ((bitBoards[tower_mate_height].getBitfield() & start_pos) != 0) {
+                if ((bitBoards[tower_mate_height].getBitfield() & end_pos) != 0) {
                     break;
                 }
             }
@@ -445,7 +461,7 @@ namespace basic {
         }
 
         bitBoards[move_lenth - 1].getBitfield() |= end_pos;
-
+        player_board |= end_pos;
 
     }
 }

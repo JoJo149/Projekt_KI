@@ -50,7 +50,7 @@ int main() {
 
         const std::string& random_entry = move_list[distrib(gen)];
         std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(random_entry);
-        game.makeMove(move.first,move.second,(random_entry[5] - '0')); // MAKE MOVE
+        game.makeMove(move.first,move.second,(random_entry[6] - '0')); // MAKE MOVE
         std::cout << "KI did the Move:" << std::endl;
         game.printGame();
         // now player is active Player
@@ -71,7 +71,7 @@ int main() {
         std::cout << std::endl;
 
         std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(input);
-        game.makeMove(move.first,move.second,(input[5] - '0'));
+        game.makeMove(move.first,move.second,(input[6] - '0'));
 
         game.active_player = red;
         game.generateMoves();
@@ -89,7 +89,7 @@ int main() {
 
         const std::string& random_entry = move_list[distrib(gen)];
         move = Game::moveStringToBitboard(random_entry);
-        game.makeMove(move.first,move.second,(random_entry[5] - '0')); // MAKE MOVE
+        game.makeMove(move.first,move.second,(random_entry[6] - '0')); // MAKE MOVE
         std::cout << "KI did the Move:" << std::endl;
         game.printGame();
 
