@@ -60,13 +60,16 @@ std::vector<std::vector<std::string>> getPossibleMoves() {
 }
 
 
-static std::vector<std::string> start_setup = getColumn(3);
-static std::vector<std::vector<std::string>> possible_moves = getPossibleMoves();
+
+
 
 
 
 TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, readableMoves") {
+    static std::vector<std::string> start_setup = getColumn(3);
+    static std::vector<std::vector<std::string>> possible_moves = getPossibleMoves();
     REQUIRE(start_setup.size() == possible_moves.size());
+
 
     basic::Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
