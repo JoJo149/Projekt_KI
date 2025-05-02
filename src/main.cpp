@@ -14,6 +14,15 @@ int main() {
 
     game.generateMoves();
     game.debugPrintMove();
+    std::vector<std::string> moves = game.readableMoves();
+    for (int i = 0; i < moves.size(); i++) {
+        if (i == moves.size() - 1) {
+            std::cout << moves[i];
+        }else{
+            std::cout << moves[i] << ", ";
+        }
+    }
+    std::cout << std::endl;
 
     /*
     std::string input;
@@ -38,11 +47,6 @@ int main() {
         game.generateMoves();
         std::cout << "ur turn...\n";
         std::cout << "all possible Moves: \n";
-        std::vector<std::string> moves = game.readableMoves();
-        for (const auto& move: moves) {
-            std::cout << move << ", " ;
-        }
-        std::cout << std::endl;
 
         if (game.isGameOver()) {
             std::cout << "U won nice" << std::endl;
