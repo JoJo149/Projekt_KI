@@ -64,6 +64,9 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
     static std::vector<std::vector<std::string>> possible_moves = getPossibleMoves();
     REQUIRE(start_setup.size() == possible_moves.size());
 
+    static std::vector<std::string> len_saved = getColumn(4);
+
+
 
     basic::Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
@@ -86,6 +89,8 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
         std::vector<std::string>& moves_vec_sol = possible_moves[i];
         std::vector<std::string> moves_vec_calc = game.readableMoves();
 
+        CAPTURE(i);
+        CHECK(moves_vec_calc.size() == atoi(len_saved[i].c_str()));
 
         std::sort(moves_vec_sol.begin(), moves_vec_sol.end());
         std::sort(moves_vec_calc.begin(), moves_vec_calc.end());
@@ -100,7 +105,6 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
         }
 
         auto sol_input = getColumn(5)[i];
-        CAPTURE(i);
         CAPTURE(input);
         CAPTURE(sol_input);
         CAPTURE(calc_string);

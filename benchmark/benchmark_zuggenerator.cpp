@@ -29,23 +29,22 @@ TEST_CASE("Benchmark for generateMoves", "[benchmark][generate_moves]") {
     basic::Game game{};
     static std::vector<std::string> start_setup = getColumn2(3);
 
-    BENCHMARK_ADVANCED("EARLY Game")(Catch::Benchmark::Chronometer meter) {
-        game.stringToGame( start_setup[10].c_str());
+    BENCHMARK_ADVANCED("STARTSTELLUNG Game")(Catch::Benchmark::Chronometer meter) {
+        game.stringToGame( start_setup[0].c_str());
         meter.measure([&] {
             game.generateMoves();
         });
     };
 
     BENCHMARK_ADVANCED("MID Game")(Catch::Benchmark::Chronometer meter) {
-        game.stringToGame( start_setup[10].c_str());
+        game.stringToGame( start_setup[45].c_str());
         meter.measure([&] {
             game.generateMoves();
         });
     };
 
-
     BENCHMARK_ADVANCED("LATE Game")(Catch::Benchmark::Chronometer meter) {
-        game.stringToGame( start_setup[10].c_str());
+        game.stringToGame( start_setup[35].c_str());
         meter.measure([&] {
             game.generateMoves();
         });
