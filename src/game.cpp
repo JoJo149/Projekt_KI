@@ -319,7 +319,7 @@ namespace basic {
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
         uint64_t enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
 
-        //clear Move Boards
+        // clear Move Boards
         for (auto& bit_board: this->moves) {
             bit_board.getBitfield() = 0;
         }
