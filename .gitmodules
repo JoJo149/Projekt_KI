@@ -4,3 +4,6 @@
 [submodule "ext/Catch2"]
 	path = ext/Catch2
 	url = https://github.com/catchorg/Catch2.git
+[submodule "ext/AdaptiveCpp"]
+	path = ext/AdaptiveCpp
+	url = https://github.com/AdaptiveCpp/AdaptiveCpp
