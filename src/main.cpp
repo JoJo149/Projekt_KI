@@ -1,9 +1,7 @@
 #include "game.h"
 #include <iostream>
 #include <random>
-
 #include <sycl/sycl.hpp>
-#include <iostream>
 
 int main() {
     sycl::queue q{sycl::host_selector{}};
@@ -25,37 +23,11 @@ int main() {
     std::cout << "\n";
 
     sycl::free(data, q);
-    return 0;
-}
 
-/*
-int main() {
 
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
-
-    Game  game;
-    game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
-    game.printGame();
-    if (game.active_player == blue)
-        std::cout << "Blau am Zug\n";
-    else
-        std::cout << "Rot am Zug\n";
-
-    game.generateMoves();
-    //game.debugPrintMove();
-    std::vector<std::string> moves = game.readableMoves();
-    for (int i = 0; i < moves.size(); i++) {
-        if (i == moves.size() - 1) {
-            std::cout << moves[i];
-        }else{
-            std::cout << moves[i] << ", ";
-        }
-    }
-    std::cout << std::endl;
-
-
     std::string input;
     std::cout << "Do you want to play first? (y/n): \n";
     std::cin >> input;
@@ -133,4 +105,3 @@ int main() {
 
     return 0;
 }
-*/
