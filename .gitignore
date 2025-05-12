@@ -2,6 +2,7 @@ cmake-build-*/
 .idea/
 build/
 Build/
+compiler/
 
 .DS_Store
 .vscode

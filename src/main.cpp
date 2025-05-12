@@ -2,12 +2,39 @@
 #include <iostream>
 #include <random>
 
+#include <sycl/sycl.hpp>
+#include <iostream>
+
+int main() {
+    sycl::queue q{sycl::host_selector{}};
+    std::cout << "Running on: "
+              << q.get_device().get_info<sycl::info::device::name>() << "\n";
+
+    constexpr size_t N = 8;
+    int* data = sycl::malloc_host<int>(N, q);
+
+    // Run a simple kernel
+    q.parallel_for(N, [=](sycl::id<1> i) {
+        data[i] = static_cast<int>(i) * 3;
+    }).wait();
+
+    // Print result
+    for (size_t i = 0; i < N; ++i) {
+        std::cout << data[i] << " ";
+    }
+    std::cout << "\n";
+
+    sycl::free(data, q);
+    return 0;
+}
+
+/*
 int main() {
 
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
-    /*
+
     Game  game;
     game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
     game.printGame();
@@ -27,7 +54,7 @@ int main() {
         }
     }
     std::cout << std::endl;
-    */
+
 
     std::string input;
     std::cout << "Do you want to play first? (y/n): \n";
@@ -106,3 +133,4 @@ int main() {
 
     return 0;
 }
+*/

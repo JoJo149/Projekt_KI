@@ -3,19 +3,13 @@ project(projekt_ki LANGUAGES CXX VERSION 0.0.1)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(LLVM_DIR "/opt/homebrew/Cellar/llvm/20.1.4/lib/cmake/llvm")
 
 # ----------------------------------------------------------------------------
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
 file(GLOB_RECURSE TEST_FILES tests/*.cpp)
 file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
-
-# ----------------------------------------------------------------------------
-# Main application
-add_executable(projekt_ki ${SRC_FILES})
-target_include_directories(projekt_ki PRIVATE include)
-
-# ----------------------------------------------------------------------------
 # Exclude main.cpp for tests
 set(SRC_FILES_NO_MAIN "")
 foreach(file ${SRC_FILES})
@@ -28,6 +22,14 @@ endforeach()
 # External dependencies
 add_subdirectory(ext/csv-parser)
 add_subdirectory(ext/Catch2)
+set(AdaptiveCpp_DIR "compiler/lib/cmake/AdaptiveCpp")
+find_package(AdaptiveCpp REQUIRED CONFIG)
+
+# ----------------------------------------------------------------------------
+# Main application
+add_executable(projekt_ki ${SRC_FILES})
+target_include_directories(projekt_ki PRIVATE include)
+add_sycl_to_target(TARGET projekt_ki)
 
 # ----------------------------------------------------------------------------
 # Test executable
