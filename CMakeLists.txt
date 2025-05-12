@@ -50,6 +50,7 @@ add_executable(benchmarks
         ${BENCHMARKS}
         ${SRC_FILES_NO_MAIN}
 )
+add_sycl_to_target(TARGET tests)
 
 target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include)
 
@@ -58,6 +59,7 @@ target_link_libraries(benchmarks
         csv
         Catch2::Catch2WithMain
 )
+add_sycl_to_target(TARGET benchmarks)
 # ----------------------------------------------------------------------------
 # Enable test discovery
 include(CTest)

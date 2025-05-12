@@ -3,9 +3,11 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-#include <cstring>
 #include <cstdint>
 #include <vector>
+
+#include <sycl/sycl.hpp>
+using namespace sycl;
 
 
 namespace basic {
@@ -232,6 +234,7 @@ namespace basic {
     void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
             const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board)
     {
+
         for (int move_len = 0; move_len < tower_height; move_len++) {
             uint64_t possible_move = 0;
             if (shift_dir > 0) {
@@ -313,7 +316,6 @@ namespace basic {
 
     }
 
-    // TODO check ob zieh höhe reicht zum schlagen nicht Tower höhe !!!!
     void Game::generateMoves() {
         uint64_t board_pos = 0b1ULL;
         uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
@@ -339,6 +341,7 @@ namespace basic {
             }
         }
     }
+
 
     // TODO bessere Suche (Masken wie bei Errorcorrection)
     std::vector<std::string> Game::readableMoves() {
