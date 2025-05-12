@@ -4,26 +4,6 @@
 #include <sycl/sycl.hpp>
 
 int main() {
-    sycl::queue q{sycl::host_selector{}};
-    std::cout << "Running on: "
-              << q.get_device().get_info<sycl::info::device::name>() << "\n";
-
-    constexpr size_t N = 8;
-    int* data = sycl::malloc_host<int>(N, q);
-
-    // Run a simple kernel
-    q.parallel_for(N, [=](sycl::id<1> i) {
-        data[i] = static_cast<int>(i) * 3;
-    }).wait();
-
-    // Print result
-    for (size_t i = 0; i < N; ++i) {
-        std::cout << data[i] << " ";
-    }
-    std::cout << "\n";
-
-    sycl::free(data, q);
-
 
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator

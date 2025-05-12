@@ -4,6 +4,9 @@
 #include <cstdint>
 #include <vector>
 
+#include <sycl/sycl.hpp>
+using namespace sycl;
+
 namespace basic {
     enum playerName : bool {
         red = false,
@@ -25,6 +28,9 @@ namespace basic {
         C_B
     };
 
+    constexpr int BITBOARD_COUNT = 10;
+    constexpr int MOVES_COUNT = 56;
+
     enum move_names {
         TP_1, M_11, M_12, M_13, M_14, M_15, M_16,
         TP_2, M_21, M_22, M_23, M_24, M_25, M_26,
@@ -37,19 +43,19 @@ namespace basic {
     };
 
     class BitBoard{
-    private:
-        uint64_t bitfield;
-
     public:
         BitBoard() : bitfield(0) {}
         [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
         void printBitboard (BitBoard);
+    private:
+        uint64_t bitfield;
     };
 
     class Game {
     private:
-        BitBoard bitBoards[10];
-        BitBoard moves[56];
+        BitBoard* bitBoards;
+        BitBoard* moves;
+        queue q;
 
         void printGameHelper(int);
         void generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
@@ -66,12 +72,16 @@ namespace basic {
 
         Game();
         Game(playerName);
+        ~Game();
 
         void stringToGame(const char*);
         void gameToString(char*);
         [[nodiscard]] static std::pair<uint64_t, uint64_t> moveStringToBitboard (const std::string&);
 
         void generateMoves();
+
+        void generateMovesPARALLEL();
+
         bool isGameOver();
         [[nodiscard]] std::vector<std::string> readableMoves();
         void makeMove(uint64_t&, uint64_t&, int);

@@ -59,6 +59,12 @@ TEST_CASE("Benchmark for generateMoves", "[benchmark][generate_moves]") {
             game.generateMoves();
         });
     };
+    BENCHMARK_ADVANCED("STARTSTELLUNG Game PARALLEL")(Catch::Benchmark::Chronometer meter) {
+        game.stringToGame( start_setup[0].c_str());
+        meter.measure([&] {
+            game.generateMovesPARALLEL();
+        });
+    };
 
     BENCHMARK_ADVANCED("MID Game")(Catch::Benchmark::Chronometer meter) {
         game.stringToGame( start_setup[45].c_str());
