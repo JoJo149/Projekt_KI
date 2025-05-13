@@ -218,11 +218,11 @@ namespace basic {
         constexpr uint64_t guard_pos_down = 0b0000000000000000000000000000000000000000000000000000000000010000;
 
         // if red guard is in bot guard field
-        if (this->bitBoards[T_G].getBitfield() & this->bitBoards[C_R].getBitfield() & guard_pos_down != 0) {
+        if ((this->bitBoards[T_G].getBitfield() & this->bitBoards[C_R].getBitfield() & guard_pos_down) != 0) {
             return true;
         }
         // if blue guard is in top guard field
-        if (this->bitBoards[T_G].getBitfield() & this->bitBoards[C_B].getBitfield() & guard_pos_up != 0) {
+        if ((this->bitBoards[T_G].getBitfield() & this->bitBoards[C_B].getBitfield() & guard_pos_up) != 0) {
             return true;
         }
         // check if move possible and if one of the guards got killed
