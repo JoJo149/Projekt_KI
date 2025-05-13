@@ -389,6 +389,32 @@ namespace basic {
         return move_list;
     }
 
+
+    void Game::moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>& move_list) {
+        for (int t = 0; t < 8; t++) {
+            uint64_t start_pos = moves[t * 7].getBitfield();
+            if (start_pos == 0) {
+                break;
+            }
+            for (int m = 1; m < 7; m++) {
+                uint64_t end_pos = this->moves[(t * 7) + m].getBitfield();
+                if (end_pos == 0) {
+                    continue;
+                }
+                uint64_t tmp_pos = 0b1ULL;
+                for (int move_row = 0; move_row < 7; move_row++) {
+                    for (int move_col = 0; move_col < 9; move_col++) {
+                        tmp_pos <<= 1;
+                        if ((moves[t * 7 + m].getBitfield() & tmp_pos) != 0) {
+                            std::tuple<uint64_t, uint64_t, int> move= {start_pos, end_pos, m};
+                            move_list.emplace_back(move);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     std::pair<uint64_t, uint64_t> Game::moveStringToBitboard (const std::string& str) {
         std::pair<uint64_t, uint64_t> player_move = {0,0};
         player_move.first = 0b1 << (str[0] - 'A' + 1);

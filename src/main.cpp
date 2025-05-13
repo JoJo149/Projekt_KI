@@ -2,8 +2,14 @@
 #include <iostream>
 #include <random>
 
+#include "KI.h"
+
 int main() {
 
+
+    KI ki{};
+    std::pair<uint64_t, uint64_t> züge = ki.minmax(2);
+    /*
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
@@ -27,7 +33,7 @@ int main() {
         }
     }
     std::cout << std::endl;
-    */
+
 
     std::string input;
     std::cout << "Do you want to play first? (y/n): \n";
@@ -105,4 +111,5 @@ int main() {
     std::cout << "Game over!\n";
 
     return 0;
+    */
 }
