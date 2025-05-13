@@ -46,6 +46,12 @@ namespace basic {
     public:
         BitBoard() : bitfield(0) {}
         [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
+
+        static inline int popcount(const uint64_t x) {
+            // SYCL-compatible popcount
+            return sycl::popcount(x);
+        }
+
         void printBitboard (BitBoard);
     private:
         uint64_t bitfield;
@@ -63,15 +69,15 @@ namespace basic {
                                      const uint64_t &board_pos,
                                      const uint64_t &player_board, const uint64_t &enemy_board);
 
-        void clearField();
-        void clearSeperatingBits();
+        void clearField() const;
+        void clearSeperatingBits() const;
 
     public:
         playerName active_player;
         static const char* boardNames[10];
 
         Game();
-        Game(playerName);
+        explicit Game(playerName);
         ~Game();
 
         void stringToGame(const char*);

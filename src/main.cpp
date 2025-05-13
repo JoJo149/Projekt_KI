@@ -4,7 +4,6 @@
 #include <sycl/sycl.hpp>
 
 int main() {
-
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
@@ -82,6 +81,5 @@ int main() {
     }
 
     std::cout << "Game over!\n";
-
     return 0;
 }

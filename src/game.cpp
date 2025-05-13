@@ -17,12 +17,12 @@ namespace basic {
         "tower red", "tower blue"
     };
 
-    void Game::clearField() {
+    void Game::clearField() const {
         for (int i = 0; i < BITBOARD_COUNT; ++i)
             bitBoards[i].getBitfield() = 0;
     }
 
-    void Game::clearSeperatingBits() {
+    void Game::clearSeperatingBits() const {
         constexpr uint64_t mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
         for (int i = 0; i < BITBOARD_COUNT; ++i)
             bitBoards[i].getBitfield() &= mask;
@@ -30,11 +30,11 @@ namespace basic {
 
     Game::Game() : q(queue{default_selector{}}), active_player() {
         bitBoards = malloc_shared<BitBoard>(BITBOARD_COUNT, q);
-        for (int i = 0; i < 10; ++i)
+        for (int i = 0; i < BITBOARD_COUNT; ++i)
             new (&bitBoards[i]) BitBoard();
 
         moves = malloc_shared<BitBoard>(MOVES_COUNT, q);
-        for (int i = 0; i < 56; ++i)
+        for (int i = 0; i < MOVES_COUNT; ++i)
             new (&moves[i]) BitBoard();
     }
 
@@ -365,81 +365,90 @@ namespace basic {
     }
 
     void Game::generateMovesPARALLEL() {
-        uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
-        uint64_t enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
-
         for (int i = 0; i < MOVES_COUNT; i++) {
             moves[i].getBitfield() = 0;
         }
 
-        std::atomic<int> used_boards(0);
-        const int thread_count = std::thread::hardware_concurrency();
-        std::vector<std::future<void>> tasks;
+        // Allocate shared counter
+        int* used_boards = sycl::malloc_shared<int>(1, q);
+        *used_boards = 0;
 
-        for (int t = 0; t < thread_count; ++t) {
-            tasks.emplace_back(std::async(std::launch::async, [&, t]() {
-                for (int i = t + 1; i < 64; i += thread_count) {
-                    uint64_t board_pos = 1ULL << i;
-                    if ((player_board & board_pos) == 0) continue;
+        // Capture active player boards
+        const uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
+        const uint64_t enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
 
-                    std::array<uint64_t, 7> local_moves = {};
-                    local_moves[0] = board_pos;
+        q.submit([&](sycl::handler& h) {
+            h.parallel_for(sycl::range<1>(64), [=](sycl::id<1> idx) {
+                int i = idx[0];
+                if (i == 0) return;
 
-                    for (int h = 0; h < 8; h++) {
-                        if ((bitBoards[h].getBitfield() & board_pos) == 0) continue;
-                        constexpr int shifts[4] = {1, -1, 9, -9};
+                uint64_t board_pos = 1ULL << i;
+                if ((player_board & board_pos) == 0) return;
 
-                        for (int shift_dir = 0; shift_dir < 4; shift_dir++) {
-                            for (int move_len = 0; move_len <= h; move_len++) {
-                                uint64_t possible_move = 0;
-                                int shift = shifts[shift_dir];
-                                if (shift > 0)
-                                    possible_move = board_pos << (shift * (move_len + 1));
-                                else
-                                    possible_move = board_pos >> (-shift * (move_len + 1));
+                std::array<uint64_t, 7> local_moves = {};
+                local_moves[0] = board_pos;
 
-                                constexpr uint64_t separator_mask = 0b1100000001100000001100000001100000001100000001100000001100000001;
-                                if ((possible_move & separator_mask) != 0) break;
+                for (int h = 0; h < 8; h++) {
+                    if ((bitBoards[h].getBitfield() & board_pos) == 0) continue;
 
-                                if ((possible_move & player_board) && h == T_G) break;
+                    constexpr int shifts[4] = {1, -1, 9, -9};
 
-                                if (possible_move & player_board) {
-                                    if (possible_move & bitBoards[T_G].getBitfield()) break;
-                                    local_moves[move_len + 1] |= possible_move;
-                                    break;
-                                }
+                    for (int shift_dir = 0; shift_dir < 4; shift_dir++) {
+                        for (int move_len = 0; move_len <= h; move_len++) {
+                            uint64_t possible_move = 0;
+                            int shift = shifts[shift_dir];
+                            if (shift > 0)
+                                possible_move = board_pos << (shift * (move_len + 1));
+                            else
+                                possible_move = board_pos >> (-shift * (move_len + 1));
 
-                                if (possible_move & enemy_board) {
-                                    for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
-                                        if (!(possible_move & bitBoards[enemy_h].getBitfield())) continue;
-                                        if (h == T_G || enemy_h == T_G || enemy_h <= move_len)
-                                            local_moves[move_len + 1] |= possible_move;
-                                        break;
-                                    }
-                                    break;
-                                }
+                            constexpr uint64_t separator_mask = 0b1100000001100000001100000001100000001100000001100000001100000001;
+                            if ((possible_move & separator_mask) != 0) break;
 
+                            if ((possible_move & player_board) && h == T_G) break;
+
+                            if (possible_move & player_board) {
+                                if (possible_move & bitBoards[T_G].getBitfield()) break;
                                 local_moves[move_len + 1] |= possible_move;
-                                if (h == T_G) break;
+                                break;
                             }
-                        }
-                        break;
-                    }
 
-                    if (local_moves[1] != 0) {
-                        int index = used_boards.fetch_add(1);
-                        for (int k = 0; k < 7; k++) {
-                            moves[index * 7 + k].getBitfield() = local_moves[k];
+                            if (possible_move & enemy_board) {
+                                for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
+                                    if (!(possible_move & bitBoards[enemy_h].getBitfield())) continue;
+                                    if (h == T_G || enemy_h == T_G || enemy_h <= move_len)
+                                        local_moves[move_len + 1] |= possible_move;
+                                    break;
+                                }
+                                break;
+                            }
+
+                            local_moves[move_len + 1] |= possible_move;
+                            if (h == T_G) break;
                         }
+                    }
+                    break; // stop after first matching type
+                }
+
+                if (local_moves[1] != 0) {
+                    // Atomic index allocation
+                    sycl::atomic_ref<int,
+                                     sycl::memory_order::relaxed,
+                                     sycl::memory_scope::device,
+                                     sycl::access::address_space::global_space> atomic_idx(*used_boards);
+
+                    int index = atomic_idx.fetch_add(1);
+
+                    for (int k = 0; k < 7; k++) {
+                        moves[index * 7 + k].getBitfield() = local_moves[k];
                     }
                 }
-            }));
-        }
+            });
+        }).wait();
 
-        for (auto& task : tasks) {
-            task.get(); // join
-        }
+        sycl::free(used_boards, q);
     }
+
 
     // TODO bessere Suche (Masken wie bei Errorcorrection)
     std::vector<std::string> Game::readableMoves() {
