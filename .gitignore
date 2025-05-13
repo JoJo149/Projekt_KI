@@ -1,10 +1,9 @@
 cmake-build-*/
 .idea/
-ext/
 build/
 Build/
+compiler/
 
-.DS_Store
 .DS_Store
 .vscode
 .vs
