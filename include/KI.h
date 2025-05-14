@@ -12,5 +12,6 @@ public:
 
     [[nodiscard]] std::pair<uint64_t, uint64_t> minmax(int);
     void traverseMoves(basic::Game, int, int&);
+    [[nodiscard]] int evaluationFunction();
 };
 #endif //KI_H
