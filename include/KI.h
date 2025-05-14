@@ -10,8 +10,7 @@ private:
 public:
     KI();
 
-
     [[nodiscard]] std::pair<uint64_t, uint64_t> minmax(int);
-    void traverseMoves(basic::Game game, int depth, int &move_count);
+    void traverseMoves(basic::Game, int, int&);
 };
 #endif //KI_H

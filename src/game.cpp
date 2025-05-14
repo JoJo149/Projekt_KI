@@ -1,9 +1,7 @@
 #include "game.h"
-
 #include <iostream>
 #include <ostream>
 #include <string>
-#include <cstring>
 #include <cstdint>
 #include <vector>
 
@@ -16,34 +14,37 @@ namespace basic {
     };
 
     void Game::clearField() {
-        for (auto& bit_board: this->bitBoards) {
-            bit_board.getBitfield() = 0;
+        for (int i = 0; i < BITBOARD_COUNT; ++i) {
+            bitBoards[i] = 0;
         }
     }
 
-    void Game::clearSeperatingBits() {
-        for (auto& bit_board: this->bitBoards) {
-            constexpr uint64_t mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
-            bit_board.getBitfield() &= mask;
+    void Game::clearSeparatingBits() {
+        for (int i = 0; i < BITBOARD_COUNT; ++i) {
+            bitBoards[i] &= field_mask;
         }
     }
 
-    Game::Game(){}
+    Game::Game() : bitBoards{}, moves{}, active_player(){}
     // Constructor (no need to initialize static array here)
-    Game::Game(playerName p_name) {
+    Game::Game(playerName p_name) : bitBoards{}, moves{}, active_player() {
         if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
         if (p_name == red) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r");
+    }
+
+    void Game::toggleActivePlayer() {
+        active_player = static_cast<playerName>(!active_player);
     }
 
     // shows gamestate as well as current player
     // converts our game to an string of Format:
     // r1r11RG1r1r1/2r14/4r22/7/3b23/2b14/b1b11BG1b1b1 b
     // 1b11b11b11/1b11b11b11/1r11r11r11/1r11r11r11/1r11b11GB1/1RG5/7 b
-    void Game::gameToString(char* output) {
+    void Game::gameToString(char* output) const {
         int str_buff_counter = 0;
         int shift_amount = 0;
         int empty_cells = 0;
-        uint64_t total_bits = this->bitBoards[8].getBitfield() | this->bitBoards[9].getBitfield();
+        uint64_t total_bits = bitBoards[C_R] | bitBoards[C_B];
 
         for (int row = 0; row < 7; row++) {
             empty_cells = 0;
@@ -56,8 +57,8 @@ namespace basic {
                         str_buff_counter++;
                     }
                     for (int i = 0; i < 7; i++) {
-                        if ((this->bitBoards[i].getBitfield() >> shift_amount) & 1) {
-                            if ((this->bitBoards[8].getBitfield() >> shift_amount) & 1) {
+                        if ((bitBoards[i] >> shift_amount) & 1) {
+                            if ((bitBoards[8] >> shift_amount) & 1) {
                                 output[str_buff_counter] = 'r';
                             }else {
                                 output[str_buff_counter] = 'b';
@@ -67,8 +68,8 @@ namespace basic {
                         }
                     }
                     // Guard
-                    if ((this->bitBoards[7].getBitfield() >> shift_amount) & 1){
-                        if ((this->bitBoards[8].getBitfield() >> shift_amount) & 1) {
+                    if ((bitBoards[7] >> shift_amount) & 1){
+                        if ((bitBoards[8] >> shift_amount) & 1) {
                             output[str_buff_counter] = 'R';
                             output[str_buff_counter + 1] = 'G';
                         }else {
@@ -93,7 +94,7 @@ namespace basic {
         }
 
         output[str_buff_counter - 1] = ' ';
-        if (this->active_player == basic::playerName::red) {
+        if (active_player == red) {
             output[str_buff_counter] = 'r';
         }else {
             output[str_buff_counter] = 'b';
@@ -115,15 +116,15 @@ namespace basic {
             else if (c == 'r' || c == 'b') {
                 int color_index = (c == 'r') ? 8 : 9;
                 int tower_height = (game_string[i + 1] - '0') - 1;
-                bitBoards[tower_height].getBitfield() |= board_pos;
-                bitBoards[color_index].getBitfield() |= board_pos;
+                bitBoards[tower_height] |= board_pos;
+                bitBoards[color_index] |= board_pos;
                 board_pos <<= 1;
                 i++;
             }
             else if (c == 'R' || c == 'B') {
                 int color_index = (c == 'R') ? 8 : 9;
-                bitBoards[7].getBitfield() |= board_pos;
-                bitBoards[color_index].getBitfield() |= board_pos;
+                bitBoards[7] |= board_pos;
+                bitBoards[color_index] |= board_pos;
                 board_pos <<= 1;
                 i++;
             }
@@ -133,9 +134,9 @@ namespace basic {
             else if (c == ' ') {
                 char player = game_string[i+1];
                 if (player == 'r') {
-                    this->active_player = red;
+                    active_player = red;
                 }else {
-                    this->active_player = blue;
+                    active_player = blue;
                 }
                 break;
             }
@@ -154,10 +155,10 @@ namespace basic {
     }
 
     //Prints every bitmask values for debugging purpose
-    void Game::debugPrintGame() {
+    void Game::debugPrintGame() const {
         for (int i = 0; i < 10; i++) {
             std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
-            const auto bit_board = this->bitBoards[i].getBitfield();
+            const uint64_t bit_board = bitBoards[i];
             for (int row = 0; row < 7; row++) {
                 for (int col = 1; col < 8; col++) {
                     const int bit_index = (row * 9 + col);
@@ -169,25 +170,25 @@ namespace basic {
         }
     }
 
-    void Game::debugPrintMove() {
+    void Game::debugPrintMove() const {
         for (int i = 0; i < 56; i++) {
-            if (this->moves[i].getBitfield() != 0) {
+            if (moves[i] != 0) {
                 std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
-                const auto bit_board = this->moves[i].getBitfield();
+                const auto bit_board = moves[i];
                 printBitboard(bit_board);
                 i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
             }
         }
     }
 
-    void Game::printGameHelper(int bit_index) {
+    void Game::printGameHelper(int bit_index) const {
         std::string output = "\033[38;5;239m0\033[0m";
         for (int i = 0; i < 8; ++i) {
-            bool bit_set = (this->bitBoards[i].getBitfield() >> bit_index) & 1;
+            bool bit_set = (bitBoards[i] >> bit_index) & 1;
 
             if (!bit_set) continue;
 
-            bool is_blue = (this->bitBoards[C_B].getBitfield() >> bit_index) & 1;
+            bool is_blue = (bitBoards[C_B] >> bit_index) & 1;
             std::string color = is_blue ? "\033[1;34m" : "\033[1;31m";
 
             if (i == 7)
@@ -200,7 +201,7 @@ namespace basic {
 
         std::cout << output << " ";
     }
-    void Game::printGame() {
+    void Game::printGame() const {
         for (int row = 0; row < 7; row++) {
             std::cout << 8 - (row + 1) << " ";
             for (int col = 1; col < 8; col++) {
@@ -213,143 +214,134 @@ namespace basic {
         std::cout << std::endl;
     }
 
-    bool Game::isGameOver() {
+    bool Game::isGameOver() const {
         constexpr uint64_t guard_pos_up = 0b0000010000000000000000000000000000000000000000000000000000000000;
         constexpr uint64_t guard_pos_down = 0b0000000000000000000000000000000000000000000000000000000000010000;
 
         // if red guard is in bot guard field
-        if ((this->bitBoards[T_G].getBitfield() & this->bitBoards[C_R].getBitfield() & guard_pos_down) != 0) {
+        if (bitBoards[T_G] & bitBoards[C_R] & guard_pos_down) {
             return true;
         }
         // if blue guard is in top guard field
-        if ((this->bitBoards[T_G].getBitfield() & this->bitBoards[C_B].getBitfield() & guard_pos_up) != 0) {
+        if (bitBoards[T_G] & bitBoards[C_B] & guard_pos_up) {
             return true;
         }
+
         // check if move possible and if one of the guards got killed
-        return this->moves[0].getBitfield() == 0 || __builtin_popcountll(this->bitBoards[T_G].getBitfield()) == 1;
+        return moves[0] == 0 || __builtin_popcountll(bitBoards[T_G]) == 1;
     }
 
-    void Game::generatorBaseCase(const int& shift_dir, const int& tower_height, const int& used_boards,
+    void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, const int& used_boards,
             const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board)
     {
-        for (int move_len = 0; move_len < tower_height; move_len++) {
-            uint64_t possible_move = 0;
-            if (shift_dir > 0) {
-                possible_move = board_pos << (shift_dir * (move_len + 1));
-            }else {
-                possible_move = board_pos >> (-shift_dir * (move_len + 1));
-            }
-            // Zug über seitlichen Rand
-            constexpr uint64_t seperating_bit_mask = 0b1100000001100000001100000001100000001100000001100000001100000001;
-            if ((possible_move & seperating_bit_mask) != 0) {
+        const bool is_guard = (tower_type == T_G);
+
+        for (int move_len = 0; move_len <= tower_type; move_len++) {
+            const uint64_t possible_move = shift_dir > 0 ?
+                (board_pos << (shift_dir * (move_len + 1))) :
+                (board_pos >> (-shift_dir * (move_len + 1)));
+
+            // if move is out of bounds
+            if (possible_move & seperating_bit_mask) {
                 break;
             }
 
-            // Guard can not go on top of player tower
-            if((possible_move & player_board) && (tower_height-1 == T_G)){
-                break;
-            }
-
-            // if own tower in the way
+            // if u move on ur own tower
             if(possible_move & player_board) {
-                // tower can not go on top of Guard
-                if ((possible_move & bitBoards[T_G].getBitfield()) != 0){
+                // if moving tower is a guard or destination is its own guard
+                if (is_guard || possible_move & bitBoards[T_G]) {
                     break;
                 }
-                moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
+                moves[used_boards * 7 + move_len + 1] |= possible_move;
                 break;
             }
 
+
+            // if you are a guard tower and u don't move on ur own tower
+            // break so we only check move of len 1
+            if (is_guard) {
+                moves[used_boards * 7 + move_len + 1] |= possible_move;
+                break;
+            }
+
+            // if u move on an enemy
             if(possible_move & enemy_board) {
                 for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
-                    // player tower is Guard
-                    if (tower_height-1 == T_G) {
-                        moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
-                        break;
-                    }
                     // enemy is Guard
                     if (enemy_h == T_G) {
-                        moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
+                        moves[used_boards * 7 + move_len + 1] |= possible_move;
                         break;
                     }
-                    if ((possible_move & bitBoards[enemy_h].getBitfield()) != 0) {
+                    if (possible_move & bitBoards[enemy_h]) {
                         if (enemy_h <= move_len) {
-                            moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
+                            moves[used_boards * 7 + move_len + 1] |= possible_move;
                         }
                         break;
                     }
                 }
                 break;
             }
-            moves[used_boards * 7 + move_len + 1].getBitfield() |= possible_move;
-            // if u are a guard tower u can only move one step
-            if (tower_height-1 == T_G) {
+            // u move to a free square
+            moves[used_boards * 7 + move_len + 1] |= possible_move;
+        }
+    }
+
+    void Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, const int& used_boards) {
+        for (int h = 0; h < 8; ++h) {
+            if (bitBoards[h] & board_pos) {
+                const int tower_type = h;
+                // left
+                generatorBaseCase(1,  tower_type, used_boards, board_pos, player_board, enemy_board);
+                // right
+                generatorBaseCase(-1, tower_type, used_boards, board_pos, player_board, enemy_board);
+                // up
+                generatorBaseCase(9,  tower_type, used_boards, board_pos, player_board, enemy_board);
+                // down
+                generatorBaseCase(-9, tower_type, used_boards, board_pos, player_board, enemy_board);
                 break;
             }
         }
     }
 
-    // called if u have found an active player tower
-    // return how many Stones the Tower has
-    void Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& used_boards) {
-        // left, right, up, down
-        constexpr int shifts[4] = {1, -1, 9, -9};
-        for (int h = 0; h < 8; h++) {
-            // if tower board does not have pos bit set -> got to next loop
-            if ((bitBoards[h].getBitfield() & board_pos) == 0) {
-                continue;
-            }
-
-            // TODO base case for Tower of height 1 and 2 OR GPU-CODE
-
-            // base case
-            for (int i = 0; i < 4; i++) {
-                generatorBaseCase(shifts[i],h+1,
-                        used_boards, board_pos, player_board, enemy_board);
-            }
-
-            break;
-        }
-
-    }
-
-    // TODO check ob zieh höhe reicht zum schlagen nicht Tower höhe !!!!
     void Game::generateMoves() {
-        uint64_t board_pos = 0b1ULL;
-        uint64_t player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
-        uint64_t enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
+        uint64_t player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
+        uint64_t enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
+
+        // TODO change if we are sure we dont write in seperating bits
+        // clearSeparatingBits();
 
         // clear Move Boards
-        for (auto& bit_board: this->moves) {
-            bit_board.getBitfield() = 0;
+        for (int i = 0; i < MOVES_COUNT; i++) {
+            moves[i] = 0;
         }
 
         int used_boards = 0;
-        for (int i = 0; i < 63; i++) {
-            board_pos <<= 1;
-            // if we found player tower
-            if ((player_board & board_pos) != 0) {
-                moves[used_boards * 7].getBitfield() = board_pos;
-                generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
-                if (moves[used_boards * 7 + 1].getBitfield() == 0){
-                    moves[used_boards * 7].getBitfield() = 0;
-                }else {
-                    used_boards++;
-                }
+        uint64_t remaining = player_board;
+        while (remaining) {
+            int bit_index = std::countr_zero(remaining);
+            uint64_t board_pos = 1ULL << bit_index;
+            moves[used_boards * 7] = board_pos;
+            generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
+            // if no moves generated don't waste space
+            if (moves[used_boards * 7 + 1] == 0){
+                moves[used_boards * 7] = 0;
+            }else {
+                used_boards++;
             }
+            remaining &= (remaining - 1);
         }
     }
 
     // TODO bessere Suche (Masken wie bei Errorcorrection)
-    std::vector<std::string> Game::readableMoves() {
+    std::vector<std::string> Game::readableMoves() const {
         std::vector<std::string> move_list = {};
         int start_row = 0;
         int start_col = 0;
         for (int t = 0; t < 8; t++) {
-            if (moves[t * 7].getBitfield() == 0) {
+            if (moves[t * 7] == 0) {
                 break;
             }
-            uint64_t start_pos = moves[t * 7].getBitfield();
+            uint64_t start_pos = moves[t * 7];
             uint64_t tmp_pos = 0b1ULL;
             for (start_row = 0; start_row < 7; start_row++) {
                 bool found_pos = false;
@@ -365,7 +357,7 @@ namespace basic {
                 }
             }
             for (int m = 1; m < 7; m++) {
-                if (this->moves[t * 7 + m].getBitfield() == 0) {
+                if (moves[t * 7 + m] == 0) {
                     continue;
                 }
 
@@ -373,7 +365,7 @@ namespace basic {
                 for (int move_row = 0; move_row < 7; move_row++) {
                     for (int move_col = 0; move_col < 9; move_col++) {
                         tmp_pos <<= 1;
-                        if ((moves[t * 7 + m].getBitfield() & tmp_pos) != 0) {
+                        if ((moves[t * 7 + m] & tmp_pos) != 0) {
                             char start_c1 = char(start_col + 'A');
                             char start_c2 = char('7' - start_row);
                             char end_c1 = char(move_col + 'A');
@@ -389,15 +381,14 @@ namespace basic {
         return move_list;
     }
 
-
-    void Game::moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>& move_list) {
+    void Game::moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>& move_list) const {
         for (int t = 0; t < 8; t++) {
-            uint64_t start_pos = moves[t * 7].getBitfield();
+            uint64_t start_pos = moves[t * 7];
             if (start_pos == 0) {
                 break;
             }
             for (int m = 1; m < 7; m++) {
-                uint64_t end_pos = this->moves[(t * 7) + m].getBitfield();
+                uint64_t end_pos = moves[(t * 7) + m];
                 if (end_pos == 0) {
                     continue;
                 }
@@ -405,9 +396,8 @@ namespace basic {
                 for (int move_row = 0; move_row < 7; move_row++) {
                     for (int move_col = 0; move_col < 9; move_col++) {
                         tmp_pos <<= 1;
-                        if ((moves[t * 7 + m].getBitfield() & tmp_pos) != 0) {
-                            std::tuple<uint64_t, uint64_t, int> move= {start_pos, end_pos, m};
-                            move_list.emplace_back(move);
+                        if ((moves[t * 7 + m] & tmp_pos) != 0) {
+                            move_list.emplace_back(start_pos, end_pos, m);
                         }
                     }
                 }
@@ -425,30 +415,30 @@ namespace basic {
         return player_move;
     }
 
-    void Game::makeMove(uint64_t& start_pos, uint64_t& end_pos, int move_lenth) {
+    void Game::makeMove(const uint64_t& start_pos, const uint64_t& end_pos, int move_lenth) {
         int tower_height = 0;
         for (tower_height = 0; tower_height < 8; tower_height++) {
-            if ((bitBoards[tower_height].getBitfield() & start_pos) != 0) {
+            if ((bitBoards[tower_height] & start_pos) != 0) {
                 break;
             }
         }
         tower_height++;
 
-        uint64_t& player_board = (active_player == red) ? bitBoards[C_R].getBitfield() : bitBoards[C_B].getBitfield();
-        uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B].getBitfield() : bitBoards[C_R].getBitfield();
+        uint64_t& player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
+        uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
         // Guard special case
         if (tower_height - 1 == T_G) {
             player_board ^= start_pos;
-            bitBoards[T_G].getBitfield() ^= start_pos;
+            bitBoards[T_G] ^= start_pos;
             if ((enemy_board & end_pos) != 0) {
                 enemy_board ^= end_pos;
                 for (int i = 0; i < 8; i++) {
-                    bitBoards[i].getBitfield() &= ~end_pos;
+                    bitBoards[i] &= ~end_pos;
                 }
             }
             player_board |= end_pos;
-            bitBoards[T_G].getBitfield() |= end_pos;
+            bitBoards[T_G] |= end_pos;
             return;
         }
 
@@ -457,37 +447,34 @@ namespace basic {
             player_board ^= start_pos;
         }
         else {
-            bitBoards[tower_height - move_lenth - 1].getBitfield() |= start_pos;
+            bitBoards[tower_height - move_lenth - 1] |= start_pos;
         }
-        bitBoards[tower_height - 1].getBitfield() ^= start_pos;
-
-
+        bitBoards[tower_height - 1] ^= start_pos;
 
         // we move onto mate tower
         if ((player_board & end_pos) != 0) {
             // get tower height on which we move
             int tower_mate_height = 0;
             for (tower_mate_height = 0; tower_mate_height < 8; tower_mate_height++) {
-                if ((bitBoards[tower_mate_height].getBitfield() & end_pos) != 0) {
+                if ((bitBoards[tower_mate_height] & end_pos) != 0) {
                     break;
                 }
             }
             tower_mate_height++;
-            bitBoards[tower_mate_height - 1].getBitfield() ^= end_pos;
-            bitBoards[tower_mate_height + move_lenth - 1].getBitfield() |= end_pos;
+            bitBoards[tower_mate_height - 1] ^= end_pos;
+            bitBoards[tower_mate_height + move_lenth - 1] |= end_pos;
             return;
         }
         // we move onto enemy tower
         if ((enemy_board & end_pos) != 0) {
             enemy_board ^= end_pos;
             for (int i = 0; i < 8; i++) {
-                bitBoards[i].getBitfield() &= ~end_pos;
+                bitBoards[i] &= ~end_pos;
             }
             player_board |= end_pos;
         }
 
-        bitBoards[move_lenth - 1].getBitfield() |= end_pos;
+        bitBoards[move_lenth - 1] |= end_pos;
         player_board |= end_pos;
-
     }
 }

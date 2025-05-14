@@ -4,16 +4,41 @@
 
 #include "KI.h"
 
-int main() {
 
+uint64_t safePerft(basic::Game game, int depth) {
+    if (depth == 0) return 1;
+
+    uint64_t nodes = 0;
+    game.generateMoves();
+
+    std::vector<std::tuple<uint64_t, uint64_t, int>> moves;
+    game.moveList(moves);
+
+    for (const auto& move : moves) {
+        basic::Game new_game = game;
+        new_game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        new_game.toggleActivePlayer();
+
+        nodes += safePerft(new_game, depth - 1);
+    }
+
+    return nodes;
+}
+
+int main() {
+    using namespace basic;
+
+    Game g(blue);
+    uint64_t count = safePerft(g, 4);
+    std::cout << "Perft(3): " << count << std::endl;
 
     KI ki{};
-    std::pair<uint64_t, uint64_t> züge = ki.minmax(2);
+    // std::pair<uint64_t, uint64_t> züge = ki.minmax(3);
+
     /*
     std::random_device rd;  // Seed
     std::mt19937 gen(rd()); // Random number generator
     using namespace basic;
-    /*
     Game  game;
     game.stringToGame("3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1r21 r");
     game.printGame();

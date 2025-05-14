@@ -36,29 +36,24 @@ namespace basic {
         TP_8, M_81, M_82, M_83, M_84, M_85, M_86
     };
 
-    class BitBoard{
-    private:
-        uint64_t bitfield;
-
-    public:
-        BitBoard() : bitfield(0) {}
-        [[nodiscard]] uint64_t& getBitfield() { return bitfield;}
-        void printBitboard (BitBoard);
-    };
+    constexpr int BITBOARD_COUNT = 10;
+    constexpr int MOVES_COUNT = 56;
+    constexpr uint64_t seperating_bit_mask = 0b1100000001100000001100000001100000001100000001100000001100000001;
+    constexpr uint64_t field_mask = 0b0011111110011111110011111110011111110011111110011111110011111110;
 
     class Game {
     private:
-        BitBoard bitBoards[10];
-        BitBoard moves[56];
+        uint64_t bitBoards[BITBOARD_COUNT];
+        uint64_t moves[MOVES_COUNT];
 
-        void printGameHelper(int);
-        void generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, int&);
+        void printGameHelper(int) const;
+        void generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, const int&);
         void generatorBaseCase(const int &shift_dir, const int &tower_height, const int &used_boards,
                                      const uint64_t &board_pos,
                                      const uint64_t &player_board, const uint64_t &enemy_board);
 
         void clearField();
-        void clearSeperatingBits();
+        void clearSeparatingBits();
 
     public:
         playerName active_player;
@@ -67,20 +62,22 @@ namespace basic {
         Game();
         Game(playerName);
 
+        void toggleActivePlayer();
+
         void stringToGame(const char*);
-        void gameToString(char*);
+        void gameToString(char*) const;
         [[nodiscard]] static std::pair<uint64_t, uint64_t> moveStringToBitboard (const std::string&);
 
         void generateMoves();
-        bool isGameOver();
-        [[nodiscard]] std::vector<std::string> readableMoves();
-        void moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>&);
-        void makeMove(uint64_t&, uint64_t&, int);
+        bool isGameOver() const;
+        [[nodiscard]] std::vector<std::string> readableMoves() const;
+        void moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>&) const;
+        void makeMove(const uint64_t&, const uint64_t&, int);
 
-        void printGame();
+        void printGame() const;
 
-        void debugPrintGame();
-        void debugPrintMove();
+        void debugPrintGame() const;
+        void debugPrintMove() const;
     };
 }
 
