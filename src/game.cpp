@@ -260,7 +260,6 @@ namespace basic {
                 break;
             }
 
-
             // if you are a guard tower and u don't move on ur own tower
             // break so we only check move of len 1
             if (is_guard) {
@@ -311,9 +310,6 @@ namespace basic {
         uint64_t player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
         uint64_t enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
-        // TODO change if we are sure we dont write in seperating bits
-        // clearSeparatingBits();
-
         // clear Move Boards
         for (int i = 0; i < MOVES_COUNT; i++) {
             moves[i] = 0;
@@ -326,9 +322,8 @@ namespace basic {
 
         while (remaining) {
             int bit_index = std::countr_zero(remaining);
-            uint64_t board_pos = 1ULL << bit_index;
-            moves[used_boards * 7] = board_pos;
-            generateMovesHelper(board_pos, player_board, enemy_board, used_boards);
+            moves[used_boards * 7] = 1ULL << bit_index;
+            generateMovesHelper(moves[used_boards * 7], player_board, enemy_board, used_boards);
             // if no moves generated don't waste space
             if (moves[used_boards * 7 + 1] == 0){
                 moves[used_boards * 7] = 0;
@@ -389,24 +384,24 @@ namespace basic {
     }
 
     void Game::moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>& move_list) const {
-        for (int t = 0; t < 8; t++) {
-            uint64_t start_pos = moves[t * 7];
+        for (int row = 0; row < 8; row++) {
+            uint64_t start_pos = moves[row * 7];
             if (start_pos == 0) {
                 break;
             }
-            for (int m = 1; m < 7; m++) {
-                uint64_t end_pos = moves[(t * 7) + m];
-                if (end_pos == 0) {
-                    continue;
+            for (int move_length = 1; move_length < 7; move_length++) {
+                uint64_t move_board = moves[(row * 7) + move_length];
+                if (move_board == 0) {
+                    break;
                 }
-                uint64_t tmp_pos = 0b1ULL;
+                uint64_t end_pos = 0b1ULL;
                 for (int move_row = 0; move_row < 7; move_row++) {
                     for (int move_col = 0; move_col < 9; move_col++) {
-                        tmp_pos <<= 1;
-                        if ((moves[t * 7 + m] & tmp_pos) != 0) {
+                        end_pos <<= 1;
+                        if (moves[row * 7 + move_length] & end_pos) {
                             assert(std::popcount(start_pos) == 1);
-                            assert(std::popcount(tmp_pos) == 1);
-                            move_list.emplace_back(start_pos, tmp_pos, m);
+                            assert(std::popcount(end_pos) == 1);
+                            move_list.emplace_back(start_pos, end_pos, move_length);
                         }
                     }
                 }
