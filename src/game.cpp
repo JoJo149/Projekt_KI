@@ -1,4 +1,6 @@
 #include "game.h"
+
+#include <assert.h>
 #include <iostream>
 #include <ostream>
 #include <string>
@@ -25,11 +27,13 @@ namespace basic {
         }
     }
 
-    Game::Game() : bitBoards{}, moves{}, active_player(){}
+    Game::Game() : moves{}, bitBoards{}, active_player(){}
     // Constructor (no need to initialize static array here)
-    Game::Game(playerName p_name) : bitBoards{}, moves{}, active_player() {
+    Game::Game(playerName p_name) : moves{}, bitBoards{}, active_player() {
         if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
         if (p_name == red) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r");
+        assert(std::popcount(bitBoards[C_B]) == 8);
+        assert(std::popcount(bitBoards[C_R]) == 8);
     }
 
     void Game::toggleActivePlayer() {
@@ -266,7 +270,7 @@ namespace basic {
 
             // if u move on an enemy
             if(possible_move & enemy_board) {
-                for (int enemy_h = 0; enemy_h < 8; enemy_h++) {
+                for (int enemy_h = 0; enemy_h <= T_G; enemy_h++) {
                     // enemy is Guard
                     if (enemy_h == T_G) {
                         moves[used_boards * 7 + move_len + 1] |= possible_move;
@@ -287,7 +291,7 @@ namespace basic {
     }
 
     void Game::generateMovesHelper(const uint64_t& board_pos, const uint64_t& player_board, const uint64_t& enemy_board, const int& used_boards) {
-        for (int h = 0; h < 8; ++h) {
+        for (int h = 0; h <= T_G; ++h) {
             if (bitBoards[h] & board_pos) {
                 const int tower_type = h;
                 // left
@@ -317,6 +321,9 @@ namespace basic {
 
         int used_boards = 0;
         uint64_t remaining = player_board;
+
+        assert(std::popcount(player_board) <= 8);
+
         while (remaining) {
             int bit_index = std::countr_zero(remaining);
             uint64_t board_pos = 1ULL << bit_index;
@@ -397,7 +404,9 @@ namespace basic {
                     for (int move_col = 0; move_col < 9; move_col++) {
                         tmp_pos <<= 1;
                         if ((moves[t * 7 + m] & tmp_pos) != 0) {
-                            move_list.emplace_back(start_pos, end_pos, m);
+                            assert(std::popcount(start_pos) == 1);
+                            assert(std::popcount(tmp_pos) == 1);
+                            move_list.emplace_back(start_pos, tmp_pos, m);
                         }
                     }
                 }
@@ -431,11 +440,14 @@ namespace basic {
         uint64_t& player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
         uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
+        assert(std::popcount(start_pos) == 1);
+        assert(std::popcount(end_pos) == 1);
+
         uint64_t start_mask = ~start_pos;
         uint64_t end_mask = ~end_pos;
 
         int tower_type = 0;
-        for (tower_type = 0; tower_type < 8; tower_type++) {
+        for (tower_type = 0; tower_type <= T_G; tower_type++) {
             if (bitBoards[tower_type] & start_pos) {
                 break;
             }
@@ -447,7 +459,7 @@ namespace basic {
             bitBoards[T_G] &= start_mask;
             if (enemy_board & end_pos) {
                 enemy_board &= end_mask;
-                for (int i = 0; i < 8; i++) {
+                for (int i = 0; i <= T_G; i++) {
                     if (bitBoards[i] & end_pos) {
                         bitBoards[i] &= end_mask;
                         enemy_type = i;
@@ -473,7 +485,7 @@ namespace basic {
         if (end_pos & player_board) {
             // get tower height on which we move
             int tower_mate_type = 0;
-            for (tower_mate_type = 0; tower_mate_type < 8; tower_mate_type++) {
+            for (tower_mate_type = 0; tower_mate_type <= T_G; tower_mate_type++) {
                 if (bitBoards[tower_mate_type] & end_pos) {
                     break;
                 }
@@ -486,7 +498,7 @@ namespace basic {
         // we move onto enemy tower
         if (end_pos & enemy_board) {
             enemy_board &= end_mask;
-            for (int i = 0; i < 8; i++) {
+            for (int i = 0; i <= T_G; i++) {
                 if (bitBoards[i] & end_pos) {
                     bitBoards[i] &= end_mask;
                     enemy_type = i;

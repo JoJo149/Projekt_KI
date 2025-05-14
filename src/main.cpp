@@ -39,7 +39,7 @@ int main() {
     using namespace basic;
 
     Game g(blue);
-    int depth = 2;
+    int depth = 3;
     uint64_t count = safePerft(g, depth);
     std::cout << "Perft(" << depth << "): " << count << std::endl;
 
