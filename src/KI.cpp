@@ -67,7 +67,6 @@ int KI::evaluationFunction(){
     uint64_t& player_board = (game.active_player == basic::red) ? game.bitBoards[basic::C_R] : game.bitBoards[basic::C_B];
     uint64_t enemy_board = (game.active_player == basic::red) ? game.bitBoards[basic::C_B] : game.bitBoards[basic::C_R];
     uint64_t guard_positions = game.bitBoards[basic::T_G];
-    std::cout << "active player: " << game.active_player <<std::endl;
 
     int enemy_amount = std::popcount(enemy_board);
 
@@ -92,7 +91,7 @@ int KI::evaluationFunction(){
     if (game.active_player == basic::red) {
         guard_distance = guard_row;
     }else {
-        guard_distance = 7 - guard_row;
+        guard_distance = 6 - guard_row;
     }
 
     return (enemy_amount + guard_distance);
