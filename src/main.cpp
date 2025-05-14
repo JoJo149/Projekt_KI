@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "game.h"
 #include <iostream>
 #include <random>
@@ -5,7 +7,7 @@
 #include "KI.h"
 
 
-uint64_t safePerft(basic::Game game, int depth) {
+uint64_t safePerft(basic::Game& game, int depth) {
     if (depth == 0) return 1;
 
     uint64_t nodes = 0;
@@ -14,12 +16,20 @@ uint64_t safePerft(basic::Game game, int depth) {
     std::vector<std::tuple<uint64_t, uint64_t, int>> moves;
     game.moveList(moves);
 
-    for (const auto& move : moves) {
-        basic::Game new_game = game;
-        new_game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
-        new_game.toggleActivePlayer();
+    for (const std::tuple<uint64_t, uint64_t, int>& move : moves) {
+        uint64_t before[basic::BITBOARD_COUNT];
+        std::copy(std::begin(game.bitBoards), std::end(game.bitBoards), before);
 
-        nodes += safePerft(new_game, depth - 1);
+        int enemy_type = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move) );
+        game.toggleActivePlayer();
+        nodes += safePerft(game, depth - 1);
+
+        game.toggleActivePlayer();
+        game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), enemy_type);
+
+        for (int i = 0; i < basic::BITBOARD_COUNT; i++) {
+            assert(before[i] == game.bitBoards[i]);
+        }
     }
 
     return nodes;
@@ -29,10 +39,11 @@ int main() {
     using namespace basic;
 
     Game g(blue);
-    uint64_t count = safePerft(g, 4);
-    std::cout << "Perft(3): " << count << std::endl;
+    int depth = 2;
+    uint64_t count = safePerft(g, depth);
+    std::cout << "Perft(" << depth << "): " << count << std::endl;
 
-    KI ki{};
+    // KI ki{};
     // std::pair<uint64_t, uint64_t> züge = ki.minmax(3);
 
     /*

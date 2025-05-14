@@ -415,66 +415,88 @@ namespace basic {
         return player_move;
     }
 
-    void Game::makeMove(const uint64_t& start_pos, const uint64_t& end_pos, int move_lenth) {
-        int tower_height = 0;
-        for (tower_height = 0; tower_height < 8; tower_height++) {
-            if ((bitBoards[tower_height] & start_pos) != 0) {
-                break;
-            }
+    void Game::unMakeMove(const uint64_t& start_pos, const uint64_t& end_pos, const int& move_length, const int& enemy_type) {
+        makeMove(end_pos, start_pos, move_length);
+
+        uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
+        if (enemy_type != -1) {
+            bitBoards[enemy_type] |= end_pos;
+            enemy_board |= end_pos;
         }
-        tower_height++;
+    }
+
+    int Game::makeMove(const uint64_t& start_pos, const uint64_t& end_pos, const int& move_length) {
+        int enemy_type = -1;
 
         uint64_t& player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
         uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
+        uint64_t start_mask = ~start_pos;
+        uint64_t end_mask = ~end_pos;
+
+        int tower_type = 0;
+        for (tower_type = 0; tower_type < 8; tower_type++) {
+            if (bitBoards[tower_type] & start_pos) {
+                break;
+            }
+        }
+
         // Guard special case
-        if (tower_height - 1 == T_G) {
-            player_board ^= start_pos;
-            bitBoards[T_G] ^= start_pos;
-            if ((enemy_board & end_pos) != 0) {
-                enemy_board ^= end_pos;
+        if (tower_type == T_G) {
+            player_board &= start_mask;
+            bitBoards[T_G] &= start_mask;
+            if (enemy_board & end_pos) {
+                enemy_board &= end_mask;
                 for (int i = 0; i < 8; i++) {
-                    bitBoards[i] &= ~end_pos;
+                    if (bitBoards[i] & end_pos) {
+                        bitBoards[i] &= end_mask;
+                        enemy_type = i;
+                        break;
+                    }
                 }
             }
             player_board |= end_pos;
             bitBoards[T_G] |= end_pos;
-            return;
+            return enemy_type;
         }
 
+        bitBoards[tower_type] &= start_mask;
         // tower leaves start_pos fully
-        if (tower_height == move_lenth) {
-            player_board ^= start_pos;
+        if (tower_type + 1 == move_length) {
+            player_board &= start_mask;
         }
         else {
-            bitBoards[tower_height - move_lenth - 1] |= start_pos;
+            bitBoards[tower_type - move_length] |= start_pos;
         }
-        bitBoards[tower_height - 1] ^= start_pos;
 
         // we move onto mate tower
-        if ((player_board & end_pos) != 0) {
+        if (end_pos & player_board) {
             // get tower height on which we move
-            int tower_mate_height = 0;
-            for (tower_mate_height = 0; tower_mate_height < 8; tower_mate_height++) {
-                if ((bitBoards[tower_mate_height] & end_pos) != 0) {
+            int tower_mate_type = 0;
+            for (tower_mate_type = 0; tower_mate_type < 8; tower_mate_type++) {
+                if (bitBoards[tower_mate_type] & end_pos) {
                     break;
                 }
             }
-            tower_mate_height++;
-            bitBoards[tower_mate_height - 1] ^= end_pos;
-            bitBoards[tower_mate_height + move_lenth - 1] |= end_pos;
-            return;
-        }
-        // we move onto enemy tower
-        if ((enemy_board & end_pos) != 0) {
-            enemy_board ^= end_pos;
-            for (int i = 0; i < 8; i++) {
-                bitBoards[i] &= ~end_pos;
-            }
-            player_board |= end_pos;
+            bitBoards[tower_mate_type] &= end_mask;
+            bitBoards[tower_mate_type + move_length] |= end_pos;
+            return enemy_type;
         }
 
-        bitBoards[move_lenth - 1] |= end_pos;
+        // we move onto enemy tower
+        if (end_pos & enemy_board) {
+            enemy_board &= end_mask;
+            for (int i = 0; i < 8; i++) {
+                if (bitBoards[i] & end_pos) {
+                    bitBoards[i] &= end_mask;
+                    enemy_type = i;
+                    break;
+                }
+            }
+        }
+
+        bitBoards[move_length - 1] |= end_pos;
         player_board |= end_pos;
+        return enemy_type;
     }
 }

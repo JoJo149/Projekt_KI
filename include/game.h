@@ -43,7 +43,6 @@ namespace basic {
 
     class Game {
     private:
-        uint64_t bitBoards[BITBOARD_COUNT];
         uint64_t moves[MOVES_COUNT];
 
         void printGameHelper(int) const;
@@ -56,6 +55,9 @@ namespace basic {
         void clearSeparatingBits();
 
     public:
+        // TODO provisorisch
+        uint64_t bitBoards[BITBOARD_COUNT];
+
         playerName active_player;
         static const char* boardNames[10];
 
@@ -68,11 +70,14 @@ namespace basic {
         void gameToString(char*) const;
         [[nodiscard]] static std::pair<uint64_t, uint64_t> moveStringToBitboard (const std::string&);
 
+
         void generateMoves();
         bool isGameOver() const;
         [[nodiscard]] std::vector<std::string> readableMoves() const;
         void moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>&) const;
-        void makeMove(const uint64_t&, const uint64_t&, int);
+
+        int makeMove(const uint64_t&, const uint64_t&, const int&);
+        void unMakeMove(const uint64_t&, const uint64_t&, const int&, const int&);
 
         void printGame() const;
 
