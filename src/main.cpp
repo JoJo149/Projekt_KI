@@ -46,9 +46,9 @@ int main() {
     */
 
     KI ki{};
-    int eva = ki.evaluationFunction();
-    std::cout << eva << std::endl;
-    std::pair<uint64_t, uint64_t> züge = ki.minmax(4);
+    //int eva = ki.evaluationFunction();
+    //std::cout << eva << std::endl;
+    std::pair<uint64_t, uint64_t> züge = ki.minmax(2);
 
     /*
     std::random_device rd;  // Seed
