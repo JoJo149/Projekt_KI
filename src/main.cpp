@@ -38,13 +38,17 @@ uint64_t safePerft(basic::Game& game, int depth) {
 int main() {
     using namespace basic;
 
+    /*
     Game g(blue);
     int depth = 3;
     uint64_t count = safePerft(g, depth);
     std::cout << "Perft(" << depth << "): " << count << std::endl;
+    */
 
-    // KI ki{};
-    // std::pair<uint64_t, uint64_t> züge = ki.minmax(3);
+    KI ki{};
+    int eva = ki.evaluationFunction();
+    std::cout << eva << std::endl;
+    std::pair<uint64_t, uint64_t> züge = ki.minmax(4);
 
     /*
     std::random_device rd;  // Seed

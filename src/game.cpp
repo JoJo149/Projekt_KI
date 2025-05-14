@@ -32,8 +32,6 @@ namespace basic {
     Game::Game(playerName p_name) : moves{}, bitBoards{}, active_player() {
         if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
         if (p_name == red) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r");
-        assert(std::popcount(bitBoards[C_B]) == 8);
-        assert(std::popcount(bitBoards[C_R]) == 8);
     }
 
     void Game::toggleActivePlayer() {
@@ -219,8 +217,8 @@ namespace basic {
     }
 
     bool Game::isGameOver() const {
-        constexpr uint64_t guard_pos_up = 0b0000010000000000000000000000000000000000000000000000000000000000;
-        constexpr uint64_t guard_pos_down = 0b0000000000000000000000000000000000000000000000000000000000010000;
+        constexpr uint64_t guard_pos_down = 0b0000010000000000000000000000000000000000000000000000000000000000;
+        constexpr uint64_t guard_pos_up =   0b0000000000000000000000000000000000000000000000000000000000010000;
 
         // if red guard is in bot guard field
         if (bitBoards[T_G] & bitBoards[C_R] & guard_pos_down) {
@@ -231,7 +229,7 @@ namespace basic {
             return true;
         }
 
-        // check if move possible and if one of the guards got killed
+        // check if ther are no moves possible or if one of the guards got killed
         return moves[0] == 0 || __builtin_popcountll(bitBoards[T_G]) == 1;
     }
 
