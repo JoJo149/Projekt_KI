@@ -230,7 +230,7 @@ namespace basic {
         }
 
         // check if ther are no moves possible or if one of the guards got killed
-        return moves[0] == 0 || __builtin_popcountll(bitBoards[T_G]) == 1;
+        return moves[0] == 0 || std::popcount(bitBoards[T_G]) == 1;
     }
 
     void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, const int& used_boards,
@@ -392,16 +392,12 @@ namespace basic {
                 if (move_board == 0) {
                     break;
                 }
-                uint64_t end_pos = 0b1ULL;
-                for (int move_row = 0; move_row < 7; move_row++) {
-                    for (int move_col = 0; move_col < 9; move_col++) {
-                        end_pos <<= 1;
-                        if (moves[row * 7 + move_length] & end_pos) {
-                            assert(std::popcount(start_pos) == 1);
-                            assert(std::popcount(end_pos) == 1);
-                            move_list.emplace_back(start_pos, end_pos, move_length);
-                        }
-                    }
+                uint64_t remaining = move_board;
+                while (remaining) {
+                    int bit_index = std::countr_zero(remaining);
+                    uint64_t end_pos = 1ULL << bit_index;
+                    move_list.emplace_back(start_pos, end_pos, move_length);
+                    remaining &= (remaining - 1);
                 }
             }
         }

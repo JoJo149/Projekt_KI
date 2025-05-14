@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.16)
 project(projekt_ki LANGUAGES CXX VERSION 0.0.2)
 
+# standard of 23 try to use llvm c++ compiler
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
