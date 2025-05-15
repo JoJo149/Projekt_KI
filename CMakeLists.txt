@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
-project(projekt_ki LANGUAGES CXX VERSION 0.0.1)
+project(projekt_ki LANGUAGES CXX VERSION 0.0.2)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 # ----------------------------------------------------------------------------
 # Source files
@@ -26,7 +26,7 @@ endforeach()
 
 # ----------------------------------------------------------------------------
 # External dependencies
-add_subdirectory(ext/csv-parser)
+add_subdirectory(ext/csv-parser )
 add_subdirectory(ext/Catch2)
 
 # ----------------------------------------------------------------------------
@@ -69,30 +69,36 @@ catch_discover_tests(tests
 )
 
 catch_discover_tests(benchmarks
-        TEST_PREFIX "benchmarks_abgabe"
+        TEST_PREFIX "Benchmarks"
         EXTRA_ARGS
         --benchmark-samples 10000
         --benchmark-warmup-time 500ms
 )
 
-# ----------------------------------------------------------------------------
-# Code coverage (optional per platform)
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     target_link_libraries(tests PRIVATE gcov)
     target_link_libraries(benchmarks PRIVATE gcov)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    find_program(CLANG_PATH clang++)
-    execute_process(
-            COMMAND ${CLANG_PATH} --print-resource-dir
-            OUTPUT_VARIABLE CLANG_RESOURCE_DIR
-            OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    target_link_libraries(tests
-            PRIVATE
-            ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
-    )
-    target_link_libraries(benchmarks
-            PRIVATE
-            ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
-    )
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+        message(STATUS "Enabling GCC coverage flags on macOS")
+        add_compile_options(-fprofile-arcs -ftest-coverage)
+        add_link_options(-fprofile-arcs -ftest-coverage -lgcov)
+        target_link_libraries(tests PRIVATE gcov)
+        target_link_libraries(benchmarks PRIVATE gcov)
+    else ()
+        find_program(CLANG_PATH clang++)
+        execute_process(
+                COMMAND ${CLANG_PATH} --print-resource-dir
+                OUTPUT_VARIABLE CLANG_RESOURCE_DIR
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+        )
+        target_link_libraries(tests
+                PRIVATE
+                ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
+        )
+        target_link_libraries(benchmarks
+                PRIVATE
+                ${CLANG_RESOURCE_DIR}/lib/darwin/libclang_rt.profile_osx.a
+        )
+    endif ()
 endif()

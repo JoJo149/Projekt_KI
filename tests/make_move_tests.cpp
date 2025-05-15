@@ -6,11 +6,8 @@
 
 #include "../include/game.h"
 
- using namespace basic;
-
 // TODO automate test for moving
 TEST_CASE("Test correctness of: generateMoves") {
-    std::tuple<>;
     Game game{};
     std::string start_board = "7/3r33/2RG4/7/3BG3/1b25/7 r";
     game.stringToGame(start_board.c_str());
