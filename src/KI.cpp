@@ -3,41 +3,13 @@
 #include <iostream>
 #include <limits>
 
-KI::KI(): game(basic::red) {}
-
-
-std::string KI::printMove(std::tuple<uint64_t, uint64_t, int> move) {
-    uint64_t start_pos = std::get<0>(move);
-    uint64_t end_pos = std::get<1>(move);
-    int steps = std::get<2>(move);
-
-    int start_row = 0;
-    int start_col = 0;
-    int end_row = 0;
-    int end_col = 0;
-    if (start_pos != 0) {
-        int index = __builtin_ctzll(start_pos);
-        start_row = index / 9;
-        start_col = index % 9;
-    }
-    if (end_pos != 0) {
-        int index = __builtin_ctzll(end_pos);
-        end_row = index / 9;
-        end_col = index % 9;
-    }
-
-    char start_c1 = char(start_col + 'A' - 1);
-    char start_c2 = char('7' - start_row);
-    char end_c1 = char(end_col + 'A' - 1);
-    char end_c2 = char('7' - end_row);
-
-    std::string move_str = {start_c1, start_c2, '-', end_c1, end_c2, '-', char(steps + '0')};
-    return move_str;
-}
+KI::KI(): game(red) {}
+KI::KI(const char * game_string): game(game_string) {}
 
 std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
     int move_count = 0;
 
+    // TODO Temporary for Database purpose
     game.printGame();
 
     game.generateMoves();
@@ -46,7 +18,7 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
 
     int best_eval = std::numeric_limits<int>::min();
     std::tuple<uint64_t, uint64_t, int> best_move;
-    basic::playerName start_player = game.active_player;
+    playerName start_player = game.active_player;
 
     for (const auto& move : move_list) {
         int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
@@ -62,23 +34,17 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
             best_move = move;
         }
     }
-    //std::cout << "best_evaluation: " << best_eval << std::endl;
+
+    // TODO Temporary for Database purpose
     std::cout << "Total moves: " << move_count << std::endl;
 
     return best_move;
 }
 
-int KI::traverseMoves(basic::Game game, int depth, int& move_count, bool maximizing_player, basic::playerName start_player) {
+int KI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_player, playerName start_player) {
     if (depth == 0) {
-        // to not count comulated moves
         move_count++;
-        //game.toggleActivePlayer();
-        //game.printGame();
-        //std::cout << "active_player: " << game.active_player << std::endl;
-        int eval = evaluationFunction(game, start_player);
-        //std::cout << "ebvaluation: " << eval << std::endl;
-        //game.toggleActivePlayer();
-        return eval;
+        return evaluationFunction(game, start_player);
     }
 
     game.generateMoves();
@@ -144,21 +110,21 @@ static const uint8_t guard_table_blue[64] = {
 };
 
 
+int KI::evaluationFunction(Game game, playerName max_player){
+    uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
+    uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
+    uint64_t guard_positions = game.bitBoards[T_G];
 
-int KI::evaluationFunction(basic::Game game, basic::playerName max_player){
-    uint64_t& player_board = (max_player == basic::red) ? game.bitBoards[basic::C_R] : game.bitBoards[basic::C_B];
-    uint64_t enemy_board = (max_player == basic::red) ? game.bitBoards[basic::C_B] : game.bitBoards[basic::C_R];
-    uint64_t guard_positions = game.bitBoards[basic::T_G];
-
-    int enemy_amount = std::popcount(enemy_board);
+    // TODO enemy amount sollte von den Spielfigur Anzahl zählen nicht stapel
+    int enemy_amount = 8 - std::popcount(enemy_board);
 
     int guard_index = 0;
     uint64_t player_guard_pos = player_board & guard_positions;
     if (player_guard_pos != 0) {
-        guard_index = __builtin_ctzll(player_guard_pos);
+        guard_index = std::countr_zero(player_guard_pos);
     }
     int guard_distance = 0;
-    if (max_player == basic::red) {
+    if (max_player == red) {
         guard_distance = guard_table_red[guard_index] - 3;
     }else {
         guard_distance = guard_table_blue[guard_index] - 3;
