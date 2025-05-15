@@ -10,8 +10,9 @@ private:
 public:
     KI();
 
-    [[nodiscard]] std::pair<uint64_t, uint64_t> minmax(int);
-    int traverseMoves(basic::Game, int, int&, bool);
-    [[nodiscard]] int evaluationFunction();
+    [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int);
+    int traverseMoves(basic::Game, int, int&, bool, basic::playerName);
+    [[nodiscard]] int evaluationFunction(basic::Game, basic::playerName);
+    static std::string printMove(std::tuple<uint64_t, uint64_t, int>);
 };
 #endif //KI_H

@@ -48,7 +48,9 @@ int main() {
     KI ki{};
     //int eva = ki.evaluationFunction();
     //std::cout << eva << std::endl;
-    std::pair<uint64_t, uint64_t> züge = ki.minmax(2);
+    std::tuple<uint64_t, uint64_t, int> züge = ki.minmax(1);
+    std::string best_move = KI::printMove(züge);
+    std::cout << "best_move: " << best_move << std::endl;
 
     /*
     std::random_device rd;  // Seed
