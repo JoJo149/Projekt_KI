@@ -68,7 +68,7 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
 
 
 
-    basic::Game game{};
+    Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
         const std::string& input_str = start_setup[i];
         const char* input = input_str.c_str();

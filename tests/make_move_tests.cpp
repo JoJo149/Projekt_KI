@@ -6,8 +6,6 @@
 
 #include "../include/game.h"
 
- using namespace basic;
-
 // TODO automate test for moving
 TEST_CASE("Test correctness of: generateMoves") {
     Game game{};
