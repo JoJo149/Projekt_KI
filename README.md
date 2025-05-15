@@ -1,12 +1,12 @@
 # Projekt Symbolische Künstliche Intelligenz
 
 ## short info
-Build of an small KI for the 2 player game "Guard and Towers".
+Build of a small KI for the 2 player game "Guard and Towers".
 To optimize the Project we will us: bitboard, ...
 
 ## Dependencies
 - #### [cmake](https://cmake.org/download/)
-- #### any c++ compiler
+- #### any C++ compiler supporting C++ 20 e.g. [gcc](https://gcc.gnu.org/install/index.html)
 
 ## getting started
 Go to your designated project folder and clone the project.
