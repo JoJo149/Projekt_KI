@@ -7,7 +7,7 @@
 #include "KI.h"
 
 
-uint64_t safePerft(basic::Game& game, int depth) {
+uint64_t Perft(basic::Game& game, int depth) {
     if (depth == 0) return 1;
 
     uint64_t nodes = 0;
@@ -17,19 +17,12 @@ uint64_t safePerft(basic::Game& game, int depth) {
     game.moveList(moves);
 
     for (const std::tuple<uint64_t, uint64_t, int>& move : moves) {
-        uint64_t before[basic::BITBOARD_COUNT];
-        std::copy(std::begin(game.bitBoards), std::end(game.bitBoards), before);
 
         int enemy_type = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move) );
         game.toggleActivePlayer();
-        nodes += safePerft(game, depth - 1);
-
+        nodes += Perft(game, depth - 1);
         game.toggleActivePlayer();
         game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), enemy_type);
-
-        for (int i = 0; i < basic::BITBOARD_COUNT; i++) {
-            assert(before[i] == game.bitBoards[i]);
-        }
     }
 
     return nodes;
@@ -48,9 +41,7 @@ int main() {
     KI ki{};
     //int eva = ki.evaluationFunction();
     //std::cout << eva << std::endl;
-    std::tuple<uint64_t, uint64_t, int> züge = ki.minmax(1);
-    std::string best_move = KI::printMove(züge);
-    std::cout << "best_move: " << best_move << std::endl;
+    std ::pair<uint64_t, uint64_t> züge = ki.minmax(2);
 
     /*
     std::random_device rd;  // Seed
