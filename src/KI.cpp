@@ -59,7 +59,6 @@ int KI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
             game.toggleActivePlayer();
 
             int eval = traverseMoves(game, depth - 1,move_count, false, start_player);
-            //std::cout << eval << std::endl;
 
             game.toggleActivePlayer();
             game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
@@ -109,7 +108,7 @@ static const uint8_t guard_table_blue[64] = {
     0,0,1,2,3,2,1,0,0, 0
 };
 
-
+// TODO IF GAME IS OVER CHECK
 int KI::evaluationFunction(Game game, playerName max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
