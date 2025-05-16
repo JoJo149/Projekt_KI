@@ -26,7 +26,7 @@ endforeach()
 
 # ----------------------------------------------------------------------------
 # External dependencies
-add_subdirectory(ext/csv-parser )
+include_directories(ext/headerOnly/)
 add_subdirectory(ext/Catch2)
 
 # ----------------------------------------------------------------------------
