@@ -103,7 +103,7 @@ public:
 
 void mainLoop() {
     Network n; // start connection
-    KI KI{};
+    Game KI_game;
 
     int player = stoi(n.getP());
     cout << "You are player " << player << endl;
@@ -130,10 +130,12 @@ void mainLoop() {
                 cout << "New Time: " << time_left << endl;
 
                 cout << "[KI] Thinking..." << endl;
-                KI.getGame().stringToGame(board.c_str());
+                KI_game.stringToGame(board.c_str());
+
+                KI AI{KI_game};
 
                 // TODO DEPTH SET TO 5
-                string ki_result = Utils::convert::moveToString(KI.minmax(5)); // your KI logic
+                string ki_result = Utils::convert::moveToString(AI.minmax(5)); // your KI logic
 
                 cout << ki_result << endl;
                 n.sendData(json(ki_result).dump());

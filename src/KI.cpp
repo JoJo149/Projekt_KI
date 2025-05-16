@@ -10,10 +10,8 @@
 
 KI::KI(): game(red) {}
 KI::KI(const char * game_string): game(game_string) {}
+KI::KI(const Game& game) : game(game) {}
 
-Game KI::getGame() const {
-    return game;
-}
 std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
     std::atomic move_count = 0;
 
@@ -33,7 +31,6 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
-        game_copy.toggleActivePlayer();
 
         int eval = traverseMoves(game_copy, depth - 1, move_count, false, start_player);
         {

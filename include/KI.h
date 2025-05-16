@@ -11,6 +11,7 @@ private:
 public:
     KI();
     explicit KI(const char *game_string);
+    explicit KI(const Game &game);
 
     [[nodiscard]] Game getGame() const;
 
