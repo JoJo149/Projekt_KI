@@ -9,10 +9,11 @@ To optimize the Project we will us: bitboard, ...
 - #### any C++ compiler supporting C++ 20 e.g. [gcc](https://gcc.gnu.org/install/index.html)
 
 ## getting started
-Go to your designated project folder and clone the project.
+Go to your designated project folder
 ```
 cd existing_repo
 ```
+and clone the project.\
 ssh:
 ```
 git clone git@git.tu-berlin.de:hallo123/projekt-ki.git
@@ -29,7 +30,7 @@ git submodule update --init --recursive --force
 ### Build
 
 If u use CLION u should just richt-click the cmake file select to reload it.\
-Afterward u should be able to pick the run a few configs like:
+Afterward u should be able to pick a few configs like:
 
 ``` projekt_ki ``` or ``` tests ```  or ``` benchmarks ``` or ``` Client ```\
 \
@@ -71,15 +72,17 @@ x b b b b b b b x] \
 - b are the bits used for the board
 - x are the separating bits
 
-### contribution guidelines
+## contribution guidelines
 Variable names in snake_case.\
 Class names in CamelCase.
 
-###  tools
+##  tools
 
-We use external libraries saved in the Directory /ext .\
-For testing and performance analysis we use [catch2](https://github.com/catchorg/Catch2).
+We use external libraries and headers saved in the Directory /ext\
+For testing and performance analysis we use [catch2](https://github.com/catchorg/Catch2).\
+For reading in csv files we use a [csv-parser](https://github.com/vincentlaucsb/csv-parser).\
+For Json parsing in the client we use [nlohmann/json](https://github.com/nlohmann/json)\
 
-### interesting references 
+## interesting references 
 
 [Bitboards](https://ameye.dev/notes/chess-engine/)
