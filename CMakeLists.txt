@@ -25,6 +25,11 @@ foreach(file ${SRC_FILES})
 endforeach()
 
 # ----------------------------------------------------------------------------
+# client application
+add_executable(Client ${SRC_FILES_NO_MAIN} clientDir/client.cpp)
+target_include_directories(Client PRIVATE include ext/headerOnly/json)
+
+# ----------------------------------------------------------------------------
 # External dependencies
 add_subdirectory(ext/Catch2)
 
