@@ -2,30 +2,53 @@
 #include <string>
 #include <thread>
 #include <chrono>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include "json.hpp"
 #include <fstream>
+#include <KI.h>
+#include <Utils.h>
+
+
+
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "Ws2_32.lib")
+    typedef SOCKET SocketType;
+#else
+    #include <unistd.h>
+    #include <arpa/inet.h>
+    typedef int SocketType;
+#endif
+
+#include "json.hpp"
 
 using json = nlohmann::json;
 using namespace std;
 
 class Network {
 private:
-    int sock;
+    SocketType sock;
     string server_ip;
-    int port;
+    int port{};
 
-public:
+#ifdef _WIN32
+    WSADATA wsaData;
+#endif
+
 public:
     Network() {
-        loadConfig("../clientDir/config.txt");
+        loadConfig("../clientinfo/config.txt");
 
-        struct sockaddr_in server_addr;
+#ifdef _WIN32
+        if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+            cerr << "WSAStartup failed" << endl;
+            exit(1);
+        }
+#endif
 
+        sockaddr_in server_addr{};
         sock = socket(AF_INET, SOCK_STREAM, 0);
         if (sock < 0) {
-            cerr << "Socket creation failed!" << endl;
+            cerr << "Cannot create socket" << endl;
             exit(1);
         }
 
@@ -33,7 +56,7 @@ public:
         server_addr.sin_port = htons(port);
         inet_pton(AF_INET, server_ip.c_str(), &server_addr.sin_addr);
 
-        if (connect(sock, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
+        if (connect(sock, reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) < 0) {
             cerr << "Connection failed!" << endl;
             exit(1);
         }
@@ -52,7 +75,11 @@ public:
 
     string getP() {
         char buffer[2048] = {0};
+#ifdef _WIN32
         recv(sock, buffer, sizeof(buffer), 0);
+#else
+        read(sock, buffer, sizeof(buffer));
+#endif
         return string(buffer);
     }
 
@@ -65,12 +92,19 @@ public:
     }
 
     ~Network() {
+#ifdef _WIN32
+        closesocket(sock);
+        WSACleanup();
+#else
         close(sock);
+#endif
     }
 };
 
 void mainLoop() {
-    Network n;
+    Network n; // start connection
+    KI KI{};
+
     int player = stoi(n.getP());
     cout << "You are player " << player << endl;
 
@@ -91,23 +125,24 @@ void mainLoop() {
             int time_left = game["time"];
 
             if ((player == 0 && turn == "r") || (player == 1 && turn == "b")) {
+
                 cout << "New Board: " << board << endl;
                 cout << "New Time: " << time_left << endl;
 
-                string move;
-                cout << "Enter move (format: E7-F7-1): ";
-                cin >> move;
+                cout << "[KI] Thinking..." << endl;
+                KI.getGame().stringToGame(board.c_str());
 
-                json move_obj = { {"move", move} };
-                n.sendData(move_obj.dump());
+                // TODO DEPTH SET TO 5
+                string ki_result = Utils::convert::moveToString(KI.minmax(5)); // your KI logic
+
+                cout << ki_result << endl;
+                n.sendData(json(ki_result).dump());
             }
         }
     }
 }
 
 int main() {
-    while (true) {
-        mainLoop();
-    }
+    mainLoop();
     return 0;
 }

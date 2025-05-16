@@ -11,6 +11,9 @@
 KI::KI(): game(red) {}
 KI::KI(const char * game_string): game(game_string) {}
 
+Game KI::getGame() const {
+    return game;
+}
 std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
     std::atomic move_count = 0;
 

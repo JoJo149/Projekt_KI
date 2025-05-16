@@ -26,7 +26,7 @@ endforeach()
 
 # ----------------------------------------------------------------------------
 # client application
-add_executable(Client ${SRC_FILES_NO_MAIN} clientDir/client.cpp)
+add_executable(Client ${SRC_FILES_NO_MAIN} clientsrc/client.cpp)
 target_include_directories(Client PRIVATE include ext/headerOnly/json)
 
 # ----------------------------------------------------------------------------
