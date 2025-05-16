@@ -1,4 +1,9 @@
 #include "KI.h"
+
+#include <algorithm>
+#include <execution>
+
+
 #include "game.h"
 #include <iostream>
 #include <limits>
@@ -7,7 +12,7 @@ KI::KI(): game(red) {}
 KI::KI(const char * game_string): game(game_string) {}
 
 std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
-    int move_count = 0;
+    std::atomic move_count = 0;
 
     // TODO Temporary for Database purpose
     game.printGame();
@@ -18,22 +23,24 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
 
     int best_eval = std::numeric_limits<int>::min();
     std::tuple<uint64_t, uint64_t, int> best_move;
-    playerName start_player = game.active_player;
+    std::mutex best_move_mutex;
 
-    for (const auto& move : move_list) {
-        int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
-        game.toggleActivePlayer();
+    std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
+        Game game_copy = game;
+        playerName start_player = game_copy.active_player;
 
-        int eval = traverseMoves(game, depth - 1, move_count, false, start_player);
+        game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.toggleActivePlayer();
 
-        game.toggleActivePlayer();
-        game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
-
-        if (eval > best_eval) {
-            best_eval = eval;
-            best_move = move;
+        int eval = traverseMoves(game_copy, depth - 1, move_count, false, start_player);
+        {
+            std::lock_guard<std::mutex> lock(best_move_mutex);
+            if (eval > best_eval) {
+                best_eval = eval;
+                best_move = move;
+            }
         }
-    }
+    });
 
     // TODO Temporary for Database purpose
     std::cout << "Total moves: " << move_count << std::endl;
@@ -41,9 +48,9 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
     return best_move;
 }
 
-int KI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_player, playerName start_player) {
+int KI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player) {
     if (depth == 0) {
-        move_count++;
+        ++move_count;
         return evaluationFunction(game, start_player);
     }
 
@@ -75,7 +82,6 @@ int KI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
             game.toggleActivePlayer();
 
             int eval = traverseMoves(game, depth - 1,move_count, true, start_player);
-            //std::cout << eval << std::endl;
 
             game.toggleActivePlayer();
             game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
