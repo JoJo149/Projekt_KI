@@ -1,4 +1,4 @@
-#include "KI.h"
+#include "AI.h"
 
 #include <algorithm>
 #include <execution>
@@ -8,11 +8,11 @@
 #include <iostream>
 #include <limits>
 
-KI::KI(): game(red) {}
-KI::KI(const char * game_string): game(game_string) {}
-KI::KI(const Game& game) : game(game) {}
+AI::AI(): game(red) {}
+AI::AI(const char * game_string): game(game_string) {}
+AI::AI(const Game& game) : game(game) {}
 
-std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
+std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
     std::atomic move_count = 0;
 
     // TODO Temporary for Database purpose
@@ -48,7 +48,7 @@ std::tuple<uint64_t, uint64_t, int> KI::minmax(int depth) {
     return best_move;
 }
 
-int KI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player) {
+int AI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player) {
     if (depth == 0) {
         ++move_count;
         return evaluationFunction(game, start_player);
@@ -115,7 +115,7 @@ static const uint8_t guard_table_blue[64] = {
 };
 
 // TODO IF GAME IS OVER CHECK
-int KI::evaluationFunction(Game game, playerName max_player){
+int AI::evaluationFunction(Game game, playerName max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];

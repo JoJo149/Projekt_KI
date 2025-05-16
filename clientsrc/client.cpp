@@ -3,10 +3,8 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
-#include <KI.h>
+#include <AI.h>
 #include <Utils.h>
-
-
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -36,7 +34,7 @@ private:
 
 public:
     Network() {
-        loadConfig("../clientinfo/config.txt");
+        loadConfig("../clientInfo/config.txt");
 
 #ifdef _WIN32
         if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
@@ -102,8 +100,9 @@ public:
 };
 
 void mainLoop() {
-    Network n; // start connection
-    Game KI_game;
+    Network n; // start connection in constructor
+
+    Game game;
 
     int player = stoi(n.getP());
     cout << "You are player " << player << endl;
@@ -117,12 +116,12 @@ void mainLoop() {
             break;
         }
 
-        json game = json::parse(game_data);
+        json input_json = json::parse(game_data);
 
-        if (game["bothConnected"]) {
-            string turn = game["turn"];
-            string board = game["board"];
-            int time_left = game["time"];
+        if (input_json["bothConnected"]) {
+            string turn = input_json["turn"];
+            string board = input_json["board"];
+            int time_left = input_json["time"];
 
             if ((player == 0 && turn == "r") || (player == 1 && turn == "b")) {
 
@@ -130,12 +129,13 @@ void mainLoop() {
                 cout << "New Time: " << time_left << endl;
 
                 cout << "[KI] Thinking..." << endl;
-                KI_game.stringToGame(board.c_str());
+                game.stringToGame(board.c_str());
 
-                KI AI{KI_game};
+                // TODO maybe make AI an Class of Functions not Object
+                AI AI{game};
 
-                // TODO DEPTH SET TO 5
-                string ki_result = Utils::convert::moveToString(AI.minmax(5)); // your KI logic
+                // TODO DEPTH SET TO 5 and real AI
+                string ki_result = Utils::convert::moveToString(AI.minmax(5));
 
                 cout << ki_result << endl;
                 n.sendData(json(ki_result).dump());

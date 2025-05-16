@@ -4,14 +4,14 @@
 
 #include "game.h"
 
-class KI {
+class AI {
 private:
     Game game;
 
 public:
-    KI();
-    explicit KI(const char *game_string);
-    explicit KI(const Game &game);
+    AI();
+    explicit AI(const char *game_string);
+    explicit AI(const Game &game);
 
     [[nodiscard]] Game getGame() const;
 

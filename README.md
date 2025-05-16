@@ -29,7 +29,9 @@ git submodule update --init --recursive --force
 ### Build
 
 If u use CLION u should just richt-click the cmake file select to reload it.\
-Afterward u should be able to pick the run config: ``` projekt_ki ``` and the test config: ``` tests ```\
+Afterward u should be able to pick the run a few configs like:
+
+``` projekt_ki ``` or ``` tests ```  or ``` benchmarks ``` or ``` Client ```\
 \
 If u plan on using the Terminal here are the needed instructions for  Initialization:
 First we create an local build folder.\
@@ -43,6 +45,17 @@ or a particular target using:\
 Lastly you are now ready to run the binary from ur build folder:
 ``` ./projekt_ki ``` \
 or other generated binaries like ``` ./tests ```.
+
+## Info for Client
+The Client works with a [Game_Server](https://git.tu-berlin.de/lengfeld8/gat-gameserver) and uses our KI as the Player.
+The IP and Port are read at runtime from clientInfo/config.txt:
+```
+127.0.0.1
+5555
+```
+The Client itself is a C++ Version of the client.py provided by the [Game_Server](https://git.tu-berlin.de/lengfeld8/gat-gameserver) and is held extremely basic.
+Containing only complicated code to make it work as a Windows Executable.\
+TIP: u can just start 2 instances of the Client and let them duke it out on their own.
 
 ## Bit Board definition
 We us 64 Bit, which get used as followed:\
