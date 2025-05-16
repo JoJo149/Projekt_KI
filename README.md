@@ -81,7 +81,7 @@ Class names in CamelCase.
 We use external libraries and headers saved in the Directory /ext\
 For testing and performance analysis we use [catch2](https://github.com/catchorg/Catch2).\
 For reading in csv files we use a [csv-parser](https://github.com/vincentlaucsb/csv-parser).\
-For Json parsing in the client we use [nlohmann/json](https://github.com/nlohmann/json)\
+For Json parsing in the client we use [nlohmann/json](https://github.com/nlohmann/json)
 
 ## interesting references 
 
