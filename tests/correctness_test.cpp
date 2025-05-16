@@ -3,13 +3,11 @@
 #include <csv.hpp>
 #include <vector>
 #include <string>
-#include <iostream>
 
 #include "../include/game.h"
 #include "random"
 
 using namespace csv;
-
 
 std::vector<std::string> getColumn(int col_index) {
     std::vector<std::string> column;
