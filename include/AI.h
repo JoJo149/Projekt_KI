@@ -4,13 +4,16 @@
 
 #include "game.h"
 
-class KI {
+class AI {
 private:
     Game game;
 
 public:
-    KI();
-    explicit KI(const char *game_string);
+    AI();
+    explicit AI(const char *game_string);
+    explicit AI(const Game &game);
+
+    [[nodiscard]] Game getGame() const;
 
     [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int);
     int traverseMoves(Game, int, std::atomic<int>&, bool, playerName);
