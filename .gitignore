@@ -1,8 +1,12 @@
 cmake-build-*/
-.idea/
 build/
+windows_build/
 Build/
+
 compiler/
+
+windows_build.zsh
+.idea/
 
 .DS_Store
 .vscode
