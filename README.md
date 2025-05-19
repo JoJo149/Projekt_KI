@@ -5,9 +5,9 @@ Build of a small KI for the 2 player game "Guard and Towers".
 To optimize the Project we will us: bitboard, ...
 
 ## Dependencies
-- #### [cmake](https://cmake.org/download/)
+- #### [cmake](https://cmake.org/download/) as our Build System
 - ####  [gcc](https://gcc.gnu.org/install/index.html) compiler for C++ 20 
-- #### for multi-threading we use [TBB](https://uxlfoundation.github.io/oneTBB/index.html)
+- #### for Multithreading, we use [TBB](https://uxlfoundation.github.io/oneTBB/index.html)
 
 ## getting started
 Go to your designated project folder
