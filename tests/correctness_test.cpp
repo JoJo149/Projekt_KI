@@ -112,4 +112,49 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
         CHECK(moves_vec_sol == moves_vec_calc);
     }
 }
+TEST_CASE("isGameOver: red guard reaches bottom goal") {
+    Game game{};
+    const char* input = "7/7/7/3BG3/7/7/3RG3 b";
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: blue guard reaches top goal") {
+    Game game{};
+    const char* input = "3BG3/7/7/3RG3/7/7/7 r";
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: only one guard remains") {
+    Game game{};
+    const char* input = "7/3BG3/7/3r13/7/7/7 r";
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: no legal moves available") {
+    Game game{};
+    const char* input = "RGr1b24/r1b25/b22BG4/7/7/7/7 r";
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: game is still running") {
+    Game game{};
+    const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"; // Zwei Wächter, alles aktiv
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == false);
+}
+
 
