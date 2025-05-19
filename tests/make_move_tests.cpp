@@ -47,4 +47,24 @@ TEST_CASE("Test correctness of: makeMove and unMakeMove") {
         }
     }
 }
+TEST_CASE("makeMove: normaler Zug ohne Kollision, 1er Türme") {
+    Game game{};
+    const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
 
+    game.stringToGame(input);
+
+    const char* move_str = "A7-A6-1";
+    std::pair<uint64_t, uint64_t> move = game.moveStringToBitboard(move_str);
+
+    int enemy_type = game.makeMove(move.first, move.second, move_str[6] - '0');
+
+    CHECK(enemy_type == -1); // kein Gegner getroffen
+    CHECK((game.bitBoards[0] & move.first) == 0);
+    CHECK((game.bitBoards[C_R] & move.first) == 0);
+    CHECK((game.bitBoards[0] & move.second) != 0);
+    CHECK((game.bitBoards[C_R] & move.second) != 0);
+    for (int i = 1; i < 8; i++) {
+        CHECK((game.bitBoards[i] & move.first) == 0);
+        CHECK((game.bitBoards[i] & move.second) == 0);
+    }
+}
