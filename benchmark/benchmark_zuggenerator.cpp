@@ -8,11 +8,10 @@
 #include "random"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
-#include <chrono>
 
 TEST_CASE("Benchmark for generateMoves", "[benchmark][generate_moves]") {
     Game game{};
-    static std::vector<std::string> start_setup = getColumn(3);
+    static std::vector<std::string> start_setup = getColumn(3, "../tests/board_daten.csv");
     game.stringToGame( start_setup[0].c_str());
 
     BENCHMARK_ADVANCED("STARTSTELLUNG Game")(Catch::Benchmark::Chronometer meter) {

@@ -8,7 +8,7 @@
 
 // TODO automate test for moving
 TEST_CASE("Test correctness of: makeMove and unMakeMove") {
-    static std::vector<std::string> start_setup = getColumn(3);
+    static std::vector<std::string> start_setup = getColumn(3, "../tests/board_daten.csv");
     Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
         const std::string& input_str = start_setup[i];

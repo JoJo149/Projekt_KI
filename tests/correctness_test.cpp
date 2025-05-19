@@ -2,17 +2,17 @@
 
 #include <vector>
 #include <string>
-#include <Utils_test.h>
+#include "Utils_test.h"
 #include "../include/game.h"
 #include "random"
 
 
 TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, readableMoves") {
-    static std::vector<std::string> start_setup = getColumn(3);
+    static std::vector<std::string> start_setup = getColumn(3,"../tests/board_daten.csv");
     static std::vector<std::vector<std::string>> possible_moves = getPossibleMoves();
     REQUIRE(start_setup.size() == possible_moves.size());
 
-    static std::vector<std::string> len_saved = getColumn(4);
+    static std::vector<std::string> len_saved = getColumn(4,"../tests/board_daten.csv");
 
 
 
@@ -52,7 +52,7 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
             }
         }
 
-        auto sol_input = getColumn(5)[i];
+        auto sol_input = getColumn(5,"../tests/board_daten.csv")[i];
         CAPTURE(input);
         CAPTURE(sol_input);
         CAPTURE(calc_string);

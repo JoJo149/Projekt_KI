@@ -3,9 +3,9 @@
 #include "csv.hpp"
 using namespace csv;
 
-inline std::vector<std::string> getColumn(int col_index) {
+inline std::vector<std::string> getColumn(int col_index, const char * file_path) {
     std::vector<std::string> column;
-    CSVReader reader("../tests/board_daten.csv");
+    CSVReader reader(file_path);
 
     for (CSVRow& row : reader) {
         if (col_index < row.size()) {
@@ -31,7 +31,7 @@ inline std::vector<std::vector<std::string>> getPossibleMoves() {
 
     std::vector<std::vector<std::string>> result;
 
-    std::vector<std::string> moves_strings = getColumn(5);
+    std::vector<std::string> moves_strings = getColumn(5, "../tests/board_daten.csv");
 
     for (auto& moves: moves_strings) {
         std::vector<std::string> moves_list;

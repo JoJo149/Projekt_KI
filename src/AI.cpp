@@ -12,11 +12,10 @@ AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
 AI::AI(const Game& game) : game(game) {}
 
-std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
-    std::atomic move_count = 0;
-
-    // TODO Temporary for Database purpose
-    game.printGame();
+std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test) {
+    int move_count = 0;
+    std::mutex count_mutex;
+    std::mutex best_move_mutex;
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -24,18 +23,23 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
 
     int best_eval = std::numeric_limits<int>::min();
     std::tuple<uint64_t, uint64_t, int> best_move;
-    std::mutex best_move_mutex;
+
 
     std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
         Game game_copy = game;
         playerName start_player = game_copy.active_player;
+        int local_count = 0;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
         game_copy.toggleActivePlayer();
 
-        int eval = traverseMoves(game_copy, depth - 1, move_count, false, start_player);
+        int eval = traverseMoves(game_copy, depth - 1, local_count, false, start_player);
         {
-            std::lock_guard<std::mutex> lock(best_move_mutex);
+            std::lock_guard<std::mutex> lock(count_mutex); // Keep this only for move_count
+            move_count += local_count;
+        }
+        {
+            std::lock_guard<std::mutex> lock(best_move_mutex); // New mutex just for best_eval/move
             if (eval > best_eval) {
                 best_eval = eval;
                 best_move = move;
@@ -43,28 +47,22 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
         }
     });
 
-    // TODO Temporary for Database purpose
-    std::cout << "Total moves: " << move_count << std::endl;
+    _move_count_test = move_count;
 
     return best_move;
 }
 
-int AI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player) {
-    if (game.isGameOver()) {
-        if (!maximizing_player) {
-            return 10000;
-        }else{
-            return -10000;
-        }
-    }
-    if (depth == 0) {
-        ++move_count;
-        return evaluationFunction(game, start_player);
-    }
+int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_player, playerName start_player) {
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
     game.moveList(move_list);
+
+    if (depth == 0 || move_list.empty()) {
+        ++move_count;
+        return evaluationFunction(game, start_player);
+    }
+
 
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
@@ -121,8 +119,8 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
                 // std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-
-            best_move = alphaBeta(depth);
+            int movecount = 0;
+            best_move = alphaBeta(depth,movecount);
         }
     } catch (const std::runtime_error& e) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
@@ -131,7 +129,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
     return best_move;
 }
 
-std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
+std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_count_test) {
     std::atomic<int> move_count = 0;
 
     game.generateMoves();
@@ -160,13 +158,11 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
         }
     });
 
-    // TODO Temporary for Database purpose
-    // std::cout << "Total moves: " << move_count << std::endl;
-
+    _move_count_test = move_count;
     return best_move;
 }
 
-int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player, int alpha, int beta) {
+int AI::traverseMovesAlphaBeta(Game& game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
     game.generateMoves();
 
     // so we can check if we have 0 moves
@@ -273,8 +269,7 @@ static const uint8_t tower_table_blue[64] = {
 
 #define PLAYER_PIECE_WEIGHT 6
 #define ENEMY_PIECE_WORTH 16
-// TODO IF GAME IS OVER CHECK
-int AI::evaluationFunction(Game game, playerName max_player){
+int AI::evaluationFunction(Game& game, playerName& max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];

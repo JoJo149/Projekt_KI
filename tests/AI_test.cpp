@@ -1,0 +1,37 @@
+#include <catch2/catch_test_macros.hpp>
+
+#include <Utils_test.h>
+#include <string>
+
+#include "AI.h"
+#include "random"
+#include "catch2/benchmark/catch_benchmark.hpp"
+
+
+TEST_CASE("Test AI") {
+    static std::vector<std::string> start_setup = getColumn(1,"../tests/AI_daten.csv");
+    static std::vector<std::string> depth_one = getColumn(5,"../tests/AI_daten.csv");
+    static std::vector<std::string> depth_two = getColumn(6,"../tests/AI_daten.csv");
+    static std::vector<std::string> depth_three = getColumn(7,"../tests/AI_daten.csv");
+    static std::vector<std::string> depth_four = getColumn(8,"../tests/AI_daten.csv");
+    static std::vector<std::string> depth_five= getColumn(9,"../tests/AI_daten.csv");
+
+    for (size_t i = 0; i < start_setup.size(); i++) {
+        AI ai{start_setup.at(i).c_str()};
+        int move_count;
+        std::tuple<uint64_t, uint64_t, int> move = ai.minmax(1,move_count);
+        // CHECK(move_count == std::stoi(depth_one.at(i)));
+
+        move = ai.minmax(2,move_count);
+        // CHECK(move_count == std::stoi(depth_two.at(i)));
+
+        move = ai.minmax(3,move_count);
+        // CHECK(move_count == std::stoi(depth_three.at(i)));
+
+        move = ai.minmax(4,move_count);
+        // CHECK(move_count == std::stoi(depth_four.at(i)));
+
+        move = ai.minmax(5,move_count);
+        // CHECK(move_count == std::stoi(depth_five.at(i)));
+    }
+}

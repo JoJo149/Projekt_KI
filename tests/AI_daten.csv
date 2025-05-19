@@ -1,0 +1,69 @@
+Gruppe,FEN,Name der Stellung,Beschreibung der Stellung,Bester Zug, Zustände  Tiefe 1,Zustände Tiefe 2,Zustände Tiefe 3,Zustände Tiefe 4,Zustände Tiefe 5
+C,r1r11RG1r1r1/2r11r12/3r13/3b13/7/2b11b12/b1b11BG1b1b1 r,blau verliert eine Figur,blauer Spieler verliert eine Figur am Anfang (rot = KI),D5-D4-1,25,621,14718,349044,8045742
+C,RG2b22r1/2r11r12/3r33/7/b22b13/2b11b12/3BG3 r,blau verliert eine Figur,blauer Spieler verliert eine Figur in der Mitte des Spiels (rot = KI),D5-D7-2,22,568,12255,303532,6487570
+M,4BG2/2RG2r11/5b11/7/7/7/7 b,Guard Zielerreichung,blauer Guard kann/sollte das Spiel beenden indem er das Ziel erreicht.,E7-D7,7,52,345,2387,14770
+M,4b1r11/7/3RG3/3BG3/7/7/7 b,Guard Schlagung,blauer Guard kann/sollte das Spiel beenden indem er das Guard schlägt.,D4-D5,7,42,277,1693,11142
+F,7/r16/1BG1r31b21/7/3b13/3b23/RG6 r,rot muss sich entscheiden,"Rot hat die Wahl einen Zweierturm zu schlagen oder den blauen Wächter, was offensichtlich die bessere Wahl wäre",D5-B5-2,13,251,3672,71195,1077948
+F,1RG5/7/3b13/7/7/6r1/6BG b,rot gehts nicht gut,"Blaue Wächter schlägt roten Turm, roter Wächter eingesperrt und verliert durch Zugzwang ",G1-G2-1,6,33,187,1021,6178
+U,1r21RG3/7/3r11r21/7/1b23b31/7/3BG3 b,blau kann schlagen,Blau kann einen 2er-Turm von Rot gefahrlos schlagen,F3-F5-2,18,306,5682,97633,1845167
+U,7/7/4b22/7/2RGr1r12/4BG2/7 b,guard darf nicht schlagen,"Sollte Blau mit dem Guard anstelle des Turms schlagen, wäre das Spiel im nächsten Zug verloren",E5-E3-2,12,111,1155,11731,122628
+AA,7/r21r24/1BG5/4b22/3b13/3b23/RG6 r,red mating net,rot kann blauen Guard in ein paar Zügen schlagen,A6-A4-2,14,322,4641,96339,1392413
+AA,3RG1r21/4r32/7/r22b13/7/3b23/1b21BGb12 b,forking red guard and tower,blau kann Material gewinnen mit Gabel,D2-D4-2,17,390,7078,153978,2885226
+N,3RG1r11/3r33/r36/7/b32b33/7/3BG2b1 b,midgame,"Blau am Zug, mid-game, Blau Turm darf nicht einen höheren Rot Turm schlagen",D1-D2-1,22,181,2285,4240,105944
+N,6r1/3BG3/1r15/5RG1/1b25/7/7 b,Endgame ,"Blau am Zug, mid-game, Blau Turm darf nicht einen höheren Rot Turm schlagen",B3-B5-2,12,37,520,1292,16019
+P,3RG3/7/7/7/4b11b1/4r4r11/3BG1b11 b ,Endgamestellung,"Blau am Zug und in Bedrängnis, kann hier verlieren",D1-C1-1,13,181,2145,31945,375312
+P,3RG3/1b32r22/7/1r24r1/7/2b14/4b2BG1 b ,Mid-/Endgamestellung,Blau am Zug und kann in den nächsten Zügen gewinnen,B6-E6-3,19,352,6695,123798,2435734
+T,BGRG5/1b3r34/2b1r1r12/7/7/7/7 r,RG takes BG,Roter Guard kann im nächsten Zug den blauen Guard schlagen,B7-A7-1,16,160,2144,23038,340239
+T,7/5r11/2BGRG1b11/5r11/1b1b2r33/7/7 b,BG takes RG,Blauer Guard kann im nächsten Zug roten schlagen,C5-D5-1,16,283,4403,77125,1227095
+O,r12RG3/7/6b1/7/2r1b13/7/3BG3 r,Mid-Game,"Blau am Zug, jeweils 2 Turm pro Spieler mit Höhe 1",C3-D3-1,9,31,357,1299,13110
+O,"3RG3/2b11b12/7/7/7/5b11/4BG2 r
+",Late-/Endgamestellung,Blau bedroht Roter Guard,D7-E7-1,3,8,24,63,152
+E,RG6/1b6/b11r14/b14r11/7/7/BG6 b,Mate in 2,Redguard in der Ecke gefangen Rot hat keine Möglichkeit zu gewinnen,A4-A5-1,12,120,1437,13620,160793
+E,5BG1/7/7/7/7/7/2RG4 b,Time Race,Nur Guard auf dem Feld beide kurz vor dem Ziel,E7-D7-1,3,6,14,49,168
+AF,3RG3/7/6r2/7/7/5BG1/4r12 r,Check,Roter Tower kann Blauen Guard Schach setzen,G5-G4-1,12,60,477,1096,8450
+AF,7/7/7/BG6/3b33/3RG3/7 r,PTFO,Rot kann sich entscheiden zu gewinnen oder Turm zu schlagen,D2-D1-1,4,35,89,494,2640
+AJ,7/6r3/1RG5/3b43/1r25/7/2BG3r1 r,Midgame,"Rot hat die Möglichkeit, dem Sieg nahe zu kommen",B5-B6-1,20,66,525,1567,11942
+AJ,7/7/7/7/7/b32RG3/2BG3b1 r,Endgamestellung,"Rot hat die Möglichkeit, im nächsten Zug zu gewinnen  ",D2-D1-1,5,31,43,293,498
+R,3RG3/3r33/3b33/7/7/7/3BG3 r,Late Game,Das Spiel ging schon eine Weile und beide haben symmetrisch Türme verloren,D6-G6-3,8,102,1020,12662,136890
+R,1RG1r23/7/7/7/4b42/7/5BG1 b,Late Game,"Spiel fortgeschritten, Blau ist am Zug",F1-E1-1,15,118,1815,15399,242476
+AL,7/7/4RGBG1/7/7/7/7 r,Endgame 1v1,Beide guards stehen sich gegenüber,E5-F5,4,16,64,224,849
+AL,2RG4/5r11/1b15/b16/7/7/3BG3 r,,,c7-c6-1,7,77,557,5393,38109
+AC,7/r14b21/1r12BG2/1r12b21b2/r31r12b11/RG6/7 b,Force Guardposition capture,Blaue kann das gegnerische Feld in 3 Zügen garantier erreichen und erzwingt somit den Sieg (optimale Zug wird in Tiefe 4 gefunden),E5-E6-1,573,14143,314125,7721982,172786088
+AC,b23r22/7/7/2RG1BG1r1/7/1b11r13/5r2b1 r,Red surrounding Guard,Rot kann den Sieg in 3 Zügen erzwingen  (optimale Zug wird in Tiefe 4 gefunden),F1-F3-2,311,6689,92481,1972444,27838233
+Z,3RG3/7/7/7/7/3b53/3BG3 b,endgame,Blauer turm kann Red Guard schlagen und mate in one,D2-D7-5,13,36,385,1275,17141
+Z,3RG3/7/7/1b11b21r11/7/3BG3/7 b,endgame don’t distract,"Blau kann Red guard schlagen, muss sicher dass er kein anderer turm schlagt",D4-C4-1,15,121,1495,15921,227618
+W,7/2r11RG2/7/r11BG4/4r12/7/2r24 r,Endgame rot gewinnt in 2,Rot kann sicheren Sieg erzwingen,E3-E4-1,21,84,1646,6584,126031
+W,7/3b23/r15r3/3BG3/3RG3/1b25/7 b,Endgame blau gewinnt in 1,BG sollte RG im nächstem Zug schlagen,D4-D3-1,16,225,3287,45149,667683
+A,1r21RG2r2/3r33/7/7/4b22/2b2BG3/2b33,Earlygame,Ausgeglichene Anfangsstellung wo beide Teams sich vorbereiten,C1-C2-1,22,418,9191,178364,3947710
+A,RG3r12/7/3r41b22/7/b1b1b11BGb1/b16/7 r,Midgame mit hohem Turm,Hoher Turm in der Mitte sorgt für viele Zugmöglichkeiten und Balue Türme sind weiter gelaufen. RG ist sicher,D5-F5-2,14,344,5671,137777,2386791
+AM,1BG3b1r1/7/2r23b2/b16/6r1/RG2r13/7 b,Endgame Sacrifice ,Blauer Turm opfert sich um das Spiel zu gewinnen,G5-E5-2,15,293,4327,81260,1196696
+AM,7/4r12/r44BG1/6r1/7/b16/RG1b24 r,Lategame,Rot muss hier mit dem Guard schlagen,A1-A2-1,18,229,3718,46461,823285
+J,3RG3/1b13b11/7/3r13/2r11r12/1r11r13/3BG3 r,Lategame ,Rot kann in einem Zug gewinnen,D2-D1-1,23,265,5744,62630,1321325
+J,1RG5/7/7/7/r1r25/7/BG1r14 r,Lategame ,Rot kann Zwickmühle bauen,C1-B1-1,16,48,547,1933,22503
+X,4r1b11/7/7/3BG3/3RG3/7/7 r,Endgame ,blau kann hier verlieren,D3-D4-1,7,42,294,1.764,12.348
+X,7/7/BGRG5/1b2r24/2b1r13/7/7 b,Endgamestellung,Rot kann hier verlieren,A5-B5-1,11,"45
+",225,1125,5625
+B6,RG6/7/7/7/7/7/BGr15 r,endgame stellung,Rot ist direkt vor dem blauen guard,B1-A1-1,5,21,56,416,964
+B6,7/7/RG2b33/7/7/7/BG6 b,endgame stellung ,Blau kann rot mit dem 3er stack schlagen,D5-A5-3,3,48,129,2353,6384
+K,4RG2/3b11r11/5b2BG/7/7/7/7 b ,Endgame Blau Sieg in 2,Blau kann in zwei Zügen sicher den Sieg erzwingen,F5-F6-1,12,45,122,472,979
+K ,4BG2/r36/7/6b1/7/3RGb12/3b13 r ,Endgame Rot Sieg durch Castle,Rot kann gewinnen mit dem Guard im blauen  Schloss (A4),D2-D1-1,10,26,96,660,4957
+V,7/3RG3/2r1r13/7/3BG3/7/4b12 r,Endgame ,Der rote Turm bedroht den blauen Wächter. ,D5-D4-1,10,70,326,1627,6979
+V,7/2r1RG3/2r1r13/7/b12BG2b1/1b12b12/4b12 b,Midgame,"Der blaue Wächter versucht, einen Turm zu bilden, um sich später im Spiel einen Vorteil zu verschaffen ",E1-E2-1,21,252,1520,10695,73900
+Q,3RG3/2r11r12/1r21r11r21/7/3b33/2b11b12/1b21BG3 b,Spaete Eroeffnungsstellung,Blau am Zug mit vielen Möglichkeiten Türme zu entwickeln.,D1-D2-1,25,717,17011,463845,10912660
+Q,3RG3/4r12/3r43/7/3b33/3b23/3BG3 r,Midgame,"Rot am Zug, ausgeglichenes Spiel, Materialabtausch möglich, Pin und Konzentration auf D-Linie",D5-D3-2,17,252,4253,68830,1220000
+AD,7/r11r11RGr11/1r12r11r1/2b1b13/2b1b1BGb1b1/7 b,Midgame,Beide Spieler haben einen Turm verloren und alle Türme sind nah aneinander ,,23,506,11648,260879,6031851
+AD,7/r16/1RG1r23/1r1r11r22/7/b1b21b33/BG3b12 b,Midgame,"Beide Spieler haben noch alle Türme, aber mehrere Stapel und nah aneinander ",,21,573,11681,307525,6326486
+H,r1r11RG1r1r1/3r23/7/3r1b22/7/2b14/b1b11BG2b1 r,Erste Stellung,Rot ist kurz davor den Blauen Guard schach zu setzen,D6-D4-3,22,145,2168,8971,202175
+H,r22RG1r1r1/7/2r1r1r12/7/3b1b12/7/b2b11BG1b1b1 r,Zweite Stellung,Blau ist einen Zug davor den roten Stein zu schlagen und den Roten Guard schach zu setzen,C5-D5-2,25,141,2506,7399,131285
+G,4RG2/4r12/1b21b23/2r22r21/5b21/3BGb12/7 b,Mid-Game,"Mid-Game stellung, Blau hat etwas mehr Material",E7-F7-1,26,469,11965,218783,5573919
+G,1b22RG2/7/3b2BG2/2r12b11/2r14/7/7 r,Late-game,Late-Game Blau vor Win,C3-C4-1,11,196,2122,38891,414436
+B1,3RG1r1r1/2r11r12/7/7/3r23/2b21b12/b11BG2b1b1 b,Early-midgame,Kampf um das Zentrum des Boards,A1-A2-1,19,122,1514,16046,169680
+B1,3RG1r21/2b21r12/3r13/7/7/4b12/b12BG1b1b1 r,Endgame ,Rot muss aufpassen,E6-E5-1,15,282,2230,23911,156103
+S,5RG1/2b24/4b22/7/4BG2/7/3r23 r,Endgame :(,Rot hat einen großen Materialnachteil (Matt in 9) ,D1-E1-1,9,162,1451,25856,237332
+S,7/2r11b12/4b12/3RG3/1r2b14/3r13/2BG1r12 b,Rückzug,Rot hat einen großen Materialvorteil,C3-C2-1,14,297,4097,85826,1170390
+B2,3RG3/7/3r23/7/3b13/2r11r12/3BG3 r,Lategame ,Blau in der Klemme,D5-D3-2,18,122,2147,12959,221779
+B2,3RG1r1r1/2r14/3r43/7/7/2b34/1b21BG1b21 r,Midgame BG bedroht,Rot gewinnt mit einem Zug,D5-D1-4,23,437,9960,196473,4518538
+AI,2RG2b41/7/7/3r41r3b3/7/7/3BG3 b,Midgame,"blau am zug, große Türme",F7-C7-3,16,312,5021,102970,1758770
+AI,3RG3/7/7/7/3r23/7/1r21BG1r21 r,Lategame,blauer guard wird von roten towern eingekesselt,B1-D1-1,21,57,1112,3588,71292
+D,1r12RG1r2/2r12b41/7/7/7/5r31/b1b1BG3b1 b,A hard choice,"Forciertes Matt in 4 möglich, aber großer Materialgewinn direkt (teste Vorausschauen  der KI)",F6-D6-2,17,339,6156,124249,2362470
+D,r12RG3/1r12b2r4r1/3BG3/7/7/2b14/b1b13b1b1 r,No choice,"Rot hat nur einen Zug, um ein Matt in 3 zu verhindern",B6-C6-1,18,416,7926,182878,3636475
