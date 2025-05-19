@@ -141,6 +141,13 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(int depth) {
 }
 
 int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player, int alpha, int beta) {
+    if (game.isGameOver()) {
+        if (!maximizing_player) {
+            return 10000;
+        }else{
+            return -10000;
+        }
+    }
     if (depth == 0) {
         ++move_count;
         return evaluationFunction(game, start_player);
@@ -214,19 +221,60 @@ static const uint8_t guard_table_blue[64] = {
     0,0,1,2,3,2,1,0,0, 0
 };
 
+// Only needs to be defined once
+static const uint8_t tower_table_red[64] = {
+    0,1,1,1,1,1,1,1,0,
+    0,3,6,6,6,6,6,3,0,
+    0,4,6,7,7,7,6,4,0,
+    0,4,6,8,8,8,6,4,0,
+    0,4,6,7,7,7,6,4,0,
+    0,5,6,6,6,6,6,5,0,
+    0,3,3,3,3,3,3,3,0, 0
+};
+
+static const uint8_t tower_table_blue[64] = {
+    0,3,3,3,3,3,3,3,0,
+    0,5,6,6,6,6,6,5,0,
+    0,4,6,7,7,7,6,4,0,
+    0,4,6,8,8,8,6,4,0,
+    0,4,6,7,7,7,6,4,0,
+    0,3,6,6,6,6,6,3,0,
+    0,1,1,1,1,1,1,1,0, 0
+};
+
+
+
+#define PLAYER_PIECE_WEIGHT 6
+#define ENEMY_PIECE_PENALTY 8
 // TODO IF GAME IS OVER CHECK
 int AI::evaluationFunction(Game game, playerName max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];
 
+    const uint8_t* tower_table = (max_player == red ? tower_table_red : tower_table_blue);
+
+    // for each bit set to 1 in player board add vall of tower table
+    int tower_score = 0;
+    uint64_t pieces = player_board ^ guard_positions;
+    while (pieces) {
+        int index = std::countr_zero(pieces);
+        tower_score += tower_table[index];
+        pieces &= (pieces - 1);
+    }
+
+
     int enemy_amount = 0;
     for (int i = 0; i < 7; i++) {
         enemy_amount += std::popcount((enemy_board & game.bitBoards[i]));
     }
 
-
-
+    int player_amount = 0;
+    for (int i = 0; i < 7; i++) {
+        int count = std::popcount(player_board & game.bitBoards[i]);
+        int piece_weights[7] = {1, 4, 3, 2, 1, 1, 1}; // example
+        player_amount += count * piece_weights[i];
+    }
 
     int guard_index = 0;
     uint64_t player_guard_pos = player_board & guard_positions;
@@ -240,5 +288,5 @@ int AI::evaluationFunction(Game game, playerName max_player){
         guard_distance = guard_table_blue[guard_index] - 3;
     }
 
-    return (enemy_amount + guard_distance);
+    return tower_score + (player_amount * PLAYER_PIECE_WEIGHT) + ((8 - enemy_amount) * ENEMY_PIECE_PENALTY) + guard_distance;
 }

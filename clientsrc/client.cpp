@@ -135,7 +135,7 @@ void mainLoop() {
                 AI AI{game};
 
                 // TODO DEPTH SET TO 5 and real AI
-                string ki_result = Utils::convert::moveToString(AI.alphaBeta(5));
+                string ki_result = Utils::convert::moveToString(AI.alphaBeta(6));
 
                 cout << ki_result << endl;
                 n.sendData(json(ki_result).dump());
