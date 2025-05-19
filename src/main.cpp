@@ -9,6 +9,7 @@ int main() {
 
     AI ki{input_board};
     int move_count = 0;
+    std::cout << "KI berechnet besten Zug..." << std::endl;
     std::tuple<uint64_t, uint64_t, int> best_move_ab = ki.alphaBeta(5,move_count);
     std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
 }

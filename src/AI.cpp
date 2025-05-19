@@ -140,7 +140,6 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
     std::tuple<uint64_t, uint64_t, int> best_move = move_list[0];
     std::mutex best_move_mutex;
 
-
     std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
         Game game_copy{game};
         playerName start_player = game_copy.active_player;
@@ -276,7 +275,7 @@ int AI::evaluationFunction(Game& game, playerName& max_player){
 
     const uint8_t* tower_table = (max_player == red ? tower_table_red : tower_table_blue);
 
-    // for each bit set to 1 in player board add vall of tower table
+    // for each bit set to 1 in player board add val of tower table
     int tower_score = 0;
     uint64_t pieces = player_board ^ guard_positions;
     while (pieces) {
@@ -294,7 +293,7 @@ int AI::evaluationFunction(Game& game, playerName& max_player){
     int player_amount = 0;
     for (int i = 0; i < 7; i++) {
         int count = std::popcount(player_board & game.bitBoards[i]);
-        int piece_weights[7] = {1, 4, 3, 2, 1, 1, 1}; // example
+        int piece_weights[7] = {1, 4, 3, 2, 1, 1, 1};
         player_amount += count * piece_weights[i];
     }
 
