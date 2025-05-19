@@ -139,9 +139,11 @@ void mainLoop() {
 
                 cout << ki_result << endl;
 
+                /*
                 std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(ki_result);
                 game.makeMove(move.first, move.second, ki_result[6]-'0');
                 game.printGame();
+                */
 
                 n.sendData(json(ki_result).dump());
             }

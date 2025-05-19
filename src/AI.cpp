@@ -161,7 +161,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
     });
 
     // TODO Temporary for Database purpose
-    std::cout << "Total moves: " << move_count << std::endl;
+    // std::cout << "Total moves: " << move_count << std::endl;
 
     return best_move;
 }
