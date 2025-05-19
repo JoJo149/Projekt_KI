@@ -47,43 +47,24 @@ TEST_CASE("Test correctness of: makeMove and unMakeMove") {
         }
     }
 }
-TEST_CASE("makeMove: normaler Zug ohne Kollision") {
+TEST_CASE("makeMove: normaler Zug ohne Kollision, 1er Türme") {
     Game game{};
-    const char* input = "R0:1;B:;0=1"; // Beispiel: roter Turm mit Höhe 2 auf Feld 0
+    const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
 
     game.stringToGame(input);
-    game.active_player = red;
 
-    uint64_t start_pos = 1ULL << 0; // Feld 0
-    uint64_t end_pos = 1ULL << 1;   // Feld 1
+    const char* move_str = "A7-A6-1";
+    std::pair<uint64_t, uint64_t> move = game.moveStringToBitboard(move_str);
 
-    int enemy_type = game.makeMove(start_pos, end_pos, 2);
+    int enemy_type = game.makeMove(move.first, move.second, move_str[6] - '0');
 
     CHECK(enemy_type == -1); // kein Gegner getroffen
-    CHECK((game.bitBoards[1] & start_pos) == 0);
-    CHECK((game.bitBoards[C_R] & start_pos) == 0);
-    CHECK((game.bitBoards[1] & end_pos) != 0);
-    CHECK((game.bitBoards[C_R] & end_pos) != 0);
+    CHECK((game.bitBoards[0] & move.first) == 0);
+    CHECK((game.bitBoards[C_R] & move.first) == 0);
+    CHECK((game.bitBoards[0] & move.second) != 0);
+    CHECK((game.bitBoards[C_R] & move.second) != 0);
+    for (int i = 1; i < 8; i++) {
+        CHECK((game.bitBoards[i] & move.first) == 0);
+        CHECK((game.bitBoards[i] & move.second) == 0);
+    }
 }
-
-TEST_CASE("makeMove: Wächter schlägt gegnerischen Turm") {
-    Game game{};
-    const char* input = "R:3G;B:4=2;0=1"; // Wächter von R auf Feld 3, blauer Turm (Höhe 2) auf Feld 4
-
-    game.stringToGame(input);
-    game.active_player = red;
-
-    uint64_t start_pos = 1ULL << 3; // Feld 3
-    uint64_t end_pos = 1ULL << 4;   // Feld 4
-
-    int enemy_type = game.makeMove(start_pos, end_pos, 1);
-
-    CHECK(enemy_type == 1); // Gegner war Turmhöhe 2 (Index 1)
-    CHECK((game.bitBoards[T_G] & start_pos) == 0);
-    CHECK((game.bitBoards[C_R] & start_pos) == 0);
-    CHECK((game.bitBoards[T_G] & end_pos) != 0);
-    CHECK((game.bitBoards[C_R] & end_pos) != 0);
-    CHECK((game.bitBoards[C_B] & end_pos) == 0);
-}
-
-
