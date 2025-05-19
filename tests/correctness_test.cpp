@@ -112,4 +112,50 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
         CHECK(moves_vec_sol == moves_vec_calc);
     }
 }
+TEST_CASE("isGameOver: red guard reaches bottom goal") {
+    Game game{};
+    const char* input = "R:57G;B:;"; // roter Wächter auf Feld 57 (guard_pos_down)
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: blue guard reaches top goal") {
+    Game game{};
+    const char* input = "R:;B:4G;"; // blauer Wächter auf Feld 4 (guard_pos_up)
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: only one guard remains") {
+    Game game{};
+    const char* input = "R:;B:10G;"; // nur ein Wächter vorhanden
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: no legal moves available") {
+    Game game{};
+    const char* input = "R:5G;B:10G;"; // Zwei Wächter, aber z. B. keine möglichen Züge
+    game.stringToGame(input);
+    game.generateMoves();
+    game.moves[0] = 0; // Simuliere Stillstand
+
+    CHECK(game.isGameOver() == true);
+}
+
+TEST_CASE("isGameOver: game is still running") {
+    Game game{};
+    const char* input = "R:5G;B:10G;"; // Zwei Wächter, alles aktiv
+    game.stringToGame(input);
+    game.generateMoves();
+
+    CHECK(game.isGameOver() == false);
+}
+
 
