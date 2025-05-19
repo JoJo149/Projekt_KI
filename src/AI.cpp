@@ -106,8 +106,8 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
     auto startTime = std::chrono::steady_clock::now();
     std::tuple<uint64_t, uint64_t, int> best_move{};
 
-    //bTIME_LIMIT_MS
-    const int limits[16] = {0,0,1250,1500,1500,2500,2500,2500,1500,1500,1250,1250,1000,1000,750,500};
+    // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
+    const int limits[16] = {0,0,1500,1500,1500,2500,2500,2500,1500,1500,1250,1250,1000,1000,750,500};
 
     int tower_count = std::popcount(game.bitBoards[C_B] | game.bitBoards[C_R]);
 

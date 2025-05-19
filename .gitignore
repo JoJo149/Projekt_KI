@@ -1,11 +1,13 @@
 cmake-build-*/
 build/
-windows_build/
 Build/
 
 compiler/
 
+windows_build/
 windows_build.zsh
+README.txt
+
 .idea/
 
 .DS_Store
