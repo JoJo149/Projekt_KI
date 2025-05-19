@@ -4,9 +4,7 @@ Build/
 
 compiler/
 
-windows_build/
 windows_build.zsh
-README.txt
 
 .idea/
 
