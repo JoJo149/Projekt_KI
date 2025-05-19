@@ -118,7 +118,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
             if (elapsed_ms * 10 >= time_limit) {
-                std::cout << "Time limit exceeded at depth " << depth << std::endl;
+                // std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
 

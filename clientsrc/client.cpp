@@ -137,7 +137,8 @@ void mainLoop() {
                 // TODO DEPTH SET TO 5 and real AI
                 string ki_result = Utils::convert::moveToString(AI.alphaBetaTimed());
 
-                cout << ki_result << endl;
+                cout << "KI makes Move: " << ki_result << endl;
+                cout << endl;
 
                 /*
                 std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(ki_result);
