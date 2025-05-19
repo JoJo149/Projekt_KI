@@ -3,7 +3,7 @@
 #include <algorithm>
 #include <execution>
 
-
+#include <chrono>
 #include "game.h"
 #include <iostream>
 #include <limits>
@@ -102,11 +102,37 @@ int AI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool m
 }
 
 
-std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(int depth) {
-    std::atomic move_count = 0;
+std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
+    auto startTime = std::chrono::steady_clock::now();
+    std::tuple<uint64_t, uint64_t, int> best_move{};
 
-    // TODO Temporary for Database purpose
-    game.printGame();
+    //bTIME_LIMIT_MS
+    const int limits[16] = {0,0,1250,1500,1500,2500,2500,2500,1500,1500,1250,1250,1000,1000,750,500};
+
+    int tower_count = std::popcount(game.bitBoards[C_B] | game.bitBoards[C_R]);
+
+    const int time_limit = limits[tower_count-1];
+    try {
+        for (int depth = 1; depth <= 100; ++depth) {
+            auto current_time = std::chrono::steady_clock::now();
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
+
+            if (elapsed_ms * 10 >= time_limit) {
+                std::cout << "Time limit exceeded at depth " << depth << std::endl;
+                break;
+            }
+
+            best_move = alphaBeta(depth);
+        }
+    } catch (const std::runtime_error& e) {
+        std::cout << "Search stopped early: " << e.what() << std::endl;
+    }
+
+    return best_move;
+}
+
+std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
+    std::atomic move_count = 0;
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -143,9 +169,9 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(int depth) {
 int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player, int alpha, int beta) {
     if (game.isGameOver()) {
         if (!maximizing_player) {
-            return 10000;
+            return std::numeric_limits<int>::max();
         }else{
-            return -10000;
+            return std::numeric_limits<int>::min();
         }
     }
     if (depth == 0) {
@@ -204,19 +230,19 @@ int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_coun
 static const uint8_t guard_table_red[64] = {
     0,0,1,2,3,2,1,0,0,
     0,1,2,3,4,3,2,1,0,
-    0,2,3,4,5,4,3,2,0,
-    0,3,4,5,6,5,4,3,0,
-    0,4,5,6,7,6,5,4,0,
-    0,5,6,7,8,7,6,5,0,
-    0,6,7,8,9,8,7,6,0,0
+    0,2,4,5,6,5,4,2,0,
+    0,3,6,7,8,7,6,3,0,
+    0,5,9,10,12,10,9,5,0,
+    0,7,12,13,15,13,12,7,0,
+    0,10,15,17,20,17,15,10,0,0
 };
 
 static const uint8_t guard_table_blue[64] = {
-    0,6,7,8,9,8,7,6,0,
-    0,5,6,7,8,7,6,5,0,
-    0,4,5,6,7,6,5,4,0,
-    0,3,4,5,6,5,4,3,0,
-    0,2,3,4,5,4,3,2,0,
+    0,10,15,17,20,17,15,10,0,
+    0,7,12,13,15,13,12,7,0,
+    0,5,9,10,12,10,9,5,0,
+    0,3,6,7,8,7,6,3,0,
+    0,2,4,5,6,5,4,2,0,
     0,1,2,3,4,3,2,1,0,
     0,0,1,2,3,2,1,0,0, 0
 };
@@ -245,7 +271,7 @@ static const uint8_t tower_table_blue[64] = {
 
 
 #define PLAYER_PIECE_WEIGHT 6
-#define ENEMY_PIECE_PENALTY 8
+#define ENEMY_PIECE_WORTH 16
 // TODO IF GAME IS OVER CHECK
 int AI::evaluationFunction(Game game, playerName max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
@@ -283,10 +309,10 @@ int AI::evaluationFunction(Game game, playerName max_player){
     }
     int guard_distance = 0;
     if (max_player == red) {
-        guard_distance = guard_table_red[guard_index] - 3;
+        guard_distance = guard_table_red[guard_index];
     }else {
-        guard_distance = guard_table_blue[guard_index] - 3;
+        guard_distance = guard_table_blue[guard_index];
     }
 
-    return tower_score + (player_amount * PLAYER_PIECE_WEIGHT) + ((8 - enemy_amount) * ENEMY_PIECE_PENALTY) + guard_distance;
+    return tower_score + (player_amount * PLAYER_PIECE_WEIGHT) + ((8 - enemy_amount) * ENEMY_PIECE_WORTH) + guard_distance;
 }

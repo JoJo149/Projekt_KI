@@ -18,6 +18,8 @@ public:
     [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int);
     int traverseMoves(Game, int, std::atomic<int>&, bool, playerName);
 
+    std::tuple<uint64_t, uint64_t, int> alphaBetaTimed();
+
     std::tuple<uint64_t, uint64_t, int> alphaBeta(int);
     int traverseMovesAlphaBeta(Game, int, std::atomic<int>&, bool, playerName, int, int);
 

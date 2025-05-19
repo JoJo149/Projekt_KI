@@ -108,8 +108,6 @@ void mainLoop() {
     cout << "You are player " << player << endl;
 
     while (true) {
-        this_thread::sleep_for(chrono::milliseconds(1000 / 60)); // ~60 FPS
-
         string game_data = n.sendData(json("get").dump());
         if (game_data.empty()) {
             cerr << "Couldn't get game" << endl;
@@ -131,13 +129,20 @@ void mainLoop() {
                 cout << "[KI] Thinking..." << endl;
                 game.stringToGame(board.c_str());
 
+                game.printGame();
+
                 // TODO maybe make AI an Class of Functions not Object
                 AI AI{game};
 
                 // TODO DEPTH SET TO 5 and real AI
-                string ki_result = Utils::convert::moveToString(AI.alphaBeta(6));
+                string ki_result = Utils::convert::moveToString(AI.alphaBetaTimed());
 
                 cout << ki_result << endl;
+
+                std::pair<uint64_t, uint64_t> move = Game::moveStringToBitboard(ki_result);
+                game.makeMove(move.first, move.second, ki_result[6]-'0');
+                game.printGame();
+
                 n.sendData(json(ki_result).dump());
             }
         }
