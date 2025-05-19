@@ -1,17 +1,23 @@
 #include "game.h"
-
 #include <cassert>
 #include <iostream>
 #include <ostream>
 #include <string>
 #include <cstdint>
 #include <vector>
+#include <cstring>
 
 Game::Game() : bitBoards{}, moves{}, active_player(){}
 // Constructor (no need to initialize static array here)
 Game::Game(playerName p_name) : bitBoards{}, moves{}, active_player() {
     if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
     if (p_name == red) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r");
+}
+
+Game::Game(const Game& other) {
+    std::memcpy(bitBoards, other.bitBoards, BITBOARD_COUNT * sizeof(uint64_t));
+    std::memcpy(moves, other.moves, MOVES_COUNT * sizeof(uint64_t));
+    active_player = other.active_player;
 }
 
 Game::Game(const char * game_string) : bitBoards{}, moves{}, active_player() {

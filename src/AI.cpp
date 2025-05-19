@@ -132,7 +132,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
 }
 
 std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
-    std::atomic move_count = 0;
+    std::atomic<int> move_count = 0;
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -144,7 +144,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
 
 
     std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
-        Game game_copy = game;
+        Game game_copy{game};
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
@@ -167,6 +167,9 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
 }
 
 int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player, int alpha, int beta) {
+    game.generateMoves();
+
+    // so we can check if we have 0 moves
     if (game.isGameOver()) {
         if (!maximizing_player) {
             return std::numeric_limits<int>::max();
@@ -179,10 +182,8 @@ int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_coun
         return evaluationFunction(game, start_player);
     }
 
-    game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
     game.moveList(move_list);
-
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 

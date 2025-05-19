@@ -42,7 +42,7 @@ enum move_names {
 
 class Game {
 private:
-    uint64_t moves[MOVES_COUNT];
+    uint64_t moves[MOVES_COUNT]{};
 
     void printGameHelper(int) const;
     void generateMovesHelper(const uint64_t&, const uint64_t&, const uint64_t&, const int&);
@@ -55,11 +55,14 @@ private:
 
 public:
     // TODO move back to private and move some logic from KI to game
-    uint64_t bitBoards[BITBOARD_COUNT];
+    uint64_t bitBoards[BITBOARD_COUNT]{};
     playerName active_player;
 
     Game();
     explicit Game(playerName);
+
+    Game(const Game &other);
+
     explicit Game(const char *game_string);
 
     void toggleActivePlayer();
