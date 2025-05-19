@@ -93,6 +93,97 @@ int AI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool m
     }
 }
 
+
+std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(int depth) {
+    std::atomic move_count = 0;
+
+    // TODO Temporary for Database purpose
+    game.printGame();
+
+    game.generateMoves();
+    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
+    game.moveList(move_list);
+
+    int best_eval = std::numeric_limits<int>::min();
+    std::tuple<uint64_t, uint64_t, int> best_move;
+    std::mutex best_move_mutex;
+
+
+    std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
+        Game game_copy = game;
+        playerName start_player = game_copy.active_player;
+
+        game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+
+        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+        {
+            std::lock_guard<std::mutex> lock(best_move_mutex);
+            if (eval > best_eval) {
+                best_eval = eval;
+                best_move = move;
+            }
+        }
+    });
+
+    // TODO Temporary for Database purpose
+    std::cout << "Total moves: " << move_count << std::endl;
+
+    return best_move;
+}
+
+int AI::traverseMovesAlphaBeta(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player, int alpha, int beta) {
+    if (depth == 0) {
+        ++move_count;
+        return evaluationFunction(game, start_player);
+    }
+
+    game.generateMoves();
+    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
+    game.moveList(move_list);
+
+    if (maximizing_player) {
+        int maxEval = std::numeric_limits<int>::min();
+
+        for (const auto& move : move_list) {
+            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+            game.toggleActivePlayer();
+
+            int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, false, start_player, alpha, beta);
+
+            game.toggleActivePlayer();
+            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+
+            maxEval = std::max(maxEval, eval);
+            alpha = std::max(alpha, eval);
+            if (beta < alpha) {
+                break;
+            }
+        }
+
+        return maxEval;
+    } else {
+        int minEval = std::numeric_limits<int>::max();
+
+        for (const auto& move : move_list) {
+            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+            game.toggleActivePlayer();
+
+            int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, true, start_player, alpha, beta);
+
+            game.toggleActivePlayer();
+            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+
+            minEval = std::min(minEval, eval);
+            beta = std::min(beta, eval);
+            if (beta < alpha) {
+                break;
+            }
+        }
+
+        return minEval;
+    }
+}
+
 // Only needs to be defined once
 static const uint8_t guard_table_red[64] = {
     0,0,1,2,3,2,1,0,0,

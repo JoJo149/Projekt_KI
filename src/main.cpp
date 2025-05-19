@@ -18,4 +18,19 @@ int main() {
     std::cout << "best_move: " << Utils::convert::moveToString(best_move) << std::endl;
     best_move = ki.minmax(5);
     std::cout << "best_move: " << Utils::convert::moveToString(best_move) << std::endl;
+
+    std::cout <<  std::endl;
+    std::cout << "Alpha-beta test: "<< std::endl;
+    std::cout <<  std::endl;
+    AI ki_ab{input_board};
+    std::tuple<uint64_t, uint64_t, int> best_move_ab = ki_ab.alphaBeta(1);
+    std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
+    best_move_ab = ki.alphaBeta(2);
+    std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
+    best_move_ab = ki.alphaBeta(3);
+    std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
+    best_move_ab = ki.alphaBeta(4);
+    std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
+    best_move_ab = ki.alphaBeta(5);
+    std::cout << "best_move: " << Utils::convert::moveToString(best_move_ab) << std::endl;
 }
