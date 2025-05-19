@@ -139,7 +139,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth) {
     game.moveList(move_list);
 
     int best_eval = std::numeric_limits<int>::min();
-    std::tuple<uint64_t, uint64_t, int> best_move;
+    std::tuple<uint64_t, uint64_t, int> best_move = move_list[0];
     std::mutex best_move_mutex;
 
 
