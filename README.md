@@ -6,7 +6,8 @@ To optimize the Project we will us: bitboard, ...
 
 ## Dependencies
 - #### [cmake](https://cmake.org/download/)
-- #### any C++ compiler supporting C++ 20 e.g. [gcc](https://gcc.gnu.org/install/index.html)
+- ####  [gcc](https://gcc.gnu.org/install/index.html) compiler for C++ 20 
+- #### for multi-threading we use [TBB](https://uxlfoundation.github.io/oneTBB/index.html)
 
 ## getting started
 Go to your designated project folder
