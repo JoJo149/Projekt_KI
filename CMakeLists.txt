@@ -49,7 +49,7 @@ add_executable(tests
         ${SRC_FILES_NO_MAIN}
 )
 
-target_include_directories(tests PRIVATE include ext/Catch2/single_include ext/headerOnly/csv)
+target_include_directories(tests PRIVATE include ext/Catch2/single_include ext/headerOnly/csv tests)
 
 target_link_libraries(tests
         PRIVATE
@@ -62,7 +62,7 @@ add_executable(benchmarks
         ${SRC_FILES_NO_MAIN}
 )
 
-target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include ext/headerOnly/csv)
+target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include ext/headerOnly/csv tests)
 
 target_link_libraries(benchmarks
         PRIVATE
