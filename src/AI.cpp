@@ -31,6 +31,7 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.toggleActivePlayer();
 
         int eval = traverseMoves(game_copy, depth - 1, move_count, false, start_player);
         {
@@ -49,6 +50,13 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth) {
 }
 
 int AI::traverseMoves(Game game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName start_player) {
+    if (game.isGameOver()) {
+        if (!maximizing_player) {
+            return 10000;
+        }else{
+            return -10000;
+        }
+    }
     if (depth == 0) {
         ++move_count;
         return evaluationFunction(game, start_player);
@@ -114,6 +122,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(int depth) {
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.toggleActivePlayer();
 
         int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
         {
@@ -192,11 +201,11 @@ static const uint8_t guard_table_red[64] = {
     0,3,4,5,6,5,4,3,0,
     0,4,5,6,7,6,5,4,0,
     0,5,6,7,8,7,6,5,0,
-    0,6,7,8,255,8,7,6,0,0
+    0,6,7,8,9,8,7,6,0,0
 };
 
 static const uint8_t guard_table_blue[64] = {
-    0,6,7,8,255,8,7,6,0,
+    0,6,7,8,9,8,7,6,0,
     0,5,6,7,8,7,6,5,0,
     0,4,5,6,7,6,5,4,0,
     0,3,4,5,6,5,4,3,0,
@@ -211,8 +220,13 @@ int AI::evaluationFunction(Game game, playerName max_player){
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];
 
-    // TODO enemy amount sollte von den Spielfigur Anzahl zählen nicht stapel
-    int enemy_amount = 8 - std::popcount(enemy_board);
+    int enemy_amount = 0;
+    for (int i = 0; i < 7; i++) {
+        enemy_amount += std::popcount((enemy_board & game.bitBoards[i]));
+    }
+
+
+
 
     int guard_index = 0;
     uint64_t player_guard_pos = player_board & guard_positions;

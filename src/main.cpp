@@ -5,7 +5,7 @@
 
 
 int main() {
-    const char * input_board = "r1r11RG1r1r1/2r11r12/3r13/3b13/7/2b11b12/b1b11BG1b1b1 r";
+    const char * input_board = "1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b1r1BG1b1b1 r";
 
     AI ki{input_board};
     std::tuple<uint64_t, uint64_t, int> best_move = ki.minmax(1);
