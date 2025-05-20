@@ -5,6 +5,7 @@ Build/
 compiler/
 
 windows_build.zsh
+git-add.zsh
 
 .idea/
 
