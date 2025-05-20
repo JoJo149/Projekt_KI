@@ -14,7 +14,7 @@ public:
     explicit AI(const char *game_string);
     explicit AI(const Game &game);
 
-    [[nodiscard]] Game getGame() const;
+    [[nodiscard]] Game& getGame();
 
     [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int, int&);
     int traverseMoves(Game, int, int&, bool, playerName);

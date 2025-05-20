@@ -7,9 +7,10 @@
 #include <vector>
 #include <cstring>
 
-Game::Game() : bitBoards{}, moves{}, active_player(){}
+Game::Game() = default;
+
 // Constructor (no need to initialize static array here)
-Game::Game(playerName p_name) : bitBoards{}, moves{}, active_player() {
+Game::Game(playerName p_name) {
     if (p_name == blue) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 b");
     if (p_name == red) stringToGame("r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r");
 }
@@ -20,7 +21,7 @@ Game::Game(const Game& other) {
     active_player = other.active_player;
 }
 
-Game::Game(const char * game_string) : bitBoards{}, moves{}, active_player() {
+Game::Game(const char * game_string) {
     stringToGame(game_string);
 }
 

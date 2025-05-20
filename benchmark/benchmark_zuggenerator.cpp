@@ -10,9 +10,8 @@
 
 
 TEST_CASE("Benchmark for generateMoves", "[benchmark][generate_moves]") {
-    Game game{};
     static std::vector<std::string> start_setup = getColumn(3, "../tests/board_daten.csv");
-    game.stringToGame( start_setup[0].c_str());
+    Game game{start_setup[0].c_str()};
 
     BENCHMARK_ADVANCED("STARTSTELLUNG Game")(Catch::Benchmark::Chronometer meter) {
         game.stringToGame( start_setup[0].c_str());

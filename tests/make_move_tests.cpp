@@ -9,12 +9,11 @@
 // TODO automate test for moving
 TEST_CASE("Test correctness of: makeMove and unMakeMove") {
     static std::vector<std::string> start_setup = getColumn(3, "../tests/board_daten.csv");
-    Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
         const std::string& input_str = start_setup[i];
         const char* input = input_str.c_str();
 
-        game.stringToGame(input);
+         Game game{input};
 
         game.generateMoves();
         std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -32,10 +31,9 @@ TEST_CASE("Test correctness of: makeMove and unMakeMove") {
     }
 }
 TEST_CASE("makeMove: normaler Zug ohne Kollision, 1er Türme") {
-    Game game{};
     const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
 
-    game.stringToGame(input);
+     Game game{input};
 
     const char* move_str = "A7-A6-1";
     std::pair<uint64_t, uint64_t> move = game.moveStringToBitboard(move_str);

@@ -9,6 +9,19 @@
 #include "random"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
+TEST_CASE("Benchmark Bewertungsfunktion") {
+    AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
+    BENCHMARK_ADVANCED("")(Catch::Benchmark::Chronometer meter) {
+        int ignore;
+        meter.measure([&] {
+            for (int i=0; i<10000;i++) {
+                ignore = ki.evaluationFunction(ki.getGame(),ki.getGame().active_player);
+            }
+            return ignore;
+        });
+    };
+}
+
 TEST_CASE("Benchmark for MINMAX") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
 

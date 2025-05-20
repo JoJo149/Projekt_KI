@@ -102,7 +102,7 @@ public:
 void mainLoop() {
     Network n; // start connection in constructor
 
-    Game game;
+    Game game{};
 
     int player = stoi(n.getP());
     cout << "You are player " << player << endl;

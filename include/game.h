@@ -56,14 +56,12 @@ private:
 public:
     // TODO move back to private and move some logic from KI to game
     uint64_t bitBoards[BITBOARD_COUNT]{};
-    playerName active_player;
+    playerName active_player{};
 
     Game();
     explicit Game(playerName);
-
-    Game(const Game &other);
-
     explicit Game(const char *game_string);
+    Game(const Game &other);
 
     void toggleActivePlayer();
 

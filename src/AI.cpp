@@ -12,6 +12,10 @@ AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
 AI::AI(const Game& game) : game(game) {}
 
+Game& AI::getGame() {
+    return game;
+}
+
 std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test) {
     int move_count = 0;
     std::mutex count_mutex;
