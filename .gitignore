@@ -4,6 +4,7 @@ Build/
 
 compiler/
 
+windows_build_extra/
 windows_build.zsh
 git-add.zsh
 

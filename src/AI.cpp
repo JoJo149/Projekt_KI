@@ -171,9 +171,9 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, std::atomic<int>& move_cou
     // so we can check if we have 0 moves
     if (game.isGameOver()) {
         if (!maximizing_player) {
-            return std::numeric_limits<int>::max();
+            return std::numeric_limits<int>::max()/depth;
         }else{
-            return std::numeric_limits<int>::min();
+            return std::numeric_limits<int>::min()/depth;
         }
     }
     if (depth == 0) {
