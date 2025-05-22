@@ -72,16 +72,10 @@ class Game:
     def playTurn(self, player, move):
         try:
             print(f"Playing turn. Player: {player}, Move: {move}")
-            if player == 0:
-                if self.turn == "b":
-                    self.winner = "b"
-                    print("Player 0 tried to play on 'b' turn.")
-                    return
-            if player == 1:
-                if self.turn == "r":
-                    self.winner = "r"
-                    print("Player 1 tried to play on 'r' turn.")
-                    return
+            if (player == 0 and self.turn != "r") or (player == 1 and self.turn != "b"):
+                self.valid = False
+                print(f"Invalid turn by Player {player}. It's {self.turn}'s turn.")
+                return
 
             self.parseMoveString(move)
             self.validMove()
