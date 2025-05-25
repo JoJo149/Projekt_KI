@@ -115,11 +115,12 @@ void mainLoop() {
 
         int player = stoi(n.getP());
         cout << "You are player " << player << endl;
-
+        int moves = 0;
         while (true) {
             string game_data = n.sendData(json("get").dump());
             if (game_data.empty()) {
-                cerr << "Couldn't get game" << endl;
+                cout << "Game Over" << endl;
+                cout << "Moves played:  "<< moves << endl;
                 n.close();
                 break;
             }
@@ -132,7 +133,6 @@ void mainLoop() {
                 int time_left = input_json["time"];
 
                 if ((player == 0 && turn == "r") || (player == 1 && turn == "b")) {
-
                     cout << "New Board: " << board << endl;
                     cout << "New Time: " << time_left << endl;
 
@@ -149,6 +149,7 @@ void mainLoop() {
                     cout << endl;
 
                     n.sendData(json(ki_result).dump());
+                    moves++;
                 }
             }
         }
