@@ -139,7 +139,6 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
-
     for (const auto& move : move_list) {
         Game game_copy{game};
         playerName start_player = game_copy.active_player;
@@ -147,12 +146,13 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
         game_copy.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game_copy,depth - 1, move_count,false, start_player, alpha, beta);
+        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
 
         if (eval > best_eval) {
             best_eval = eval;
             best_move = move;
         }
+
         alpha = std::max(alpha, eval);
         if (beta <= alpha) {
             break;
@@ -164,15 +164,16 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
     return best_move;
 }
 
+
 int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
     game.generateMoves();
 
     // so we can check if we have 0 moves
     if (game.isGameOver()) {
         if (!maximizing_player) {
-            return std::numeric_limits<int>::max()/depth;
+            return std::numeric_limits<int>::max();
         }else{
-            return std::numeric_limits<int>::min()/depth;
+            return std::numeric_limits<int>::min();
         }
     }
     if (depth == 0) {
