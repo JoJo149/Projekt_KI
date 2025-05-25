@@ -107,43 +107,52 @@ void Game::gameToString(char* output) const {
     output[str_buff_counter] = '\0';
 }
 
-// TODO OPTIMIZE
 // reads in the string and sets the bitmaps correspondingly
 void Game::stringToGame(const char* game_string){
     clearField();
+    // second-lowest bit set to 1
+    uint64_t board_pos = 0b10ULL;
 
-    uint64_t board_pos = 0b10ULL; //second-lowest bit set to 1
     for (size_t i = 0; i < 64; ++i) {
-        char c = game_string[i];
-        if (c >= '0' && c <= '7') {
-            board_pos <<= (c - '0');
-        }
-        else if (c == 'r' || c == 'b') {
-            int color_index = (c == 'r') ? 8 : 9;
-            int tower_height = (game_string[i + 1] - '0') - 1;
-            bitBoards[tower_height] |= board_pos;
-            bitBoards[color_index] |= board_pos;
-            board_pos <<= 1;
-            i++;
-        }
-        else if (c == 'R' || c == 'B') {
-            int color_index = (c == 'R') ? 8 : 9;
-            bitBoards[7] |= board_pos;
-            bitBoards[color_index] |= board_pos;
-            board_pos <<= 1;
-            i++;
-        }
-        else if (c == '/') {
-            board_pos <<= 2;
-        }
-        else if (c == ' ') {
-            char player = game_string[i+1];
-            if (player == 'r') {
-                active_player = red;
-            }else {
-                active_player = blue;
+        const char c = game_string[i];
+        switch (c) {
+            case 'r':
+            case 'b': {
+                int color_index = (c == 'r') ? C_R : C_B;
+                int tower_height = (game_string[i + 1] - '0') - 1;
+                bitBoards[tower_height] |= board_pos;
+                bitBoards[color_index] |= board_pos;
+                board_pos <<= 1;
+                ++i;
+                break;
             }
-            break;
+
+            case '0': case '1': case '2': case '3':
+            case '4': case '5': case '6': case '7':
+                board_pos <<= (c - '0');
+                break;
+
+            case 'R':
+            case 'B': {
+                int color_index = (c == 'R') ? C_R : C_B;
+                bitBoards[T_G] |= board_pos;
+                bitBoards[color_index] |= board_pos;
+                board_pos <<= 1;
+                ++i;
+                break;
+            }
+
+            case '/':
+                board_pos <<= 2;
+                break;
+
+            case ' ': {
+                char player = game_string[i + 1];
+                active_player = (player == 'r') ? red : blue;
+                return;
+            }
+
+            default:return;
         }
     }
 }
