@@ -5,6 +5,7 @@
 
 #include "AI.h"
 #include "random"
+#include "Utils.h"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
 
@@ -20,7 +21,12 @@ TEST_CASE("Test AI") {
         AI ai{start_setup.at(i).c_str()};
         int move_count;
         std::tuple<uint64_t, uint64_t, int> move = ai.minmax(1,move_count);
-        // CHECK(move_count == std::stoi(depth_one.at(i)));
+        const char* setup_str = start_setup[i].c_str();
+        uint64_t perft_move_count = Utils::perft(setup_str, 1);
+        CAPTURE(move_count, depth_one.at(i), i, start_setup[i]);
+        CHECK(move_count == std::stoi(depth_one.at(i)));
+        CAPTURE(perft_move_count, depth_one.at(i), i, start_setup[i]);
+        CHECK(perft_move_count == std::stoi(depth_one.at(i)));
 
         move = ai.minmax(2,move_count);
         // CHECK(move_count == std::stoi(depth_two.at(i)));
