@@ -22,7 +22,7 @@ public:
     std::tuple<uint64_t, uint64_t, int> alphaBetaTimed();
 
     std::tuple<uint64_t, uint64_t, int> alphaBeta(int,int&);
-    int traverseMovesAlphaBeta(Game&, int, std::atomic<int>&, bool, playerName&, int, int);
+    int traverseMovesAlphaBeta(Game&, int, int&, bool, playerName&, int, int);
 
     [[nodiscard]] int evaluationFunction(Game&, playerName&);
 };

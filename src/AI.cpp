@@ -18,8 +18,6 @@ Game AI::getGame() const{
 
 std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test) {
     int move_count = 0;
-    std::mutex count_mutex;
-    std::mutex best_move_mutex;
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -28,8 +26,7 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test)
     int best_eval = std::numeric_limits<int>::min();
     std::tuple<uint64_t, uint64_t, int> best_move;
 
-
-    std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
+    for (const auto& move : move_list) {
         Game game_copy = game;
         playerName start_player = game_copy.active_player;
         int local_count = 0;
@@ -38,23 +35,19 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test)
         game_copy.toggleActivePlayer();
 
         int eval = traverseMoves(game_copy, depth - 1, local_count, false, start_player);
-        {
-            std::lock_guard<std::mutex> lock(count_mutex); // Keep this only for move_count
-            move_count += local_count;
+        move_count += local_count;
+
+        if (eval > best_eval) {
+            best_eval = eval;
+            best_move = move;
         }
-        {
-            std::lock_guard<std::mutex> lock(best_move_mutex); // New mutex just for best_eval/move
-            if (eval > best_eval) {
-                best_eval = eval;
-                best_move = move;
-            }
-        }
-    });
+    }
 
     _move_count_test = move_count;
 
     return best_move;
 }
+
 
 int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_player, playerName start_player) {
 
@@ -134,7 +127,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
 }
 
 std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_count_test) {
-    std::atomic<int> move_count = 0;
+    int move_count = 0;
 
     game.generateMoves();
     std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
@@ -142,30 +135,37 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
 
     int best_eval = std::numeric_limits<int>::min();
     std::tuple<uint64_t, uint64_t, int> best_move = move_list[0];
-    std::mutex best_move_mutex;
 
-    std::for_each(std::execution::par, std::begin(move_list), std::end(move_list), [&](auto move) {
+    int alpha = std::numeric_limits<int>::min();
+    int beta = std::numeric_limits<int>::max();
+
+    for (const auto& move : move_list) {
         Game game_copy{game};
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
         game_copy.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
-        {
-            std::lock_guard<std::mutex> lock(best_move_mutex);
-            if (eval > best_eval) {
-                best_eval = eval;
-                best_move = move;
-            }
+        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
+
+        if (eval > best_eval) {
+            best_eval = eval;
+            best_move = move;
         }
-    });
+
+        alpha = std::max(alpha, eval);
+        if (beta <= alpha) {
+            break;
+        }
+
+    }
 
     _move_count_test = move_count;
     return best_move;
 }
 
-int AI::traverseMovesAlphaBeta(Game& game, int depth, std::atomic<int>& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
+
+int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
     game.generateMoves();
 
     // so we can check if we have 0 moves
