@@ -6,7 +6,7 @@ from gat import Game
 import pygame
 import sys
 
-server = "127.0.0.1"
+server = "localhost"
 port = 5555
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -30,7 +30,7 @@ def threaded_client(conn, p, gameId):
     try:
         initialTime = 120000
         timePlayer = initialTime
-        fileLog = open("logs/" + str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
+        fileLog = open("logs/"+str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
         global idCount
         conn.send(str.encode(str(p)))
         firstSend = False

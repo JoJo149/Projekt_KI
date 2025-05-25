@@ -59,7 +59,7 @@ output = {
 
 ```json
 {
-    "move": "A7-B7-1"
+   "move": "A7-B7-1"
 }
 ```
 

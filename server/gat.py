@@ -16,7 +16,7 @@ class Game:
                  win=None,
                  p1Connected=False,
                  p2Connected=False,
-                 id = None,
+                 id = id,
                  ready = False):
 
         #Use provided turn or default turn
@@ -72,10 +72,16 @@ class Game:
     def playTurn(self, player, move):
         try:
             print(f"Playing turn. Player: {player}, Move: {move}")
-            if (player == 0 and self.turn != "r") or (player == 1 and self.turn != "b"):
-                self.valid = False
-                print(f"Invalid turn by Player {player}. It's {self.turn}'s turn.")
-                return
+            if player == 0:
+                if self.turn == "b":
+                    self.winner = "b"
+                    print("Player 0 tried to play on 'b' turn.")
+                    return
+            if player == 1:
+                if self.turn == "r":
+                    self.winner = "r"
+                    print("Player 1 tried to play on 'r' turn.")
+                    return
 
             self.parseMoveString(move)
             self.validMove()
@@ -88,19 +94,19 @@ class Game:
         except Exception as e:
             print(f"Error in playTurn: {e}")
             import traceback
-            traceback.print_exc()  # ✅ Print full error stack trace for clarity
+            traceback.print_exc()
             raise
 
     def validMove(self):
         #Test if a non Integer is commited
         if self.valueError:
             self.valid = False
-            return False
+            return False, "Invalid string"
 
         #Test if Move is in the bounds of field
         if np.any((self.move < 0) | (self.move > 6)):
             self.valid = False
-            return False
+            return False, "Out of bounds"
 
         start_row, start_col = self.move[0]
         end_row, end_col = self.move[1]
@@ -108,10 +114,10 @@ class Game:
         #Test if move is orthogonal
         if start_row != end_row and start_col != end_col:
             self.valid = False
-            return False
+            return False, "Not orthoganal"
         elif start_row == end_row and start_col == end_col:
             self.valid = False
-            return False
+            return False, "Same square"
 
         startSpace = self.oldBoard[start_row, start_col]
         endSpace = self.oldBoard[end_row, end_col]
@@ -122,7 +128,7 @@ class Game:
         #Test if own piece is moved
         if not self.ownPieceIsMoved(startSpace):
             self.valid = False
-            return False
+            return False, "Moved enemy piece or from a not occupied square."
 
         #Test if Guard is moved
         if startSpace[-1] == "G":
@@ -133,34 +139,34 @@ class Game:
                     return True
                 else:
                     self.valid = False
-                    return False
+                    return False, "Guard tries to bully own soldier"
             else:
                 self.valid = False
-                return False
+                return False, "Guard is moved more than one space"
 
         #Test if player is trying to move more pieces, than they have
         if startSpace == 0:
             self.valid = False
-            return False
+            return False, "Start square doesn't contain a soldier"
 
         if self.moveCap > int(startSpace[-1]):
             self.valid = False
-            return False
+            return False, "Start square doesn't contain enough soldiers"
 
         #Test if player is moving exactly as many squares, as he is moving soldiers
         if not(row_diff == self.moveCap or col_diff == self.moveCap):
             self.valid = False
-            return False
+            return False, "Trying to move more or less squares than moving soldiers"
 
         #Test if player tries to jump
         if not self.pathIsClear(start_row, start_col, end_row, end_col):
             self.valid = False
-            return False
+            return False, "Path is not clear"
 
         #Test status on the end square
         if not (self.squareIsEmpty(endSpace) or self.squareIsMine(endSpace) or self.squareIsEnemy(endSpace)):
             self.valid = False
-            return False, self.statusEndSquare
+            return False, self.statusEndSquare, "End square isn't empty, doesn't contain my soldier or contains more enemy soldiers than moved soldiers"
 
         self.valid = True
         return True
@@ -179,15 +185,14 @@ class Game:
         elif endSquare[-1] == "G":
             startStack = int(startSquare[-1])
             newStart = str(self.turn + str(startStack - self.moveCap))
+            if int(newStart[-1]) == 0:
+                self.oldBoard[start_row, start_col] = 0
             self.oldBoard[start_row, start_col] = newStart
             self.oldBoard[end_row, end_col] = self.turn + str(self.moveCap)
         #Normal Movement
         else:
             startStack = int(startSquare[-1])
-            if str(endSquare) == "0":
-                endStack = 0
-            else:
-                endStack = int(endSquare[-1])
+            endStack = int(endSquare[-1])
 
             newStart = str(self.turn + str(startStack - self.moveCap))
 
@@ -256,42 +261,40 @@ class Game:
         return True
 
     def squareIsEmpty(self, endSpace):
-        if str(endSpace) == "0":
+        if endSpace == "0":
             return True
         else:
             self.statusEndSquare[0] = 1
             return False
 
     def squareIsMine(self, endSpace):
-        if self.turn in str(endSpace):
+        if self.turn in endSpace:
             return True
         else:
             self.statusEndSquare[1] = 1
             return False
 
     def squareIsEnemy(self, endSpace):
-        if self.turn not in ("r", "b"):
-            print("[ERROR] self.turn is invalid.")
-            return False  # Fail safely
+        if self.turn == "r":
+            enemy = "b"
+        else: enemy = "r"
 
-        enemy = "b" if self.turn == "r" else "r"
-
-        # Regular enemy soldier
-        if enemy in str(endSpace):
-            return self.moveCap >= int(endSpace[-1])
-
-        # Guard piece logic
-        if "G" in endSpace:
-            if enemy == "r" and "B" in endSpace:
+        if enemy in endSpace:
+            if self.moveCap >= int(endSpace[-1]):
                 return True
-            elif enemy == "b" and "R" in endSpace:
-                return True
+        #TODO: Ugly, try to write this segment decent
+        elif "G" in endSpace:
+            if enemy == "r":
+                if "B" in endSpace:
+                    return True
+                else: return False, "Trying to capture own Guard"
             else:
-                return False
-
-        # Not an enemy
-        self.statusEndSquare[2] = 1
-        return False
+                if "R" in endSpace:
+                    return True
+                else: return False, "Trying to capture own Guard"
+        else:
+            self.statusEndSquare[2] = 1
+            return False
 
     def setMove(self, start, end, height):
         try:
@@ -303,9 +306,9 @@ class Game:
             return self.move
         except ValueError:
             self.valueError = True
-            return False
+            return False, "Please enter valid integer"
 
-    #Functions for parsing
+            #Functions for parsing
     def boardToString(self):
         try:
             rows = []
