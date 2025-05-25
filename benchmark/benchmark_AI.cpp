@@ -9,6 +9,8 @@
 #include "random"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
+#define MAX_DEPTH 5
+
 TEST_CASE("Benchmark Bewertungsfunktion") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
     BENCHMARK_ADVANCED("")(Catch::Benchmark::Chronometer meter) {
@@ -28,7 +30,7 @@ TEST_CASE("Benchmark for MINMAX") {
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= MAX_DEPTH; i++) {
         int tmp_move_count = 0;
         std::string tmp_best_move;
 
@@ -43,7 +45,7 @@ TEST_CASE("Benchmark for MINMAX") {
         best_move.push_back(tmp_best_move);
     }
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= MAX_DEPTH; i++) {
         int move = move_count.at(i - 1);
         const std::string& best_move_string = best_move.at(i - 1);
         std::cout << "\nDEPTH " << i << " MINMAX used " << move << " moves. Best Move: " << best_move_string << std::endl;
@@ -56,7 +58,7 @@ TEST_CASE("Benchmark for ALPHABETA") {
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= MAX_DEPTH; i++) {
         int tmp_move_count = 0;
         std::string tmp_best_move;
 
@@ -71,7 +73,7 @@ TEST_CASE("Benchmark for ALPHABETA") {
         best_move.push_back(tmp_best_move);
     }
 
-    for (int i = 1; i <= 5; i++) {
+    for (int i = 1; i <= MAX_DEPTH; i++) {
         int move = move_count.at(i - 1);
         const std::string& best_move_string = best_move.at(i - 1);
         std::cout << "\nDEPTH " << i << " ALPHABETA used " << move << " moves. Best Move: " << best_move_string << std::endl;
