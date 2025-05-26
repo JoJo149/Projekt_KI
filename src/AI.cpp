@@ -235,16 +235,6 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
 }
 
 
-static const uint8_t tower_table_early[64] = {
-    1,3,3,3,3,3,3,3,1,
-    0,5,6,6,6,6,6,5,0,
-    0,4,6,7,7,7,6,4,0,
-    0,1,1,2,2,2,1,1,0,
-    0,4,5,6,6,6,5,4,0,
-    0,3,6,6,8,6,6,3,0,
-    1,3,3,3,3,3,3,3,1, 0
-};
-
 static const uint8_t tower_table_mid[64] = {
     0,1,1,2,2,2,1,1,0,
     1,3,6,7,7,7,6,3,1,
@@ -303,7 +293,7 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
 
     int player_position_value = 0;
     // player position value
-    const uint8_t *tower_table = (tower_count >= 7) ? tower_table_early : tower_table_mid;
+    const uint8_t *tower_table = tower_table_mid;
     uint64_t player_pieces = player_board;
     while (player_pieces) {
         int index = std::countr_zero(player_pieces);
@@ -336,9 +326,9 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
     uint64_t guard_enemy_pos_board = (max_player == red) ? guard_pos_up : guard_pos_down;
 
     // distance from player towers to enemy guard
-    int player_guard_end_value = minDistanceGuard(player_board & game.bitBoards[T_G], guard_enemy_pos_board);
+    int player_guard_end_value = (14 - minDistanceGuard(player_board & game.bitBoards[T_G], guard_enemy_pos_board));
     // distance from enemy towers to player guard
-    int enemy_guard_end_value = minDistanceGuard(enemy_board & game.bitBoards[T_G], guard_player_pos_board);
+    int enemy_guard_end_value = (14 - minDistanceGuard(enemy_board & game.bitBoards[T_G], guard_player_pos_board));
 
 
     // Mobilität max Val = 32
@@ -364,8 +354,8 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
         mobility_value *= 3;
     } else {
         // late-game
-        guard_value *= 20;
-        guard_end_value *= 20;
+        guard_value *= 10;
+        guard_end_value *= 10;
     }
     return material_value + position_value + guard_value + guard_end_value + mobility_value;
 }
