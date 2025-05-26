@@ -38,6 +38,13 @@ add_executable(Client ${SRC_FILES_NO_MAIN} clientsrc/client.cpp)
 target_include_directories(Client PRIVATE include ext/headerOnly/json)
 target_link_libraries(Client PRIVATE TBB::tbb)
 
+
+# ----------------------------------------------------------------------------
+# client application
+add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummy_client.cpp)
+target_include_directories(DummyClient PRIVATE include ext/headerOnly/json)
+target_link_libraries(DummyClient PRIVATE TBB::tbb)
+
 # ----------------------------------------------------------------------------
 # External dependencies
 add_subdirectory(ext/Catch2)
