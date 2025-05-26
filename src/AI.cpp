@@ -8,9 +8,6 @@
 #include <iostream>
 #include <limits>
 
-#define GUARD_WEIGHT 10000
-#define GAME_OVER 1000000
-
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
 AI::AI(const Game& game) : game(game) {}
@@ -19,7 +16,7 @@ Game& AI::getGame() {
     return game;
 }
 
-std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test) {
+std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& move_count_result) {
     int move_count = 0;
 
     game.generateMoves();
@@ -46,7 +43,7 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& _move_count_test)
         }
     }
 
-    _move_count_test = move_count;
+    move_count_result = move_count;
 
     return best_move;
 }
@@ -119,7 +116,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
             if (elapsed_ms * 10 >= time_limit) {
-                // std::cout << "Time limit exceeded at depth " << depth << std::endl;
+                std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
             int movecount = 0;
@@ -132,7 +129,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
     return best_move;
 }
 
-std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_count_test) {
+std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& move_count_result) {
     int move_count = 0;
 
     game.generateMoves();
@@ -151,6 +148,12 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
         playerName start_player = game_copy.active_player;
 
         game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+
+        // if u have move to end the game use it
+        if (game_copy.isGameOver()) {
+            return move;
+        }
+
         game_copy.toggleActivePlayer();
 
         int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
@@ -167,7 +170,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& _move_co
 
     }
 
-    _move_count_test = move_count;
+    move_count_result = move_count;
     return best_move;
 }
 
@@ -176,11 +179,10 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
     game.generateMoves();
 
     if (game.isGameOver()) {
-        ++move_count;
         if (!maximizing_player) {
-            return GAME_OVER / (depth + 1) + evaluationFunction(game, start_player);
-        } else {
-            return -GAME_OVER / (depth + 1) + evaluationFunction(game, start_player);
+            return std::numeric_limits<int>::max() / (depth + 1);
+        }else{
+            return std::numeric_limits<int>::min() / (depth + 1);
         }
     }
 
@@ -237,13 +239,34 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
 
 static const uint8_t tower_table_mid[64] = {
     0,1,1,2,2,2,1,1,0,
-    1,3,6,7,7,7,6,3,1,
-    2,4,7,8,8,8,7,4,2,
-    2,5,7,8,8,8,7,5,2,
-    2,4,7,8,8,8,7,4,2,
-    1,3,6,7,7,7,6,3,1,
-    0,1,1,2,2,2,1,1,0, 0
+    0,3,6,7,7,7,6,3,0,
+    0,4,7,8,8,8,7,4,0,
+    0,5,7,8,8,8,7,5,0,
+    0,4,7,8,8,8,7,4,0,
+    0,3,6,7,7,7,6,3,0,
+    0,1,1,2,2,2,1,1,0,0
 };
+
+static const uint8_t guard_table_red[64] = {
+    0,0,1,2,3,2,1,0,0,
+    0,1,2,3,4,3,2,1,0,
+    0,2,4,5,6,5,4,2,0,
+    0,3,6,7,8,7,6,3,0,
+    0,5,9,10,12,10,9,5,0,
+    0,7,12,13,15,13,12,7,0,
+    0,10,15,17,20,17,15,10,0,0
+};
+
+static const uint8_t guard_table_blue[64] = {
+    0,10,15,17,20,17,15,10,0,
+    0,7,12,13,15,13,12,7,0,
+    0,5,9,10,12,10,9,5,0,
+    0,3,6,7,8,7,6,3,0,
+    0,2,4,5,6,5,4,2,0,
+    0,1,2,3,4,3,2,1,0,
+    0,0,1,2,3,2,1,0,0, 0
+};
+
 
 
 int minDistanceGuard(uint64_t pieces, const uint64_t& guard) {
@@ -270,6 +293,30 @@ int minDistanceGuard(uint64_t pieces, const uint64_t& guard) {
 
 
 int AI::evaluationFunction(const Game& game, const playerName& max_player){
+
+    // Phase thresholds
+    constexpr int EARLY_PHASE_TOWER_THRESHOLD = 6;
+    constexpr int MID_PHASE_TOWER_THRESHOLD = 4;
+
+    // Evaluation weights per phase
+    constexpr int EARLY_POSITION_WEIGHT = 15;
+    constexpr int EARLY_GUARD_WEIGHT = 10;
+
+    constexpr int MID_POSITION_WEIGHT = 10;
+    constexpr int MID_GUARD_WEIGHT = 10;
+    constexpr int MID_MOBILITY_WEIGHT = 8;
+    constexpr int MID_GOAL_WEIGHT = 10;
+
+    constexpr int LATE_GUARD_WEIGHT = 10;
+    constexpr int LATE_GOAL_WEIGHT = 20;
+
+    // Base component weights (max theoretical value comments for context)
+    constexpr int MATERIAL_WEIGHT = 5;      // Max ~150
+    constexpr int POSITION_WEIGHT = 1;      // Max ~64
+    constexpr int GUARD_WEIGHT = 1;         // Max ~14
+    constexpr int GOAL_PROGRESS_WEIGHT = 1; // Max ~17
+    constexpr int MOBILITY_WEIGHT = 1;      // Max ~32
+
     constexpr int PIECE_WEIGHTS[7] = {100,150,125,110,100,100};
 
     int tower_count = 0;
@@ -291,44 +338,44 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
 
     // Position max Val for each = 8
 
-    int player_position_value = 0;
+    int player_pos_score = 0;
     // player position value
     const uint8_t *tower_table = tower_table_mid;
     uint64_t player_pieces = player_board;
     while (player_pieces) {
         int index = std::countr_zero(player_pieces);
-        player_position_value += tower_table[index];
+        player_pos_score += tower_table[index];
         player_pieces &= (player_pieces - 1);
     }
 
-    int enemy_position_value = 0;
+    int enemy_pos_score = 0;
     // enemy position value
     uint64_t enemy_pieces = enemy_board;
     while (enemy_pieces) {
         int index = std::countr_zero(enemy_pieces);
-        enemy_position_value += tower_table[index];
+        enemy_pos_score += tower_table[index];
         enemy_pieces &= (enemy_pieces - 1);
     }
 
     // Guard max Val = 14
 
     // distance from player towers to enemy guard
-    int player_guard_value = minDistanceGuard(player_board ^ game.bitBoards[T_G], enemy_board & game.bitBoards[T_G]);
+    int player_guard_prox = minDistanceGuard(player_board ^ game.bitBoards[T_G], enemy_board & game.bitBoards[T_G]);
 
     // distance from enemy towers to player guard
-    int enemy_guard_value = minDistanceGuard(enemy_board ^ game.bitBoards[T_G], player_board & game.bitBoards[T_G]);
+    int enemy_guard_prox = minDistanceGuard(enemy_board ^ game.bitBoards[T_G], player_board & game.bitBoards[T_G]);
 
-    // Guard to end Pos max Val = 14
+    // Guard to end Pos max Val = 17
 
-    constexpr uint64_t guard_pos_down = 0b0000010000000000000000000000000000000000000000000000000000000000;
-    constexpr uint64_t guard_pos_up =   0b0000000000000000000000000000000000000000000000000000000000010000;
-    uint64_t guard_player_pos_board = (max_player == red) ? guard_pos_down : guard_pos_up;
-    uint64_t guard_enemy_pos_board = (max_player == red) ? guard_pos_up : guard_pos_down;
+    // distance from player guard to goal field
+    const uint8_t *guard_player_pos_board = (max_player == red) ? guard_table_red : guard_table_blue;
+    uint64_t player_guard = player_board & game.bitBoards[T_G];
+    int player_guard_goal = guard_player_pos_board[std::countr_zero(player_guard)];
 
-    // distance from player towers to enemy guard
-    int player_guard_end_value = (14 - minDistanceGuard(player_board & game.bitBoards[T_G], guard_enemy_pos_board));
-    // distance from enemy towers to player guard
-    int enemy_guard_end_value = (14 - minDistanceGuard(enemy_board & game.bitBoards[T_G], guard_player_pos_board));
+    // distance from enemy guard to goal field
+    const uint8_t *guard_enemy_pos_board = (max_player == red) ? guard_table_blue : guard_table_red;
+    uint64_t enemy_guard = enemy_board & game.bitBoards[T_G];
+    int enemy_guard_goal = guard_enemy_pos_board[std::countr_zero(enemy_guard)];
 
 
     // Mobilität max Val = 32
@@ -338,24 +385,29 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
     game.moveList(player_move_list);
     mobility_value += static_cast<int>(player_move_list.size());
 
-    int position_value = player_position_value - (enemy_position_value / 2);
-    int guard_value = player_guard_value - (enemy_guard_value / 2);
-    int guard_end_value = player_guard_end_value - (enemy_guard_end_value / 2);
+    int position_value = player_pos_score - (enemy_pos_score / 2);
+    int guard_value = player_guard_prox - (enemy_guard_prox / 2);
+    int goal_value = player_guard_goal - (enemy_guard_goal / 2);
 
-    // Readjust for game state
-    if (tower_count >= 6) {
-        // early-game
-        position_value *= 20;
-    } else if (tower_count >= 4) {
-        // mid-game
-        position_value *= 20;
-        guard_value *= 10;
-        guard_end_value *= 10;
-        mobility_value *= 3;
+    if (tower_count >= EARLY_PHASE_TOWER_THRESHOLD) {
+        // Early game
+        position_value *= EARLY_POSITION_WEIGHT;
+        guard_value *= EARLY_GUARD_WEIGHT;
+    } else if (tower_count >= MID_PHASE_TOWER_THRESHOLD) {
+        // Mid game
+        position_value *= MID_POSITION_WEIGHT;
+        guard_value *= MID_GUARD_WEIGHT;
+        mobility_value *= MID_MOBILITY_WEIGHT;
+        goal_value *= MID_GOAL_WEIGHT;
     } else {
-        // late-game
-        guard_value *= 10;
-        guard_end_value *= 10;
+        // Late game
+        guard_value *= LATE_GUARD_WEIGHT;
+        goal_value *= LATE_GOAL_WEIGHT;
     }
-    return material_value + position_value + guard_value + guard_end_value + mobility_value;
+
+    return MATERIAL_WEIGHT * material_value
+        + POSITION_WEIGHT * position_value
+        + GUARD_WEIGHT * guard_value
+        + GOAL_PROGRESS_WEIGHT * goal_value
+        + MOBILITY_WEIGHT * mobility_value;
 }
