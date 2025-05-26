@@ -41,7 +41,7 @@ def threaded_client(conn, p, gameId):
         # Ensure the logs directory exists
         os.makedirs(logs_dir, exist_ok=True)
 
-        fileLog = open(logs_dir + str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
+        fileLog = open(logs_dir + "/" + str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
         global idCount
         conn.send(str.encode(str(p)))
         firstSend = False
