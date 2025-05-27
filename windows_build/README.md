@@ -2,13 +2,13 @@
 
 ## 🔧 Ausführbare Datei
 
-Die ausführbare Datei für den Client befindet sich im Ordner:
+Die zu ausführende Datei für den Client heißt:
 
-/executable/client_tower_guard.exe
+client_launcher.exe
 
 ## ⚙️ Konfigurationsdatei
 
-Die Datei `client_tower_guard.exe` liest die IP-Adresse und den zu verwendenden Port aus der Konfigurationsdatei:
+Die Exe liest die IP-Adresse und den zu verwendenden Port aus der Konfigurationsdatei:
 
 /clientInfo/config.txt
 

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <string>
 #include <thread>
-#include <chrono>
 #include <fstream>
 #include <AI.h>
 #include <Utils.h>
@@ -33,7 +32,7 @@ private:
 
 public:
     Network() {
-        loadConfig("../clientInfo/config.txt");
+        loadConfig( "../clientInfo/config.txt");
 
         #ifdef _WIN32
             if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
