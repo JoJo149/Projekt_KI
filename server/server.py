@@ -4,7 +4,7 @@ import json
 import random
 from gat import Game
 import pygame
-import sys
+import os
 
 server = "localhost"
 port = 5555
@@ -30,7 +30,17 @@ def threaded_client(conn, p, gameId):
     try:
         initialTime = 120000
         timePlayer = initialTime
-        fileLog = open(str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
+        # Get the directory of the current script
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        # Construct the logs directory path
+        logs_dir = os.path.join(script_dir, "logs")
+
+        # Ensure the logs directory exists
+        os.makedirs(logs_dir, exist_ok=True)
+
+        fileLog = open(logs_dir + "/" + str(gameId) + str(p) + str(random.randint(1, 999999)) + ".txt", "a")
+
         global idCount
         conn.send(str.encode(str(p)))
         firstSend = False

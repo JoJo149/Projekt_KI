@@ -8,7 +8,6 @@ To optimize the AI we will use: bitboards, Alpha-Beta Search and other technique
 ## Dependencies for C++ Client and AI
 - #### [cmake](https://cmake.org/download/) as our Build System
 - ####  [GNU Compiler Collection](https://gcc.gnu.org/install/index.html) which supports C++ version 20 
-- #### for Multithreading, we use [Threading Building Blocks](https://uxlfoundation.github.io/oneTBB/index.html)
 
 ## getting started
 Go to your designated project folder
