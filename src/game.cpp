@@ -399,6 +399,7 @@ std::vector<std::string> Game::readableMoves() const {
     return move_list;
 }
 
+// TODO optimize to don't use heap maybe use move struct and prealocate move_list space in game
 void Game::moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>& move_list) const {
     for (int row = 0; row < 8; row++) {
         uint64_t start_pos = moves[row * 7];
