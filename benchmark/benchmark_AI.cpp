@@ -1,5 +1,6 @@
 #include <iostream>
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
 #include <Utils_test.h>
 #include <string>
@@ -7,13 +8,12 @@
 
 #include "AI.h"
 #include "random"
-#include "catch2/benchmark/catch_benchmark.hpp"
 
 #define MAX_DEPTH 5
 
-TEST_CASE("Benchmark Bewertungsfunktion") {
+TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
-    BENCHMARK_ADVANCED("")(Catch::Benchmark::Chronometer meter) {
+    BENCHMARK_ADVANCED("10 000 executions of evaluation function")(Catch::Benchmark::Chronometer meter) {
         int ignore;
         meter.measure([&] {
             for (int i=0; i<10000;i++) {
@@ -24,7 +24,7 @@ TEST_CASE("Benchmark Bewertungsfunktion") {
     };
 }
 
-TEST_CASE("Benchmark for MINMAX") {
+TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
 
     std::vector<int> move_count{};
@@ -34,7 +34,7 @@ TEST_CASE("Benchmark for MINMAX") {
         int tmp_move_count = 0;
         std::string tmp_best_move;
 
-        BENCHMARK_ADVANCED("DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
+        BENCHMARK_ADVANCED("MINMAX DEPTH " + std::to_string(i)) (Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
                 tmp_best_move = Utils::convert::moveToString(ki.minmax(i, tmp_move_count));
                 return 0;
@@ -52,7 +52,7 @@ TEST_CASE("Benchmark for MINMAX") {
     }
 }
 
-TEST_CASE("Benchmark for ALPHABETA") {
+TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
 
     std::vector<int> move_count{};
@@ -62,7 +62,7 @@ TEST_CASE("Benchmark for ALPHABETA") {
         int tmp_move_count = 0;
         std::string tmp_best_move;
 
-        BENCHMARK_ADVANCED("DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
+        BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
                 tmp_best_move = Utils::convert::moveToString(ki.alphaBeta(i, tmp_move_count));
                 return 0;

@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0")
 
+
+set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
+set(BUILD_SHARED_LIBS OFF)
+
 # ----------------------------------------------------------------------------
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
@@ -15,13 +19,13 @@ file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
 
 # ----------------------------------------------------------------------------
 # Multi Threading
-find_package(TBB REQUIRED)
+# find_package(TBB REQUIRED)
 
 # ----------------------------------------------------------------------------
 # Main application
 add_executable(projekt_ki ${SRC_FILES})
 target_include_directories(projekt_ki PRIVATE include)
-target_link_libraries(projekt_ki PRIVATE TBB::tbb)
+# target_link_libraries(projekt_ki PRIVATE TBB::tbb)
 
 # ----------------------------------------------------------------------------
 # Exclude main.cpp for tests
@@ -36,14 +40,14 @@ endforeach()
 # client application
 add_executable(Client ${SRC_FILES_NO_MAIN} clientsrc/client.cpp)
 target_include_directories(Client PRIVATE include ext/headerOnly/json)
-target_link_libraries(Client PRIVATE TBB::tbb)
+# target_link_libraries(Client PRIVATE TBB::tbb)
 
 
 # ----------------------------------------------------------------------------
 # client application
 add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummy_client.cpp)
 target_include_directories(DummyClient PRIVATE include ext/headerOnly/json)
-target_link_libraries(DummyClient PRIVATE TBB::tbb)
+# target_link_libraries(DummyClient PRIVATE TBB::tbb)
 
 # ----------------------------------------------------------------------------
 # External dependencies
@@ -60,7 +64,7 @@ target_include_directories(tests PRIVATE include ext/Catch2/single_include ext/h
 
 target_link_libraries(tests
         PRIVATE
-        TBB::tbb
+        # TBB::tbb
         Catch2::Catch2WithMain
 )
 
@@ -73,7 +77,7 @@ target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include 
 
 target_link_libraries(benchmarks
         PRIVATE
-        TBB::tbb
+        # TBB::tbb
         Catch2::Catch2WithMain
 )
 # ----------------------------------------------------------------------------
@@ -84,14 +88,14 @@ include(Catch)
 catch_discover_tests(tests
         TEST_PREFIX "UnitTests."
         EXTRA_ARGS
-        --benchmark-samples 500
+        --benchmark-samples 100
         --benchmark-warmup-time 100ms
 )
 
 catch_discover_tests(benchmarks
         TEST_PREFIX "Benchmarks"
         EXTRA_ARGS
-        --benchmark-samples 10000
+        --benchmark-samples 10
         --benchmark-warmup-time 500ms
 )
 
