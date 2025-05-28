@@ -269,23 +269,26 @@ static const uint8_t guard_table_blue[64] = {
 
 
 
-int minDistanceGuard(uint64_t pieces, const uint64_t& guard) {
+inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
+    if (guard == 0 || pieces == 0) return 14;
+
     int guard_pos = std::countr_zero(guard);
-    int guard_x = (guard_pos % 8) - 1;
-    int guard_y = (guard_pos / 8) - 1;
+    int guard_x = (guard_pos & 7) - 1; // x & 7 = x mod 8, for positive nums
+    int guard_y = (guard_pos >> 3) - 1; // x >> 8 = x / 8, for positive nums
 
     int min_dist = 14;
-
     while (pieces) {
         int pos = std::countr_zero(pieces);
         pieces &= pieces - 1;
 
-        int x = (pos % 8) - 1;
-        int y = (pos / 8) - 1;
-
-        // Manhattan Distance
+        int x = (pos & 7) - 1;
+        int y = (pos >> 3) - 1;
         int dist = std::abs(x - guard_x) + std::abs(y - guard_y);
-        min_dist = std::min(min_dist, dist);
+
+        if (dist < min_dist) {
+            min_dist = dist;
+            if (min_dist == 1) break;
+        }
     }
 
     return min_dist;
@@ -299,19 +302,19 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
     constexpr int MID_PHASE_TOWER_THRESHOLD = 4;
 
     // Evaluation weights per phase
-    constexpr int EARLY_POSITION_WEIGHT = 15;
-    constexpr int EARLY_GUARD_WEIGHT = 10;
+    constexpr int EARLY_POSITION_WEIGHT = 16;
+    constexpr int EARLY_GUARD_WEIGHT = 8;
 
-    constexpr int MID_POSITION_WEIGHT = 10;
-    constexpr int MID_GUARD_WEIGHT = 10;
+    constexpr int MID_POSITION_WEIGHT = 8;
+    constexpr int MID_GUARD_WEIGHT = 8;
     constexpr int MID_MOBILITY_WEIGHT = 8;
-    constexpr int MID_GOAL_WEIGHT = 10;
+    constexpr int MID_GOAL_WEIGHT = 16;
 
-    constexpr int LATE_GUARD_WEIGHT = 10;
-    constexpr int LATE_GOAL_WEIGHT = 20;
+    constexpr int LATE_GUARD_WEIGHT = 16;
+    constexpr int LATE_GOAL_WEIGHT = 32;
 
     // Base component weights (max theoretical value comments for context)
-    constexpr int MATERIAL_WEIGHT = 5;      // Max ~150
+    constexpr int MATERIAL_WEIGHT = 4;      // Max ~150
     constexpr int POSITION_WEIGHT = 1;      // Max ~64
     constexpr int GUARD_WEIGHT = 1;         // Max ~14
     constexpr int GOAL_PROGRESS_WEIGHT = 1; // Max ~17
@@ -341,21 +344,13 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
     int player_pos_score = 0;
     // player position value
     const uint8_t *tower_table = tower_table_mid;
-    uint64_t player_pieces = player_board;
-    while (player_pieces) {
-        int index = std::countr_zero(player_pieces);
-        player_pos_score += tower_table[index];
-        player_pieces &= (player_pieces - 1);
-    }
+    for (uint64_t bb = player_board; bb; bb &= bb - 1)
+        player_pos_score += tower_table[std::countr_zero(bb)];
 
     int enemy_pos_score = 0;
     // enemy position value
-    uint64_t enemy_pieces = enemy_board;
-    while (enemy_pieces) {
-        int index = std::countr_zero(enemy_pieces);
-        enemy_pos_score += tower_table[index];
-        enemy_pieces &= (enemy_pieces - 1);
-    }
+    for (uint64_t bb = enemy_board; bb; bb &= bb - 1)
+        enemy_pos_score += tower_table[std::countr_zero(bb)];
 
     // Guard max Val = 14
 
@@ -380,14 +375,15 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
 
     // Mobilität max Val = 32
 
-    int mobility_value = 0;
     std::vector<std::tuple<uint64_t, uint64_t, int>> player_move_list{};
     game.moveList(player_move_list);
-    mobility_value += static_cast<int>(player_move_list.size());
+    int mobility_value = static_cast<int>(player_move_list.size());
 
-    int position_value = player_pos_score - (enemy_pos_score / 2);
-    int guard_value = player_guard_prox - (enemy_guard_prox / 2);
-    int goal_value = player_guard_goal - (enemy_guard_goal / 2);
+
+    // division by 2
+    int position_value = player_pos_score - (enemy_pos_score >> 1);
+    int guard_value = player_guard_prox - (enemy_guard_prox >> 1);
+    int goal_value = player_guard_goal - (enemy_guard_goal >> 1);
 
     if (tower_count >= EARLY_PHASE_TOWER_THRESHOLD) {
         // Early game
