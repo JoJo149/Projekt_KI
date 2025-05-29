@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <execution>
-
+#include <cstring>
 #include <chrono>
 #include "game.h"
 #include <iostream>
@@ -16,22 +16,22 @@ Game& AI::getGame() {
     return game;
 }
 
-std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& move_count_result) {
+Move AI::minmax(int depth, int& move_count_result) {
     int move_count = 0;
 
     game.generateMoves();
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
 
     int best_eval = std::numeric_limits<int>::min();
-    std::tuple<uint64_t, uint64_t, int> best_move;
+    Move best_move{};
 
-    for (const auto& move : move_list) {
+    Move move_list[MOVES_LIST_SIZE];
+    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
         Game game_copy = game;
         playerName start_player = game_copy.active_player;
         int local_count = 0;
 
-        game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.makeMove(move_list[i]);
         game_copy.toggleActivePlayer();
 
         int eval = traverseMoves(game_copy, depth - 1, local_count, false, start_player);
@@ -39,7 +39,7 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& move_count_result
 
         if (eval > best_eval) {
             best_eval = eval;
-            best_move = move;
+            best_move = move_list[i];
         }
     }
 
@@ -52,10 +52,10 @@ std::tuple<uint64_t, uint64_t, int> AI::minmax(int depth, int& move_count_result
 int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_player, playerName start_player) {
 
     game.generateMoves();
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
+    Move move_list[MOVES_LIST_SIZE];
+    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
 
-    if (depth == 0 || move_list.empty()) {
+    if (depth == 0 || move_list[0].from == 0) {
         ++move_count;
         return evaluationFunction(game, start_player);
     }
@@ -64,14 +64,14 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMoves(game, depth - 1,move_count, false, start_player);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i], captured_piece);
 
             maxEval = std::max(maxEval, eval);
         }
@@ -80,14 +80,14 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
     } else {
         int minEval = std::numeric_limits<int>::max();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMoves(game, depth - 1,move_count, true, start_player);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i], captured_piece);
 
             minEval = std::min(minEval, eval);
         }
@@ -97,9 +97,9 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 }
 
 
-std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
+Move AI::alphaBetaTimed() {
     auto startTime = std::chrono::steady_clock::now();
-    std::tuple<uint64_t, uint64_t, int> best_move{};
+    Move best_move{};
 
     // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
     const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,1500,1500,1250,1250,1000,1000,750,500};
@@ -111,7 +111,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
 
     const int time_limit = limits[tower_count-1];
     try {
-        for (int depth = 1; depth <= 100; ++depth) {
+        for (int depth = 1; ; ++depth) {
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
@@ -129,29 +129,28 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBetaTimed() {
     return best_move;
 }
 
-std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& move_count_result) {
+Move AI::alphaBeta(const int depth, int& move_count_result) {
     int move_count = 0;
 
     game.generateMoves();
-
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
+    Move move_list[MOVES_LIST_SIZE];
+    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
 
     int best_eval = std::numeric_limits<int>::min();
-    std::tuple<uint64_t, uint64_t, int> best_move = move_list[0];
+    Move best_move = move_list[0];
 
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
-    for (const auto& move : move_list) {
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
         Game game_copy{game};
         playerName start_player = game_copy.active_player;
 
-        game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.makeMove(move_list[i]);
 
         // if u have move to end the game use it
         if (game_copy.isGameOver()) {
-            return move;
+            return move_list[i];
         }
 
         game_copy.toggleActivePlayer();
@@ -160,7 +159,7 @@ std::tuple<uint64_t, uint64_t, int> AI::alphaBeta(const int depth, int& move_cou
 
         if (eval > best_eval) {
             best_eval = eval;
-            best_move = move;
+            best_move = move_list[i];
         }
 
         alpha = std::max(alpha, eval);
@@ -191,19 +190,19 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
         return evaluationFunction(game, start_player);
     }
 
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        Move move_list[MOVES_LIST_SIZE];
+        std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, false, start_player, alpha, beta);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i], captured_piece);
 
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
@@ -216,14 +215,16 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
     } else {
         int minEval = std::numeric_limits<int>::max();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        Move move_list[MOVES_LIST_SIZE];
+        std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, true, start_player, alpha, beta);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i] , captured_piece);
 
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
@@ -295,7 +296,7 @@ inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
 }
 
 
-int AI::evaluationFunction(const Game& game, const playerName& max_player){
+int AI::evaluationFunction(Game& game, const playerName& max_player){
 
     // Phase thresholds
     constexpr int EARLY_PHASE_TOWER_THRESHOLD = 6;
@@ -374,11 +375,12 @@ int AI::evaluationFunction(const Game& game, const playerName& max_player){
 
 
     // Mobilität max Val = 32
-
-    std::vector<std::tuple<uint64_t, uint64_t, int>> player_move_list{};
-    game.moveList(player_move_list);
-    int mobility_value = static_cast<int>(player_move_list.size());
-
+    int mobility_value = 0;
+    Move move_list[MOVES_LIST_SIZE];
+    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    while (move_list[mobility_value].from != 0) {
+        mobility_value++;
+    }
 
     // division by 2
     int position_value = player_pos_score - (enemy_pos_score >> 1);

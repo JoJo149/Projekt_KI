@@ -141,9 +141,9 @@ void mainLoop() {
 
                     game.printGame();
 
-                     dummyAI d_AI{game};
+                     DummyAI d_AI{game};
 
-                    string ki_result = Utils::convert::moveToString(d_AI.alphaBetaTimed());
+                    string ki_result = d_AI.alphaBetaTimed().toString();
 
                     cout << "KI makes Move: " << ki_result << endl;
                     cout << endl;

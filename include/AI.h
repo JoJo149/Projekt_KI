@@ -13,14 +13,14 @@ public:
 
     [[nodiscard]] Game& getGame();
 
-    [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int, int&);
+    [[nodiscard]] Move minmax(int, int&);
     int traverseMoves(Game, int, int&, bool, playerName);
 
-    std::tuple<uint64_t, uint64_t, int> alphaBetaTimed();
+    Move alphaBetaTimed();
 
-    std::tuple<uint64_t, uint64_t, int> alphaBeta(int,int&);
+    Move alphaBeta(int,int&);
     int traverseMovesAlphaBeta(Game&, int, int&, bool, playerName&, int, int);
 
-    [[nodiscard]] int evaluationFunction(const Game&, const playerName&);
+    [[nodiscard]] int evaluationFunction(Game&, const playerName&);
 };
 

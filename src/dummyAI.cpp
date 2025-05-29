@@ -1,4 +1,4 @@
-#include "DummyAI.h"
+#include "dummyAI.h"
 #include <algorithm>
 #include <execution>
 
@@ -7,17 +7,17 @@
 #include <iostream>
 #include <limits>
 
-dummyAI::dummyAI(): game(red) {}
-dummyAI::dummyAI(const char * game_string): game(game_string) {}
-dummyAI::dummyAI(const Game& game) : game(game) {}
+DummyAI::DummyAI(): game(red) {}
+DummyAI::DummyAI(const char * game_string): game(game_string) {}
+DummyAI::DummyAI(const Game& game) : game(game) {}
 
-Game& dummyAI::getGame() {
+Game& DummyAI::getGame() {
     return game;
 }
 
-std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBetaTimed() {
+Move DummyAI::alphaBetaTimed() {
     auto startTime = std::chrono::steady_clock::now();
-    std::tuple<uint64_t, uint64_t, int> best_move{};
+    Move best_move{};
 
     // TIME_LIMIT_MS TODO random numbers at the Moment for Testing
     const int limits[16] = {500,500,500,500,500,500,500,500,500,500,500,500,500,500,500,500};
@@ -47,31 +47,30 @@ std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBetaTimed() {
     return best_move;
 }
 
-std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBeta(const int depth, int& _move_count_test) {
+Move DummyAI::alphaBeta(const int depth, int& _move_count_test) {
     int move_count = 0;
 
     game.generateMoves();
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
+    Move* move_list = game.getMoveList();
 
     int best_eval = std::numeric_limits<int>::min();
-    std::tuple<uint64_t, uint64_t, int> best_move = move_list[0];
+    Move best_move = move_list[0];
 
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
-    for (const auto& move : move_list) {
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
         Game game_copy{game};
         playerName start_player = game_copy.active_player;
 
-        game_copy.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        game_copy.makeMove(move_list[i]);
         game_copy.toggleActivePlayer();
 
         int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
 
         if (eval > best_eval) {
             best_eval = eval;
-            best_move = move;
+            best_move = move_list[i];
         }
 
         alpha = std::max(alpha, eval);
@@ -86,7 +85,7 @@ std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBeta(const int depth, int& _mo
 }
 
 
-int dummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
+int DummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
     game.generateMoves();
 
     // so we can check if we have 0 moves
@@ -102,19 +101,18 @@ int dummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool
         return evaluationFunction(game, start_player);
     }
 
-    std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-    game.moveList(move_list);
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        Move* move_list = game.getMoveList();
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, false, start_player, alpha, beta);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i], captured_piece);
 
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
@@ -127,14 +125,15 @@ int dummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool
     } else {
         int minEval = std::numeric_limits<int>::max();
 
-        for (const auto& move : move_list) {
-            int captured_piece = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
+        Move* move_list = game.getMoveList();
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
+            int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
 
             int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, true, start_player, alpha, beta);
 
             game.toggleActivePlayer();
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move), captured_piece);
+            game.unMakeMove(move_list[i] , captured_piece);
 
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
@@ -193,7 +192,7 @@ static const uint8_t tower_table_blue[64] = {
 
 #define PLAYER_PIECE_WEIGHT 6
 #define ENEMY_PIECE_WORTH 16
-int dummyAI::evaluationFunction(Game& game, playerName& max_player){
+int DummyAI::evaluationFunction(Game& game, playerName& max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];
