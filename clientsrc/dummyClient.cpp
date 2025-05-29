@@ -3,7 +3,7 @@
 #include <thread>
 #include <chrono>
 #include <fstream>
-#include <dummy_AI.h>
+#include <DummyAI.h>
 #include <Utils.h>
 
 #ifdef _WIN32
@@ -141,7 +141,7 @@ void mainLoop() {
 
                     game.printGame();
 
-                     dummy_AI d_AI{game};
+                     dummyAI d_AI{game};
 
                     string ki_result = Utils::convert::moveToString(d_AI.alphaBetaTimed());
 

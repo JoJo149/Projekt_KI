@@ -2,14 +2,14 @@
 
 #include "game.h"
 
-class dummy_AI {
+class dummyAI {
 private:
     Game game;
 
 public:
-    dummy_AI();
-    explicit dummy_AI(const char *game_string);
-    explicit dummy_AI(const Game &game);
+    dummyAI();
+    explicit dummyAI(const char *game_string);
+    explicit dummyAI(const Game &game);
 
     [[nodiscard]] Game& getGame();
 

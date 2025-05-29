@@ -1,4 +1,4 @@
-#include "dummy_AI.h"
+#include "DummyAI.h"
 #include <algorithm>
 #include <execution>
 
@@ -7,15 +7,15 @@
 #include <iostream>
 #include <limits>
 
-dummy_AI::dummy_AI(): game(red) {}
-dummy_AI::dummy_AI(const char * game_string): game(game_string) {}
-dummy_AI::dummy_AI(const Game& game) : game(game) {}
+dummyAI::dummyAI(): game(red) {}
+dummyAI::dummyAI(const char * game_string): game(game_string) {}
+dummyAI::dummyAI(const Game& game) : game(game) {}
 
-Game& dummy_AI::getGame() {
+Game& dummyAI::getGame() {
     return game;
 }
 
-std::tuple<uint64_t, uint64_t, int> dummy_AI::alphaBetaTimed() {
+std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBetaTimed() {
     auto startTime = std::chrono::steady_clock::now();
     std::tuple<uint64_t, uint64_t, int> best_move{};
 
@@ -47,7 +47,7 @@ std::tuple<uint64_t, uint64_t, int> dummy_AI::alphaBetaTimed() {
     return best_move;
 }
 
-std::tuple<uint64_t, uint64_t, int> dummy_AI::alphaBeta(const int depth, int& _move_count_test) {
+std::tuple<uint64_t, uint64_t, int> dummyAI::alphaBeta(const int depth, int& _move_count_test) {
     int move_count = 0;
 
     game.generateMoves();
@@ -86,7 +86,7 @@ std::tuple<uint64_t, uint64_t, int> dummy_AI::alphaBeta(const int depth, int& _m
 }
 
 
-int dummy_AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
+int dummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
     game.generateMoves();
 
     // so we can check if we have 0 moves
@@ -193,7 +193,7 @@ static const uint8_t tower_table_blue[64] = {
 
 #define PLAYER_PIECE_WEIGHT 6
 #define ENEMY_PIECE_WORTH 16
-int dummy_AI::evaluationFunction(Game& game, playerName& max_player){
+int dummyAI::evaluationFunction(Game& game, playerName& max_player){
     uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
     uint64_t guard_positions = game.bitBoards[T_G];
