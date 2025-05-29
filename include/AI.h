@@ -1,5 +1,4 @@
-#ifndef KI_H
-#define KI_H
+#pragma once
 
 #include "game.h"
 
@@ -24,4 +23,4 @@ public:
 
     [[nodiscard]] int evaluationFunction(const Game&, const playerName&);
 };
-#endif //KI_H
+

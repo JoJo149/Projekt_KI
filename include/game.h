@@ -1,6 +1,4 @@
-#ifndef GAME_H
-#define GAME_H
-
+#pragma once
 #include <string>
 #include <cstdint>
 #include <vector>
@@ -82,5 +80,3 @@ public:
     void debugPrintGame() const;
     void debugPrintMoves() const;
 };
-
-#endif //GAME_H

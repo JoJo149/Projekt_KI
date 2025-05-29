@@ -1,5 +1,4 @@
-#ifndef DUMMY_AI_H
-#define DUMMY_AI_H
+#pragma once
 
 #include "game.h"
 
@@ -21,4 +20,3 @@ public:
 
     [[nodiscard]] int evaluationFunction(Game&, playerName&);
 };
-#endif //DUMMY_AI_H
