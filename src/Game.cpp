@@ -168,40 +168,6 @@ void debugPrintGameHelper (uint64_t bitboard) {
     std::cout << std::endl;
 }
 
-//Prints every bitmask values for debugging purpose
-void Game::debugPrintGame() const {
-
-    const char* boardNames[10] = {
-        "tower h=1", "tower h=2", "tower h=3", "tower h=4",
-        "tower h=5", "tower h=6","tower h=7", "guard",
-        "tower red", "tower blue"
-    };
-
-    for (int i = 0; i < 10; i++) {
-        std::cout << boardNames[i] << " corresponds to bitfield value:" << std::endl;
-        const uint64_t bit_board = bitBoards[i];
-        for (int row = 0; row < 7; row++) {
-            for (int col = 1; col < 8; col++) {
-                const int bit_index = (row * 9 + col);
-                std::cout << ((bit_board >> bit_index) & 1) << " ";
-            }
-            std::cout << std::endl;
-        }
-        i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
-    }
-}
-
-void Game::debugPrintMoves() const {
-    for (int i = 0; i < 56; i++) {
-        if (moves[i] != 0) {
-            std::cout <<"corresponds to bitfield of moves board " << i << ":" << std::endl;
-            const auto bit_board = moves[i];
-            debugPrintGameHelper(bit_board);
-            i!=9 ? std::cout << std::endl : std::cout;  // Extra newline after each bitmask
-        }
-    }
-}
-
 void Game::printGameHelper(int bit_index) const {
     std::string output = "\033[38;5;239m0\033[0m";
     for (int i = 0; i < 8; ++i) {

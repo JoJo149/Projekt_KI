@@ -66,17 +66,17 @@ public:
 
     void stringToGame(const char*);
     void gameToString(char*) const;
+
     [[nodiscard]] static std::pair<uint64_t, uint64_t> moveStringToBitboard (const std::string&);
     [[nodiscard]] std::vector<std::string> readableMoves() const;
 
     [[nodiscard]] bool isGameOver() const;
+
     void generateMoves();
     void moveList(std::vector<std::tuple<uint64_t, uint64_t, int>>&) const;
+
     int makeMove(const uint64_t&, const uint64_t&, const int&);
     void unMakeMove(const uint64_t&, const uint64_t&, const int&, const int&);
 
     void printGame() const;
-
-    void debugPrintGame() const;
-    void debugPrintMoves() const;
 };
