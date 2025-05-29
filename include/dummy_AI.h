@@ -2,6 +2,7 @@
 #define DUMMY_AI_H
 
 #include "game.h"
+
 class dummy_AI {
 private:
     Game game;

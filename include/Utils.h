@@ -1,5 +1,7 @@
-#include "game.h"
+#ifndef UTILS_H
+#define UTILS_H
 
+#include "game.h"
 
 namespace Utils {
     namespace helper{
@@ -14,3 +16,4 @@ namespace Utils {
 
 
 };
+#endif //UTILS_H

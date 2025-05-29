@@ -1,7 +1,5 @@
 #ifndef KI_H
 #define KI_H
-#include <atomic>
-#include <optional>
 
 #include "game.h"
 
