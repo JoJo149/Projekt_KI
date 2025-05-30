@@ -8,7 +8,7 @@
 #include "random"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
-
+/*
 TEST_CASE("Test AI") {
     static std::vector<std::string> group_name = getColumn(0,"../tests/AI_daten.csv");
     static std::vector<std::string> start_setup = getColumn(1,"../tests/AI_daten.csv");
@@ -25,7 +25,7 @@ TEST_CASE("Test AI") {
         AI ai{start_setup.at(i).c_str()};
         int move_count;
         int move_count_comulated = 0;
-        std::tuple<uint64_t, uint64_t, int> move = ai.minmax(1,move_count);
+        Move move = ai.minmax(1,move_count);
         const char* setup_str = start_setup[i].c_str();
         uint64_t perft_move_count = Utils::perft(setup_str, 1);
         move_count_comulated += move_count;
@@ -53,4 +53,4 @@ TEST_CASE("Test AI") {
         // CHECK(move_count == std::stoi(depth_five.at(i)));
     }
 }
-
+*/

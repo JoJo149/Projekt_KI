@@ -6,15 +6,15 @@
 struct Move {
     uint64_t from = 0;
     uint64_t to = 0;
-    int steps = -1;
+    int move_distance = -1;
 
     Move() = default;
 
-    Move(uint64_t _from, uint64_t _to, int _steps)
-        : from(_from), to(_to), steps(_steps) {}
+    Move(uint64_t from, uint64_t to, int steps)
+        : from(from), to(to), move_distance(steps) {}
 
     bool operator==(const Move& other) const {
-        return from == other.from && to == other.to && steps == other.steps;
+        return from == other.from && to == other.to && move_distance == other.move_distance;
     }
 
     [[nodiscard]] std::string toString() const;

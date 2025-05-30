@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "game.h"
 #include <cassert>
 #include <iostream>
@@ -6,6 +8,7 @@
 #include <cstdint>
 #include <vector>
 #include <cstring>
+#include <set>
 
 Game::Game() = default;
 
@@ -16,8 +19,8 @@ Game::Game(playerName p_name) {
 }
 
 Game::Game(const Game& other) {
-    std::memcpy(bitBoards, other.bitBoards, BITBOARD_COUNT * sizeof(uint64_t));
-    std::memcpy(moveList, other.moveList, MOVES_LIST_SIZE * sizeof(Move));
+    std::copy_n(other.bitBoards, BITBOARD_COUNT, bitBoards);
+    std::copy_n(other.moveList, MOVES_LIST_SIZE, moveList);
     active_player = other.active_player;
 }
 
@@ -229,9 +232,12 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             (from_pos >> (-shift_dir * (move_len + 1)));
 
         // if move is out of bounds
-        if (possible_move & seperating_bit_mask) {
+        if (possible_move & seperating_bit_mask || possible_move == 0) {
             break;
         }
+
+        assert(std::popcount(from_pos) == 1);
+        assert(std::popcount(possible_move) == 1);
 
         // if u move on ur own tower
         if(possible_move & player_board) {
@@ -239,7 +245,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             if (is_guard || possible_move & bitBoards[T_G]) {
                 break;
             }
-            getMoveList()[write_index] = Move(from_pos, possible_move, move_len);
+            moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
             write_index++;
             break;
         }
@@ -247,7 +253,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
         // if you are a guard tower and u don't move on ur own tower
         // break so we only check move of len 1
         if (is_guard) {
-            getMoveList()[write_index] = Move(from_pos, possible_move, move_len);
+            moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
             write_index++;
             break;
         }
@@ -257,13 +263,13 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             for (int enemy_h = 0; enemy_h <= T_G; enemy_h++) {
                 // enemy is Guard
                 if (enemy_h == T_G) {
-                    getMoveList()[write_index] = Move(from_pos, possible_move, move_len);
+                    moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
                     write_index++;
                     break;
                 }
                 if (possible_move & bitBoards[enemy_h]) {
                     if (enemy_h <= move_len) {
-                        getMoveList()[write_index] = Move(from_pos, possible_move, move_len);
+                        moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
                         write_index++;
                     }
                     break;
@@ -272,7 +278,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             break;
         }
         // u move to a free square
-        getMoveList()[write_index] = Move(from_pos, possible_move, move_len);
+        moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
         write_index++;
     }
 }
@@ -304,7 +310,15 @@ void Game::generateMoves() {
 
     uint64_t remaining = player_board;
 
-    assert(std::popcount(player_board) <= 8);
+    if (std::popcount(player_board) > 8) {
+        std::cerr << "Too many bits in player_board: " << std::popcount(player_board) << "\n";
+        char out [100];
+        gameToString(out);
+        std::cerr << "board State: " <<  out << "\n";
+        printGame(); // Add this if you have a board visualizer
+        exit(1);
+    }
+    assert(std::popcount(remaining) != 0);
 
     int write_index = 0;
     while (remaining) {
@@ -323,19 +337,22 @@ std::vector<std::string> Game::readableMoves() const {
     return move_list;
 }
 
-std::pair<uint64_t, uint64_t> Game::moveStringToBitboard (const std::string& str) {
-    std::pair<uint64_t, uint64_t> player_move = {0,0};
-    player_move.first = 0b1 << (str[0] - 'A' + 1);
-    player_move.first <<= (('7' - str[1]) * 9);
+Move Game::moveStringToBitboard (const std::string& str) {
+    Move player_move{};
+    player_move.from = 0b1 << (str[0] - 'A' + 1);
+    player_move.from <<= (('7' - str[1]) * 9);
 
-    player_move.second = 0b1 << (str[3] - 'A' + 1);
-    player_move.second <<= (('7' - str[4]) * 9);
+    player_move.to = 0b1 << (str[3] - 'A' + 1);
+    player_move.to <<= (('7' - str[4]) * 9);
+
+    player_move.move_distance = str[6] - '0';
     return player_move;
 }
 
 // TODO optimize
 void Game::unMakeMove(const Move& move, const int& enemy_type) {
-    makeMove( Move(move.to,move.from,move.steps) );
+    Move revert(move.to,move.from, move.move_distance);
+    makeMove(revert);
 
     uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
     if (enemy_type != -1) {
@@ -345,16 +362,16 @@ void Game::unMakeMove(const Move& move, const int& enemy_type) {
 }
 
 int Game::makeMove(const Move& move) {
-    int enemy_type = -1;
+   int enemy_type = -1;
 
     uint64_t& player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
     uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
     assert(std::popcount(move.from) == 1);
-    assert(std::popcount(move.from) == 1);
+    assert(std::popcount(move.to) == 1);
 
-    uint64_t start_mask = ~move.from;
-    uint64_t end_mask = ~move.to;
+    uint64_t start_mask = ~(move.from);
+    uint64_t end_mask = ~(move.to);
 
     int tower_type = 0;
     for (tower_type = 0; tower_type <= T_G; tower_type++) {
@@ -384,11 +401,11 @@ int Game::makeMove(const Move& move) {
 
     bitBoards[tower_type] &= start_mask;
     // tower leaves start_pos fully
-    if (tower_type + 1 == move.steps) {
+    if (tower_type + 1 == move.move_distance) {
         player_board &= start_mask;
     }
     else {
-        bitBoards[tower_type - move.steps] |= move.from;
+        bitBoards[tower_type - move.move_distance] |= move.from;
     }
 
     // we move onto mate tower
@@ -401,7 +418,7 @@ int Game::makeMove(const Move& move) {
             }
         }
         bitBoards[tower_mate_type] &= end_mask;
-        bitBoards[tower_mate_type + move.steps] |= move.to;
+        bitBoards[tower_mate_type + move.move_distance] |= move.to;
         return enemy_type;
     }
 
@@ -417,8 +434,7 @@ int Game::makeMove(const Move& move) {
         }
     }
 
-    bitBoards[move.steps - 1] |= move.to;
+    bitBoards[move.move_distance - 1] |= move.to;
     player_board |= move.to;
     return enemy_type;
 }
-

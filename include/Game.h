@@ -55,7 +55,7 @@ public:
     void stringToGame(const char*);
     void gameToString(char*) const;
 
-    [[nodiscard]] static std::pair<uint64_t, uint64_t> moveStringToBitboard (const std::string&);
+    [[nodiscard]] static Move moveStringToBitboard (const std::string&);
 
     [[nodiscard]] std::vector<std::string> readableMoves() const;
 

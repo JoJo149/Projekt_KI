@@ -16,12 +16,14 @@ TEST_CASE("Test correctness of: makeMove and unMakeMove") {
          Game game{input};
 
         game.generateMoves();
-        std::vector<std::tuple<uint64_t, uint64_t, int>> move_list{};
-        game.moveList(move_list);
 
-        for (auto move: move_list) {
-            int enemy_type = game.makeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move));
-            game.unMakeMove(std::get<0>(move), std::get<1>(move), std::get<2>(move),enemy_type);
+        Move move_list[MOVES_LIST_SIZE];
+        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
+
+        for (int j = 0; j < MOVES_LIST_SIZE && move_list[j].from != 0; j++){
+
+            int enemy_type = game.makeMove(move_list[j]);
+            game.unMakeMove(move_list[j],enemy_type);
 
             char output[64];
             game.gameToString(output);
@@ -36,17 +38,17 @@ TEST_CASE("makeMove: normaler Zug ohne Kollision, 1er Türme") {
      Game game{input};
 
     const char* move_str = "A7-A6-1";
-    std::pair<uint64_t, uint64_t> move = game.moveStringToBitboard(move_str);
+    Move move = Game::moveStringToBitboard(move_str);
 
-    int enemy_type = game.makeMove(move.first, move.second, move_str[6] - '0');
+    int enemy_type = game.makeMove(move);
 
     CHECK(enemy_type == -1); // kein Gegner getroffen
-    CHECK((game.bitBoards[0] & move.first) == 0);
-    CHECK((game.bitBoards[C_R] & move.first) == 0);
-    CHECK((game.bitBoards[0] & move.second) != 0);
-    CHECK((game.bitBoards[C_R] & move.second) != 0);
+    CHECK((game.bitBoards[0] & move.from) == 0);
+    CHECK((game.bitBoards[C_R] & move.from) == 0);
+    CHECK((game.bitBoards[0] & move.to) != 0);
+    CHECK((game.bitBoards[C_R] & move.to) != 0);
     for (int i = 1; i < 8; i++) {
-        CHECK((game.bitBoards[i] & move.first) == 0);
-        CHECK((game.bitBoards[i] & move.second) == 0);
+        CHECK((game.bitBoards[i] & move.from) == 0);
+        CHECK((game.bitBoards[i] & move.to) == 0);
     }
 }

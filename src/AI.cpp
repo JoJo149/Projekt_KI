@@ -25,16 +25,15 @@ Move AI::minmax(int depth, int& move_count_result) {
     Move best_move{};
 
     Move move_list[MOVES_LIST_SIZE];
-    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-        Game game_copy = game;
-        playerName start_player = game_copy.active_player;
+        playerName start_player = game.active_player;
         int local_count = 0;
 
-        game_copy.makeMove(move_list[i]);
-        game_copy.toggleActivePlayer();
+        game.makeMove(move_list[i]);
+        game.toggleActivePlayer();
 
-        int eval = traverseMoves(game_copy, depth - 1, local_count, false, start_player);
+        int eval = traverseMoves(game, depth - 1, local_count, false, start_player);
         move_count += local_count;
 
         if (eval > best_eval) {
@@ -53,7 +52,7 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 
     game.generateMoves();
     Move move_list[MOVES_LIST_SIZE];
-    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     if (depth == 0 || move_list[0].from == 0) {
         ++move_count;
@@ -115,7 +114,7 @@ Move AI::alphaBetaTimed() {
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
-            if (elapsed_ms * 10 >= time_limit) {
+            if (elapsed_ms >= time_limit * 0.85) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
@@ -134,7 +133,7 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
 
     game.generateMoves();
     Move move_list[MOVES_LIST_SIZE];
-    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     int best_eval = std::numeric_limits<int>::min();
     Move best_move = move_list[0];
@@ -143,19 +142,18 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     int beta = std::numeric_limits<int>::max();
 
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-        Game game_copy{game};
-        playerName start_player = game_copy.active_player;
+        playerName start_player = game.active_player;
 
-        game_copy.makeMove(move_list[i]);
+        game.makeMove(move_list[i]);
 
         // if u have move to end the game use it
-        if (game_copy.isGameOver()) {
+        if (game.isGameOver()) {
             return move_list[i];
         }
 
-        game_copy.toggleActivePlayer();
+        game.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, start_player, alpha,beta);
 
         if (eval > best_eval) {
             best_eval = eval;
@@ -194,7 +192,7 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
         int maxEval = std::numeric_limits<int>::min();
 
         Move move_list[MOVES_LIST_SIZE];
-        std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
             int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
@@ -216,7 +214,7 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
         int minEval = std::numeric_limits<int>::max();
 
         Move move_list[MOVES_LIST_SIZE];
-        std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
             int captured_piece = game.makeMove(move_list[i]);
             game.toggleActivePlayer();
@@ -377,7 +375,7 @@ int AI::evaluationFunction(Game& game, const playerName& max_player){
     // Mobilität max Val = 32
     int mobility_value = 0;
     Move move_list[MOVES_LIST_SIZE];
-    std::memcpy(move_list, game.getMoveList(), MOVES_LIST_SIZE * sizeof(Move));
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
     while (move_list[mobility_value].from != 0) {
         mobility_value++;
     }

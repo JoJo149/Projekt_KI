@@ -22,6 +22,6 @@ std::string Move::toString() const {
     char end_c1 = char(end_col + 'A' - 1);
     char end_c2 = char('7' - end_row);
 
-    std::string move_str = {start_c1, start_c2, '-', end_c1, end_c2, '-', char(steps + '0')};
+    std::string move_str = {start_c1, start_c2, '-', end_c1, end_c2, '-', char(move_distance + '0')};
     return move_str;
 }
