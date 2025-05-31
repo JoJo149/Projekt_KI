@@ -226,10 +226,10 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
 {
     const bool is_guard = (tower_type == T_G);
 
-    for (int move_len = 0; move_len <= tower_type; move_len++) {
+    for (int move_len = 1; move_len <= (tower_type + 1); move_len++) {
         const uint64_t possible_move = shift_dir > 0 ?
-            (from_pos << (shift_dir * (move_len + 1))) :
-            (from_pos >> (-shift_dir * (move_len + 1)));
+            (from_pos << (shift_dir * move_len)) :
+            (from_pos >> (-shift_dir * move_len));
 
         // if move is out of bounds
         if (possible_move & seperating_bit_mask || possible_move == 0) {
@@ -245,7 +245,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             if (is_guard || possible_move & bitBoards[T_G]) {
                 break;
             }
-            moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
+            moveList[write_index] = Move(from_pos, possible_move, move_len);
             write_index++;
             break;
         }
@@ -253,7 +253,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
         // if you are a guard tower and u don't move on ur own tower
         // break so we only check move of len 1
         if (is_guard) {
-            moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
+            moveList[write_index] = Move(from_pos, possible_move, move_len);
             write_index++;
             break;
         }
@@ -263,13 +263,13 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             for (int enemy_h = 0; enemy_h <= T_G; enemy_h++) {
                 // enemy is Guard
                 if (enemy_h == T_G) {
-                    moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
+                    moveList[write_index] = Move(from_pos, possible_move, move_len);
                     write_index++;
                     break;
                 }
                 if (possible_move & bitBoards[enemy_h]) {
-                    if (enemy_h <= move_len) {
-                        moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
+                    if (enemy_h + 1 <= move_len) {
+                        moveList[write_index] = Move(from_pos, possible_move, move_len);
                         write_index++;
                     }
                     break;
@@ -278,22 +278,22 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
             break;
         }
         // u move to a free square
-        moveList[write_index] = Move(from_pos, possible_move, move_len + 1);
+        moveList[write_index] = Move(from_pos, possible_move, move_len);
         write_index++;
     }
 }
 
 void Game::generateMovesHelper(const uint64_t& from_pos, const uint64_t& player_board, const uint64_t& enemy_board, int& write_index) {
-    for (int h = 0; h <= T_G; ++h) {
-        if (bitBoards[h] & from_pos) {
+    for (int tower_type = 0; tower_type <= T_G; ++tower_type) {
+        if (bitBoards[tower_type] & from_pos) {
             // left
-            generatorBaseCase(1,  h, write_index, from_pos, player_board, enemy_board);
+            generatorBaseCase(1,  tower_type, write_index, from_pos, player_board, enemy_board);
             // right
-            generatorBaseCase(-1, h, write_index, from_pos, player_board, enemy_board);
+            generatorBaseCase(-1, tower_type, write_index, from_pos, player_board, enemy_board);
             // up
-            generatorBaseCase(9,  h, write_index, from_pos, player_board, enemy_board);
+            generatorBaseCase(9,  tower_type, write_index, from_pos, player_board, enemy_board);
             // down
-            generatorBaseCase(-9, h, write_index, from_pos, player_board, enemy_board);
+            generatorBaseCase(-9, tower_type, write_index, from_pos, player_board, enemy_board);
             break;
         }
     }
@@ -315,14 +315,14 @@ void Game::generateMoves() {
         char out [100];
         gameToString(out);
         std::cerr << "board State: " <<  out << "\n";
-        printGame(); // Add this if you have a board visualizer
+        printGame();
         exit(1);
     }
     assert(std::popcount(remaining) != 0);
 
     int write_index = 0;
     while (remaining) {
-        int bit_index = std::countr_zero(remaining);
+        const int bit_index = std::countr_zero(remaining);
         uint64_t from_pos = 1ULL << bit_index;
         generateMovesHelper(from_pos, player_board, enemy_board, write_index);
         remaining &= (remaining - 1);
@@ -355,6 +355,7 @@ void Game::unMakeMove(const Move& move, const int& enemy_type) {
     makeMove(revert);
 
     uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
+
     if (enemy_type != -1) {
         bitBoards[enemy_type] |= move.to;
         enemy_board |= move.to;
@@ -370,8 +371,11 @@ int Game::makeMove(const Move& move) {
     assert(std::popcount(move.from) == 1);
     assert(std::popcount(move.to) == 1);
 
-    uint64_t start_mask = ~(move.from);
-    uint64_t end_mask = ~(move.to);
+    uint64_t start_mask = ~move.from;
+    uint64_t end_mask = ~move.to;
+
+    assert(std::popcount(start_mask) == 63);
+    assert(std::popcount(end_mask) == 63);
 
     int tower_type = 0;
     for (tower_type = 0; tower_type <= T_G; tower_type++) {
