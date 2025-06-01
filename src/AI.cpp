@@ -309,23 +309,23 @@ inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
 int AI::evaluationFunction(const Game& game, const playerName& max_player){
 
     // Evaluation weights per phase
-    constexpr int EARLY_MATERIAL_WEIGHT = 1;
+    constexpr int EARLY_MATERIAL_WEIGHT = 2;
     constexpr int EARLY_POSITION_WEIGHT = 2;
     constexpr int EARLY_GUARD_WEIGHT = 1;
     constexpr int EARLY_GOAL_PROGRESS_WEIGHT = 1;
     constexpr int EARLY_MOBILITY_WEIGHT = 1;
 
-    constexpr int MID_MATERIAL_WEIGHT = 3;
-    constexpr int MID_POSITION_WEIGHT = 2;
-    constexpr int MID_GUARD_WEIGHT = 3;
+    constexpr int MID_MATERIAL_WEIGHT = 2;
+    constexpr int MID_POSITION_WEIGHT = 3;
+    constexpr int MID_GUARD_WEIGHT = 2;
     constexpr int MID_GOAL_PROGRESS_WEIGHT = 2;
     constexpr int MID_MOBILITY_WEIGHT = 1;
 
-    constexpr int LATE_MATERIAL_WEIGHT = 5;
+    constexpr int LATE_MATERIAL_WEIGHT = 3;
     constexpr int LATE_POSITION_WEIGHT = 1;
-    constexpr int LATE_GUARD_WEIGHT = 2;
+    constexpr int LATE_GUARD_WEIGHT = 5;
     constexpr int LATE_GOAL_PROGRESS_WEIGHT = 5;
-    constexpr int LATE_MOBILITY_WEIGHT = 0;
+    constexpr int LATE_MOBILITY_WEIGHT = 1;
 
     // Base component weights (max theoretical value comments for context)
     constexpr int MATERIAL_WEIGHT = 1;      // Max ~150
