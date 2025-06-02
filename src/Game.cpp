@@ -299,7 +299,12 @@ void Game::generateMovesHelper(const uint64_t& from_pos, const uint64_t& player_
     }
 }
 
+// TODO upgrading Tower breaks game and we dont reset correct
+
 void Game::generateMoves() {
+    // todo tmp var
+    clearSeparatingBits();
+
     uint64_t player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
     uint64_t enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
@@ -316,7 +321,7 @@ void Game::generateMoves() {
         gameToString(out);
         std::cerr << "board State: " <<  out << "\n";
         printGame();
-        exit(1);
+        // exit(1);
     }
     assert(std::popcount(remaining) != 0);
 
@@ -351,6 +356,8 @@ Move Game::moveStringToBitboard (const std::string& str) {
 
 // TODO optimize
 void Game::unMakeMove(const Move& move, const int& enemy_type) {
+    assert(move.to != 0);
+    assert(move.from != 0);
     Move revert(move.to,move.from, move.move_distance);
     makeMove(revert);
 

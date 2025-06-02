@@ -11,7 +11,7 @@ int main() {
     int move_count = 0;
     ki.getGame().printGame();
     std::cout << "KI berechnet besten Zug..." << std::endl;
-    Move best_move_ab = ki.alphaBeta(6,move_count);
+    Move best_move_ab = ki.alphaBetaTimed();
     std::cout << "best_move: " << best_move_ab.toString() << std::endl;
     std::cout << "move_count: " << move_count << std::endl;
 }
