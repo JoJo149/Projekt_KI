@@ -50,15 +50,16 @@ or other generated binaries like ``` ./tests ```.
 
 ## Info for Client
 The Client works in combination with the Server in the `server` directory and use our KI as the Player.
-The IP and Port are read at runtime from clientInfo/config.txt:
+The IP or DNS-Adress and Port are read at runtime from clientInfo/config.txt:
 ```
-127.0.0.1
+localhost
 5555
 ```
 The Client itself is a C++ Version of the [client.py](server/client.py) provided by the `server` and is held extremely basic.
 Containing only complicated code to make it work as a Windows Executable.\
-TIP: u can just start 2 instances of the Client and let the two Ai's duke it out on their own.
-
+\
+P.S. You can visit the website [guard-and-towers.com](https://guard-and-towers.com/) and play against our AI. Just create a Friend Match select Human and Port.\
+As for the DNS-Adress you can use: ```GAME.guard-and-towers.com``` and the given Port.
 
 ## Info for Server
 This Server was provided by the by Sarah Lengfeld an WiMi. \
