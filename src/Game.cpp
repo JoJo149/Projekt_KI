@@ -299,11 +299,7 @@ void Game::generateMovesHelper(const uint64_t& from_pos, const uint64_t& player_
     }
 }
 
-// TODO upgrading Tower breaks game and we dont reset correct
-
 void Game::generateMoves() {
-    // todo tmp var
-    clearSeparatingBits();
 
     uint64_t player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
     uint64_t enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
