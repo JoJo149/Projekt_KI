@@ -43,7 +43,7 @@ target_include_directories(Client PRIVATE include ext/headerOnly/json)
 
 # ----------------------------------------------------------------------------
 # client application
-add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummy_client.cpp)
+add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummyClient.cpp)
 target_include_directories(DummyClient PRIVATE include ext/headerOnly/json)
 # target_link_libraries(DummyClient PRIVATE TBB::tbb)
 
