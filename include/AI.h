@@ -1,7 +1,4 @@
-#ifndef KI_H
-#define KI_H
-#include <atomic>
-#include <optional>
+#pragma once
 
 #include "game.h"
 
@@ -16,14 +13,14 @@ public:
 
     [[nodiscard]] Game& getGame();
 
-    [[nodiscard]] std::tuple<uint64_t, uint64_t, int> minmax(int, int&);
+    [[nodiscard]] Move minmax(int, int&);
     int traverseMoves(Game, int, int&, bool, playerName);
 
-    std::tuple<uint64_t, uint64_t, int> alphaBetaTimed();
+    Move alphaBetaTimed();
 
-    std::tuple<uint64_t, uint64_t, int> alphaBeta(int,int&);
-    int traverseMovesAlphaBeta(Game&, int, int&, bool, playerName&, int, int);
+    Move alphaBeta(int,int&);
+    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int);
 
-    [[nodiscard]] int evaluationFunction(const Game&, const playerName&);
+    [[nodiscard]] int evaluationFunction(Game&, const playerName&);
 };
-#endif //KI_H
+

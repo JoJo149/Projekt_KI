@@ -7,8 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0")
 
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++")
 set(BUILD_SHARED_LIBS OFF)
 
 # ----------------------------------------------------------------------------
@@ -45,7 +43,7 @@ target_include_directories(Client PRIVATE include ext/headerOnly/json)
 
 # ----------------------------------------------------------------------------
 # client application
-add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummy_client.cpp)
+add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummyClient.cpp)
 target_include_directories(DummyClient PRIVATE include ext/headerOnly/json)
 # target_link_libraries(DummyClient PRIVATE TBB::tbb)
 

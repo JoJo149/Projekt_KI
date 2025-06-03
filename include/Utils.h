@@ -1,5 +1,6 @@
-#include "game.h"
+#pragma once
 
+#include "game.h"
 
 namespace Utils {
     namespace helper{
@@ -7,10 +8,4 @@ namespace Utils {
     }
 
     uint64_t perft(const char *, int);
-
-    namespace convert{
-        std::string moveToString(const std::tuple<uint64_t, uint64_t, int>& move);
-    }
-
-
 };
