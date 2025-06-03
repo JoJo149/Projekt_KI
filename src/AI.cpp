@@ -110,7 +110,7 @@ Move AI::alphaBetaTimed() {
 
     const int time_limit = limits[tower_count-1];
     try {
-        for (int depth = 1; ; ++depth) {
+        for (int depth = 1; depth <= 1000; ++depth) {
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
@@ -141,19 +141,20 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-        playerName start_player = game.active_player;
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
+        Game game_copy{game};
+        playerName start_player = game_copy.active_player;
 
-        game.makeMove(move_list[i]);
+        game_copy.makeMove(move_list[i]);
 
         // if u have move to end the game use it
-        if (game.isGameOver()) {
+        if (game_copy.isGameOver()) {
             return move_list[i];
         }
 
-        game.toggleActivePlayer();
+        game_copy.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, start_player, alpha,beta);
+        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
 
         if (eval > best_eval) {
             best_eval = eval;
