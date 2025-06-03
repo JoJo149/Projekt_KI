@@ -105,7 +105,7 @@ Move AI::alphaBetaTimed() {
     Move best_move{};
 
     // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
-    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,12500,1000,1000};
+    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
 
     int tower_count = 0;
     for (int i = 0; i < 7; i++) {
@@ -114,15 +114,14 @@ Move AI::alphaBetaTimed() {
 
     const int time_limit = limits[tower_count-1];
     try {
-        for (int depth = 1; depth <= 100; ++depth) {
-            auto current_time = std::chrono::steady_clock::now();
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
+        int ignore = 0;
+        for (int depth = 1; ; ++depth) {
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
             if (elapsed_ms * 10 >= time_limit) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            int ignore = 0;
             best_move = alphaBeta(depth,ignore);
         }
     } catch (const std::runtime_error& e) {
@@ -133,32 +132,24 @@ Move AI::alphaBetaTimed() {
 }
 
 Move AI::alphaBeta(const int depth, int& move_count_result) {
-    int move_count = 0;
-
     game.generateMoves();
 
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
 
-    int best_eval = std::numeric_limits<int>::min();
     Move& best_move = move_list[0];
-
+    int best_eval = std::numeric_limits<int>::min();
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
+    int move_count = 0;
+    playerName max_player = game.active_player;
+
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
-        playerName start_player = game.active_player;
-
         int captured_piece = game.makeMove(move_list[i]);
-
-        // if u have move to end the game use it
-        if (game.isGameOver()) {
-            return move_list[i];
-        }
-
         game.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, start_player, alpha,beta);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta);
 
         game.toggleActivePlayer();
         game.unMakeMove(move_list[i], captured_piece);
@@ -169,9 +160,7 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
         }
 
         alpha = std::max(alpha, eval);
-        if (beta <= alpha) {
-            break;
-        }
+        if (beta <= alpha) break;
     }
 
     move_count_result = move_count;
@@ -179,10 +168,10 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
 }
 
 
-int AI::traverseMovesAlphaBeta(Game& newGame, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
-    newGame.generateMoves();
+int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta) {
+    node.generateMoves();
 
-    if (newGame.isGameOver()) {
+    if (node.isGameOver()) {
         if (!maximizing_player) {
             return 100000000 + depth;
         }else{
@@ -191,53 +180,45 @@ int AI::traverseMovesAlphaBeta(Game& newGame, int depth, int& move_count, bool m
     }
 
     if (depth == 0) {
-        ++move_count;
-        return evaluationFunction(newGame, start_player);
+        move_count++;
+        return evaluationFunction(node, max_player);
     }
+
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 
-        Move move_list[MOVES_LIST_SIZE];
-        std::copy_n(newGame.getMoveList(), MOVES_LIST_SIZE, move_list);
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = newGame.makeMove(move_list[i]);
-            newGame.toggleActivePlayer();
+            int captured_piece = node.makeMove(move_list[i]);
+            node.toggleActivePlayer();
 
-            int eval = traverseMovesAlphaBeta(newGame, depth - 1,move_count, false, start_player, alpha, beta);
+            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, false, max_player, alpha, beta);
 
-            newGame.toggleActivePlayer();
-            newGame.unMakeMove(move_list[i], captured_piece);
+            node.toggleActivePlayer();
+            node.unMakeMove(move_list[i], captured_piece);
 
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
-            if (beta < alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
-
         return maxEval;
     } else {
         int minEval = std::numeric_limits<int>::max();
-
-        Move move_list[MOVES_LIST_SIZE];
-        std::copy_n(newGame.getMoveList(), MOVES_LIST_SIZE, move_list);
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = newGame.makeMove(move_list[i]);
-            newGame.toggleActivePlayer();
+            int captured_piece = node.makeMove(move_list[i]);
+            node.toggleActivePlayer();
 
-            int eval = traverseMovesAlphaBeta(newGame, depth - 1,move_count, true, start_player, alpha, beta);
+            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, true, max_player, alpha, beta);
 
-            newGame.toggleActivePlayer();
-            newGame.unMakeMove(move_list[i] , captured_piece);
+            node.toggleActivePlayer();
+            node.unMakeMove(move_list[i] , captured_piece);
 
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
-            if (beta < alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
-
         return minEval;
     }
 }
@@ -250,7 +231,7 @@ static const uint8_t tower_table_red[64] = {
     0,4,6,8,8,8,6,4,0,
     0,4,6,7,7,7,6,4,0,
     0,5,6,6,6,6,6,5,0,
-    0,3,3,3,3,3,3,3,0, 0
+    0,3,3,3,3,3,3,3,0,0
 };
 
 static const uint8_t tower_table_blue[64] = {
@@ -260,7 +241,7 @@ static const uint8_t tower_table_blue[64] = {
     0,4,6,8,8,8,6,4,0,
     0,4,6,7,7,7,6,4,0,
     0,3,6,6,6,6,6,3,0,
-    0,1,1,1,1,1,1,1,0, 0
+    0,1,1,1,1,1,1,1,0,0
 };
 
 
@@ -334,10 +315,10 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     constexpr int LATE_MOBILITY_WEIGHT = 1;
 
     // Base component weights (max theoretical value comments for context)
-    constexpr int MATERIAL_WEIGHT = 1;      // Max ~150
-    constexpr int POSITION_WEIGHT = 8;      // Max ~64
+    constexpr int MATERIAL_WEIGHT = 1;       // Max ~150
+    constexpr int POSITION_WEIGHT = 8;       // Max ~64
     constexpr int GUARD_WEIGHT = 32;         // Max ~14
-    constexpr int GOAL_PROGRESS_WEIGHT = 16; // Max ~17
+    constexpr int GOAL_PROGRESS_WEIGHT = 8;  // Max ~17
 
 
     int tower_count = 0;
@@ -401,8 +382,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     }
 
     int position_value = player_pos_score - enemy_pos_score;
-    int guard_value = enemy_guard_prox - player_guard_prox;
-    int goal_value = player_guard_goal - enemy_guard_goal;
+    int guard_value = player_guard_prox - enemy_guard_prox;
+    int goal_value = enemy_guard_goal - player_guard_goal;
 
     // early
     if (tower_count == 7) {

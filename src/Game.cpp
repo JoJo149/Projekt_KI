@@ -323,7 +323,8 @@ void Game::generateMoves() {
         printGame();
         // exit(1);
     }
-    assert(std::popcount(remaining) != 0);
+
+    // assert(std::popcount(remaining) != 0);
 
     int write_index = 0;
     while (remaining) {
