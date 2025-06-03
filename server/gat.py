@@ -8,6 +8,7 @@ class Game:
     def __init__(self,
                  turn= None,
                  oldBoard=None,
+                 boardString=None,
                  move=None,
                  moveCap=1,
                  statusEndSquare=None,
@@ -32,6 +33,9 @@ class Game:
             [0, 0, "b1", 0, "b1", 0, 0],
             ["b1", "b1", 0, "BG", 0, "b1", "b1"]
         ])
+
+        # Use provided boardString or default to the standard board setup
+        self.boardString = boardString if boardString is not None else "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"
 
         # Use provided move or default move
         self.move = move if move is not None else np.array([[2, 3], [3, 3]])
@@ -328,6 +332,7 @@ class Game:
                     row_str += str(empty_count)
                 rows.append(row_str)
             board_string = "/".join(rows) + " " + self.turn
+            self.boardString = board_string
             return board_string
 
         except Exception as e:
@@ -360,4 +365,3 @@ class Game:
         except Exception as e:
             print("Unexpected error in parseMoveString:", e)
             raise
-

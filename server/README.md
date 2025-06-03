@@ -47,8 +47,8 @@ This repository contains code for a simple Jump Sturdygame server and client imp
 
 ```python
 output = {
-    "board": "b0b0b0b0b0b0/1b0b0b0b0b0b01/8/8/8/8/1r0r0r0r0r0r01/r0r0r0r0r0r0 r",
-    "turn": "r,
+    "board": "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r",
+    "turn": "r",
     "bothConnected": True,
     "time": 120000,
     "end": False

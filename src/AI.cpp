@@ -101,7 +101,7 @@ Move AI::alphaBetaTimed() {
     Move best_move{};
 
     // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
-    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,1500,1500,1250,1250,1000,1000,750,500};
+    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,12500,1000,1000};
 
     int tower_count = 0;
     for (int i = 0; i < 7; i++) {
@@ -110,11 +110,11 @@ Move AI::alphaBetaTimed() {
 
     const int time_limit = limits[tower_count-1];
     try {
-        for (int depth = 1; depth <= 1000; ++depth) {
+        for (int depth = 1; depth <= 100; ++depth) {
             auto current_time = std::chrono::steady_clock::now();
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
 
-            if (elapsed_ms >= time_limit * 0.85) {
+            if (elapsed_ms * 10 >= time_limit) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
@@ -178,9 +178,9 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
 
     if (game.isGameOver()) {
         if (!maximizing_player) {
-            return std::numeric_limits<int>::max() / (depth + 1);
+            return 100000000 + depth;
         }else{
-            return std::numeric_limits<int>::min() / (depth + 1);
+            return -100000000 - depth;
         }
     }
 
@@ -237,15 +237,26 @@ int AI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maxi
 }
 
 
-static const uint8_t tower_table_mid[64] = {
-    0,1,1,2,2,2,1,1,0,
-    0,3,6,7,7,7,6,3,0,
-    0,4,7,8,8,8,7,4,0,
-    0,5,7,8,8,8,7,5,0,
-    0,4,7,8,8,8,7,4,0,
-    0,3,6,7,7,7,6,3,0,
-    0,1,1,2,2,2,1,1,0,0
+static const uint8_t tower_table_red[64] = {
+    0,1,1,1,1,1,1,1,0,
+    0,3,6,6,6,6,6,3,0,
+    0,4,6,7,7,7,6,4,0,
+    0,4,6,8,8,8,6,4,0,
+    0,4,6,7,7,7,6,4,0,
+    0,5,6,6,6,6,6,5,0,
+    0,3,3,3,3,3,3,3,0, 0
 };
+
+static const uint8_t tower_table_blue[64] = {
+    0,3,3,3,3,3,3,3,0,
+    0,5,6,6,6,6,6,5,0,
+    0,4,6,7,7,7,6,4,0,
+    0,4,6,8,8,8,6,4,0,
+    0,4,6,7,7,7,6,4,0,
+    0,3,6,6,6,6,6,3,0,
+    0,1,1,1,1,1,1,1,0, 0
+};
+
 
 static const uint8_t guard_table_red[64] = {
     0,0,1,2,3,2,1,0,0,
@@ -297,60 +308,64 @@ inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
 
 int AI::evaluationFunction(Game& game, const playerName& max_player){
 
-    // Phase thresholds
-    constexpr int EARLY_PHASE_TOWER_THRESHOLD = 6;
-    constexpr int MID_PHASE_TOWER_THRESHOLD = 4;
-
     // Evaluation weights per phase
-    constexpr int EARLY_POSITION_WEIGHT = 16;
-    constexpr int EARLY_GUARD_WEIGHT = 8;
+    constexpr int EARLY_MATERIAL_WEIGHT = 2;
+    constexpr int EARLY_POSITION_WEIGHT = 2;
+    constexpr int EARLY_GUARD_WEIGHT = 1;
+    constexpr int EARLY_GOAL_PROGRESS_WEIGHT = 1;
+    constexpr int EARLY_MOBILITY_WEIGHT = 1;
 
-    constexpr int MID_POSITION_WEIGHT = 8;
-    constexpr int MID_GUARD_WEIGHT = 8;
-    constexpr int MID_MOBILITY_WEIGHT = 8;
-    constexpr int MID_GOAL_WEIGHT = 16;
+    constexpr int MID_MATERIAL_WEIGHT = 2;
+    constexpr int MID_POSITION_WEIGHT = 3;
+    constexpr int MID_GUARD_WEIGHT = 2;
+    constexpr int MID_GOAL_PROGRESS_WEIGHT = 2;
+    constexpr int MID_MOBILITY_WEIGHT = 1;
 
-    constexpr int LATE_GUARD_WEIGHT = 16;
-    constexpr int LATE_GOAL_WEIGHT = 32;
+    constexpr int LATE_MATERIAL_WEIGHT = 3;
+    constexpr int LATE_POSITION_WEIGHT = 1;
+    constexpr int LATE_GUARD_WEIGHT = 5;
+    constexpr int LATE_GOAL_PROGRESS_WEIGHT = 5;
+    constexpr int LATE_MOBILITY_WEIGHT = 1;
 
     // Base component weights (max theoretical value comments for context)
-    constexpr int MATERIAL_WEIGHT = 4;      // Max ~150
-    constexpr int POSITION_WEIGHT = 1;      // Max ~64
-    constexpr int GUARD_WEIGHT = 1;         // Max ~14
-    constexpr int GOAL_PROGRESS_WEIGHT = 1; // Max ~17
-    constexpr int MOBILITY_WEIGHT = 1;      // Max ~32
+    constexpr int MATERIAL_WEIGHT = 1;      // Max ~150
+    constexpr int POSITION_WEIGHT = 8;      // Max ~64
+    constexpr int GUARD_WEIGHT = 32;         // Max ~14
+    constexpr int GOAL_PROGRESS_WEIGHT = 16; // Max ~17
 
-    constexpr int PIECE_WEIGHTS[7] = {100,150,125,110,100,100};
 
     int tower_count = 0;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < T_G; i++) {
         tower_count += std::popcount( game.bitBoards[i]) * (i+1);
     }
 
     uint64_t player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
-    // Material max val for each =  150
+    // Material max val for each = 200
+
+    constexpr int PIECE_WEIGHTS[7] = {100, 300, 350,400, 500, 600};
 
     int material_value = 0;
     for (int i = 0; i < T_G; i++) {
         int player_towers_num = std::popcount(player_board & game.bitBoards[i]);
         int enemy_towers_num = std::popcount(enemy_board & game.bitBoards[i]);
-        material_value += PIECE_WEIGHTS[i] * i * (player_towers_num - enemy_towers_num);
+        material_value += PIECE_WEIGHTS[i] * (player_towers_num - enemy_towers_num);
     }
 
     // Position max Val for each = 8
 
     int player_pos_score = 0;
     // player position value
-    const uint8_t *tower_table = tower_table_mid;
+    const uint8_t *tower_table_player = (max_player == red) ? tower_table_red : tower_table_blue;
     for (uint64_t bb = player_board; bb; bb &= bb - 1)
-        player_pos_score += tower_table[std::countr_zero(bb)];
+        player_pos_score += tower_table_player[std::countr_zero(bb)];
 
     int enemy_pos_score = 0;
+    const uint8_t *tower_table_enemy = (max_player == red) ? tower_table_blue : tower_table_red;
     // enemy position value
     for (uint64_t bb = enemy_board; bb; bb &= bb - 1)
-        enemy_pos_score += tower_table[std::countr_zero(bb)];
+        enemy_pos_score += tower_table_enemy[std::countr_zero(bb)];
 
     // Guard max Val = 14
 
@@ -372,8 +387,6 @@ int AI::evaluationFunction(Game& game, const playerName& max_player){
     uint64_t enemy_guard = enemy_board & game.bitBoards[T_G];
     int enemy_guard_goal = guard_enemy_pos_board[std::countr_zero(enemy_guard)];
 
-
-    // Mobilität max Val = 32
     int mobility_value = 0;
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
@@ -381,30 +394,34 @@ int AI::evaluationFunction(Game& game, const playerName& max_player){
         mobility_value++;
     }
 
-    // division by 2
-    int position_value = player_pos_score - (enemy_pos_score >> 1);
-    int guard_value = player_guard_prox - (enemy_guard_prox >> 1);
-    int goal_value = player_guard_goal - (enemy_guard_goal >> 1);
+    int position_value = player_pos_score - enemy_pos_score;
+    int guard_value = enemy_guard_prox - player_guard_prox;
+    int goal_value = player_guard_goal - enemy_guard_goal;
 
-    if (tower_count >= EARLY_PHASE_TOWER_THRESHOLD) {
-        // Early game
+    // early
+    if (tower_count == 7) {
+        material_value *= EARLY_MATERIAL_WEIGHT;
         position_value *= EARLY_POSITION_WEIGHT;
         guard_value *= EARLY_GUARD_WEIGHT;
-    } else if (tower_count >= MID_PHASE_TOWER_THRESHOLD) {
-        // Mid game
+        goal_value *= EARLY_GOAL_PROGRESS_WEIGHT;
+        mobility_value *= EARLY_MOBILITY_WEIGHT;
+    }else if (tower_count >= 5) {
+        material_value *= MID_MATERIAL_WEIGHT;
         position_value *= MID_POSITION_WEIGHT;
         guard_value *= MID_GUARD_WEIGHT;
+        goal_value *= MID_GOAL_PROGRESS_WEIGHT;
         mobility_value *= MID_MOBILITY_WEIGHT;
-        goal_value *= MID_GOAL_WEIGHT;
     } else {
-        // Late game
+        material_value *= LATE_MATERIAL_WEIGHT;
+        position_value *= LATE_POSITION_WEIGHT;
         guard_value *= LATE_GUARD_WEIGHT;
-        goal_value *= LATE_GOAL_WEIGHT;
+        goal_value *= LATE_GOAL_PROGRESS_WEIGHT;
+        mobility_value *= LATE_MOBILITY_WEIGHT;
     }
 
     return MATERIAL_WEIGHT * material_value
         + POSITION_WEIGHT * position_value
         + GUARD_WEIGHT * guard_value
         + GOAL_PROGRESS_WEIGHT * goal_value
-        + MOBILITY_WEIGHT * mobility_value;
+        + mobility_value;
 }
