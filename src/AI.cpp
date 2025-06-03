@@ -292,7 +292,7 @@ inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
     return min_dist;
 }
 
-
+// Todo think about maybe adding a function to set other guard in check and save own from check
 int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
     // Evaluation weights per phase
@@ -302,7 +302,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     constexpr int EARLY_GOAL_PROGRESS_WEIGHT = 1;
     constexpr int EARLY_MOBILITY_WEIGHT = 1;
 
-    constexpr int MID_MATERIAL_WEIGHT = 2;
+    constexpr int MID_MATERIAL_WEIGHT = 1;
     constexpr int MID_POSITION_WEIGHT = 3;
     constexpr int MID_GUARD_WEIGHT = 3;
     constexpr int MID_GOAL_PROGRESS_WEIGHT = 2;
@@ -386,13 +386,13 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     int goal_value = player_guard_goal - enemy_guard_goal;
 
     // early
-    if (tower_count == 7) {
+    if (tower_count >= 13) {
         material_value *= EARLY_MATERIAL_WEIGHT;
         position_value *= EARLY_POSITION_WEIGHT;
         guard_value *= EARLY_GUARD_WEIGHT;
         goal_value *= EARLY_GOAL_PROGRESS_WEIGHT;
         mobility_value *= EARLY_MOBILITY_WEIGHT;
-    }else if (tower_count >= 5) {
+    }else if (tower_count >= 10) {
         material_value *= MID_MATERIAL_WEIGHT;
         position_value *= MID_POSITION_WEIGHT;
         guard_value *= MID_GUARD_WEIGHT;
@@ -405,18 +405,6 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
         goal_value *= LATE_GOAL_PROGRESS_WEIGHT;
         mobility_value *= LATE_MOBILITY_WEIGHT;
     }
-    std::cout << "Eval: "
-              << "M=" << material_value << ", "
-              << "P=" << position_value << ", "
-              << "G=" << guard_value << ", "
-              << "GP=" << goal_value << ", "
-              << "Mob=" << mobility_value
-    << " => Total: " << (MATERIAL_WEIGHT * material_value
-
-+ POSITION_WEIGHT * position_value
-+ GUARD_WEIGHT * guard_value
-+ GOAL_PROGRESS_WEIGHT * goal_value
-+ mobility_value) << std::endl;
 
     return MATERIAL_WEIGHT * material_value
         + POSITION_WEIGHT * position_value
