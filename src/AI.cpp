@@ -234,7 +234,7 @@ static const uint8_t tower_table_red[64] = {
     0,4,6,8,8,8,6,4,0,
     0,4,6,7,7,7,6,4,0,
     0,5,6,6,6,6,6,5,0,
-    0,3,3,3,3,3,3,3,0,0
+    0,3,3,3,3,3,3,3,0, 0
 };
 
 static const uint8_t tower_table_blue[64] = {
@@ -244,7 +244,7 @@ static const uint8_t tower_table_blue[64] = {
     0,4,6,8,8,8,6,4,0,
     0,4,6,7,7,7,6,4,0,
     0,3,6,6,6,6,6,3,0,
-    0,1,1,1,1,1,1,1,0,0
+    0,1,1,1,1,1,1,1,0, 0
 };
 
 
@@ -307,7 +307,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
     constexpr int MID_MATERIAL_WEIGHT = 2;
     constexpr int MID_POSITION_WEIGHT = 3;
-    constexpr int MID_GUARD_WEIGHT = 2;
+    constexpr int MID_GUARD_WEIGHT = 3;
     constexpr int MID_GOAL_PROGRESS_WEIGHT = 2;
     constexpr int MID_MOBILITY_WEIGHT = 1;
 
@@ -319,7 +319,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
     // Base component weights (max theoretical value comments for context)
     constexpr int MATERIAL_WEIGHT = 1;       // Max ~150
-    constexpr int POSITION_WEIGHT = 8;       // Max ~64
+    constexpr int POSITION_WEIGHT = 10;       // Max ~64
     constexpr int GUARD_WEIGHT = 32;         // Max ~14
     constexpr int GOAL_PROGRESS_WEIGHT = 8;  // Max ~17
 
@@ -360,10 +360,10 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     // Guard max Val = 14
 
     // distance from player towers to enemy guard
-    int player_guard_prox = minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
+    int enemy_guard_prox = minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
 
     // distance from enemy towers to player guard
-    int enemy_guard_prox = minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
+    int player_guard_prox = minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
 
     // Guard to end Pos max Val = 17
 
@@ -386,7 +386,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
     int position_value = player_pos_score - enemy_pos_score;
     int guard_value = player_guard_prox - enemy_guard_prox;
-    int goal_value = enemy_guard_goal - player_guard_goal;
+    int goal_value = player_guard_goal - enemy_guard_goal;
 
     // early
     if (tower_count == 7) {
@@ -408,6 +408,18 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
         goal_value *= LATE_GOAL_PROGRESS_WEIGHT;
         mobility_value *= LATE_MOBILITY_WEIGHT;
     }
+    std::cout << "Eval: "
+              << "M=" << material_value << ", "
+              << "P=" << position_value << ", "
+              << "G=" << guard_value << ", "
+              << "GP=" << goal_value << ", "
+              << "Mob=" << mobility_value
+    << " => Total: " << (MATERIAL_WEIGHT * material_value
+
++ POSITION_WEIGHT * position_value
++ GUARD_WEIGHT * guard_value
++ GOAL_PROGRESS_WEIGHT * goal_value
++ mobility_value) << std::endl;
 
     return MATERIAL_WEIGHT * material_value
         + POSITION_WEIGHT * position_value
