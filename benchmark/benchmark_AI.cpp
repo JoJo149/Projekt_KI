@@ -36,7 +36,7 @@ TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
 
         BENCHMARK_ADVANCED("MINMAX DEPTH " + std::to_string(i)) (Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                tmp_best_move = Utils::convert::moveToString(ki.minmax(i, tmp_move_count));
+                tmp_best_move = ki.minmax(i, tmp_move_count).toString();
                 return 0;
             });
         };
@@ -64,7 +64,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
 
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                tmp_best_move = Utils::convert::moveToString(ki.alphaBeta(i, tmp_move_count));
+                tmp_best_move = ki.alphaBeta(i, tmp_move_count).toString();
                 return 0;
             });
         };
