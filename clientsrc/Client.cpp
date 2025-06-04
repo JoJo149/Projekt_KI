@@ -3,6 +3,7 @@
 #include <thread>
 #include <fstream>
 
+#include "transposition_table.h"
 #include "AI.h"
 #include "Utils.h"
 
@@ -124,6 +125,8 @@ void mainLoop() {
 
         Game game{};
 
+
+
         int player = stoi(n.getP());
         cout << "You are player " << player << endl;
         int moves = 0;
@@ -170,6 +173,8 @@ void mainLoop() {
 }
 
 int main() {
+    TT::loadFromFile("../transposition_table/transposition_table.bin");
     mainLoop();
+    TT::saveToFile("../transposition_table/transposition_table.bin");
     return 0;
 }

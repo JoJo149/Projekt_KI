@@ -8,8 +8,6 @@
 #include <iostream>
 #include <limits>
 
-// TODO preload transposition Table
-// zobristhashkey: score, bester Zug, Tiefe, Typ (exact, alpha, beta), Alter
 
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
