@@ -9,7 +9,6 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0")
 
 set(BUILD_SHARED_LIBS OFF)
 
-
 # ----------------------------------------------------------------------------
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)

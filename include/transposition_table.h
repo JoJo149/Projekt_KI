@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cstring> // for std::memset
 
+// TODO make sure implementation is correct
 namespace TT {
 
     constexpr ssize_t TT_SIZE = 1 << 24; // 16M entries
