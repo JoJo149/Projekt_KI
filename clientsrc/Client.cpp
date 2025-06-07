@@ -48,7 +48,7 @@ public:
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
-        std::cout << "Connecting to " << server_ip << ":" << port << std::endl;
+        cout << "Connecting to " << server_ip << ":" << port << endl;
         int status = getaddrinfo(server_ip.c_str(), std::to_string(port).c_str(), &hints, &res);
         if (status != 0) {
             cerr << "getaddrinfo failed: " << gai_strerror(status) << endl;

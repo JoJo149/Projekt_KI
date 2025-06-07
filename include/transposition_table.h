@@ -70,7 +70,7 @@ namespace TT {
     }
 
     inline bool probe(uint64_t key, TTEntry& out) {
-        ssize_t index = key & (TT_SIZE - 1);
+        const ssize_t index = key & (TT_SIZE - 1);
         const TTEntry& entry = tt[index];
 
         if (entry.key == key) {
@@ -95,6 +95,8 @@ namespace TT {
             return false;
         }
 
+        std::cout << "Loading TT finished" << std::endl;
+
         in.close();
         return in.good();
     }
@@ -108,6 +110,7 @@ namespace TT {
 
         out.write(reinterpret_cast<const char*>(tt), sizeof(tt));
         out.close();
+        std::cout << "Saved TT finished" << std::endl;
         return out.good();
     }
 

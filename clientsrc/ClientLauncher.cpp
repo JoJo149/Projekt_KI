@@ -78,13 +78,13 @@ int main() {
     std::string exe;
 
     if (vendor == "GenuineIntel") {
-        std::cout << "Detected Intel CPU. Launching Intel version...\n";
+        std::cout << "Detected Intel CPU. Launching Intel version..." << std::endl;
         exe = "bin\\client_tower_guard_intel.exe";
     } else if (vendor == "AuthenticAMD") {
-        std::cout << "Detected AMD CPU. Launching AMD version...\n";
+        std::cout << "Detected AMD CPU. Launching AMD version..." << std::endl;
         exe = "bin\\client_tower_guard_amd.exe";
     } else {
-        std::cout << "Unknown CPU vendor (" << vendor << "). Launching generic version...\n";
+        std::cout << "Unknown CPU vendor (" << vendor << "). Launching generic version..." << std::endl;
         exe = "bin\\client_tower_guard_generic.exe";
     }
 
