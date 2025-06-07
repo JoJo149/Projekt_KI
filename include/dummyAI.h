@@ -4,7 +4,7 @@
 
 class DummyAI {
 private:
-    Game game;
+    Game new_game;
 
 public:
     DummyAI();
@@ -16,7 +16,7 @@ public:
     Move alphaBetaTimed();
 
     Move alphaBeta(int,int&);
-    int traverseMovesAlphaBeta(Game&, int, int&, bool, playerName&, int, int);
+    int traverseMovesAlphaBeta(Game& node, int depth, int& move_count, bool maximizing_player, const playerName& max_player, int alpha, int beta);
 
-    [[nodiscard]] int evaluationFunction(Game&, playerName&);
+    [[nodiscard]] int evaluationFunction(Game& new_game, const playerName& max_player);
 };
