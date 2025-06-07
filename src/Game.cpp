@@ -225,7 +225,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
 {
     const bool is_guard = (tower_type == T_G);
 
-    for (int move_len = 1; move_len <= (tower_type + 1); move_len++) {
+    for (uint8_t move_len = 1; move_len <= (tower_type + 1); move_len++) {
         const uint64_t possible_move = shift_dir > 0 ?
             (from_pos << (shift_dir * move_len)) :
             (from_pos >> (-shift_dir * move_len));

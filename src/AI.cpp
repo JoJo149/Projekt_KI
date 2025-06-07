@@ -1,4 +1,5 @@
 #include "AI.h"
+#include "transposition_table.h"
 
 #include <algorithm>
 #include <execution>
@@ -8,6 +9,7 @@
 #include <iostream>
 #include <limits>
 
+constexpr int MATE_SCORE = 1'000'000'000;
 
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
@@ -63,7 +65,6 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
         ++move_count;
         return evaluationFunction(game, start_player);
     }
-
 
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
@@ -146,6 +147,18 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     int move_count = 0;
     playerName max_player = game.active_player;
 
+    const uint64_t key = TT::getKey(game);
+
+    // Probe TT
+    if (TT::TTEntry ttEntry; TT::probe(key, ttEntry)) {
+        if (ttEntry.depth >= depth && ttEntry.type == TT::Flag::EXACT) {
+            const Move tt_move = ttEntry.bestMove.convertToMove();
+            for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+                if (move_list[i] == tt_move) return tt_move; // make sure move is valid
+            }
+        }
+    }
+
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
         int captured_piece = game.makeMove(move_list[i]);
         game.toggleActivePlayer();
@@ -170,14 +183,30 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
 
 
 int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta) {
+    const uint64_t key = TT::getKey(node);
+
+    // Probe TT
+    if (TT::TTEntry ttEntry; TT::probe(key, ttEntry)) {
+        if (ttEntry.depth >= depth) {
+            switch (ttEntry.type) {
+                case TT::Flag::EXACT:
+                    return ttEntry.score;
+                case TT::Flag::LOWERBOUND:
+                    alpha = std::max(alpha, ttEntry.score);
+                    break;
+                case TT::Flag::UPPERBOUND:
+                    beta = std::min(beta, ttEntry.score);
+                    break;
+            }
+            if (beta <= alpha)
+                return ttEntry.score;
+        }
+    }
+
     node.generateMoves();
 
     if (node.isGameOver()) {
-        if (!maximizing_player) {
-            return 100000000 + depth;
-        }else{
-            return -100000000 - depth;
-        }
+        return maximizing_player ? -MATE_SCORE - depth : MATE_SCORE + depth;
     }
 
     if (depth == 0) {
@@ -188,42 +217,45 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
-    if (maximizing_player) {
-        int maxEval = std::numeric_limits<int>::min();
+    int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
 
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
+    Move bestMove{};
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        int captured = node.makeMove(move_list[i]);
+        node.toggleActivePlayer();
 
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, false, max_player, alpha, beta);
+        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta);
 
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i], captured_piece);
+        node.toggleActivePlayer();
+        node.unMakeMove(move_list[i], captured);
 
-            maxEval = std::max(maxEval, eval);
+        if (maximizing_player) {
+            if (eval > bestScore) {
+                bestScore = eval;
+                bestMove = move_list[i];
+            }
             alpha = std::max(alpha, eval);
-            if (beta <= alpha) break;
-        }
-        return maxEval;
-    } else {
-        int minEval = std::numeric_limits<int>::max();
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
-
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, true, max_player, alpha, beta);
-
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i] , captured_piece);
-
-            minEval = std::min(minEval, eval);
+        } else {
+            if (eval < bestScore) {
+                bestScore = eval;
+                bestMove = move_list[i];
+            }
             beta = std::min(beta, eval);
-            if (beta <= alpha) break;
         }
-        return minEval;
-    }
-}
 
+        if (beta <= alpha) {
+            break;
+        }
+    }
+
+    TT::Flag flag;
+    if (bestScore <= alpha) flag = TT::Flag::UPPERBOUND;
+    else if (bestScore >= beta) flag = TT::Flag::LOWERBOUND;
+    else flag = TT::Flag::EXACT;
+
+    TT::store(key, bestScore, bestMove, depth, flag);
+    return bestScore;
+}
 
 static const uint8_t tower_table_red[64] = {
     0,1,1,1,1,1,1,1,0,
@@ -406,6 +438,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
         goal_value *= LATE_GOAL_PROGRESS_WEIGHT;
         mobility_value *= LATE_MOBILITY_WEIGHT;
     }
+
+    /*
     std::cout << "Eval: "
               << "M=" << material_value << ", "
               << "P=" << position_value << ", "
@@ -413,11 +447,11 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
               << "GP=" << goal_value << ", "
               << "Mob=" << mobility_value
     << " => Total: " << (MATERIAL_WEIGHT * material_value
-
 + POSITION_WEIGHT * position_value
 + GUARD_WEIGHT * guard_value
 + GOAL_PROGRESS_WEIGHT * goal_value
 + mobility_value) << std::endl;
+    */
 
     return MATERIAL_WEIGHT * material_value
         + POSITION_WEIGHT * position_value

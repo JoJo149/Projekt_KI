@@ -173,8 +173,8 @@ void mainLoop() {
 }
 
 int main() {
-    TT::loadFromFile("../transposition_table/transposition_table.bin");
+    TT::loadFromFile();
     mainLoop();
-    TT::saveToFile("../transposition_table/transposition_table.bin");
+    TT::saveToFile();
     return 0;
 }
