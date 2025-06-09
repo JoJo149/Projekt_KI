@@ -1,10 +1,8 @@
+#include "AI.h"
+
 #include <iostream>
 #include <string>
-#include <thread>
 #include <fstream>
-
-#include "AI.h"
-#include "Utils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -47,7 +45,7 @@ public:
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
-        std::cout << "Connecting to " << server_ip << ":" << port << std::endl;
+        cout << "Connecting to " << server_ip << ":" << port << endl;
         int status = getaddrinfo(server_ip.c_str(), std::to_string(port).c_str(), &hints, &res);
         if (status != 0) {
             cerr << "getaddrinfo failed: " << gai_strerror(status) << endl;
@@ -170,6 +168,8 @@ void mainLoop() {
 }
 
 int main() {
+    TT::loadFromFile();
     mainLoop();
+    TT::saveToFile();
     return 0;
 }

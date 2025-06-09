@@ -19,8 +19,8 @@ Move DummyAI::alphaBetaTimed() {
     auto startTime = std::chrono::steady_clock::now();
     Move best_move{};
 
-    // TIME_LIMIT_MS TODO random numbers at the Moment for Testing
-    const int limits[16] = {500,500,500,500,500,500,500,500,500,500,500,500,500,500,500,500};
+    // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
+    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
 
     int tower_count = 0;
     for (int i = 0; i < 7; i++) {
@@ -29,16 +29,15 @@ Move DummyAI::alphaBetaTimed() {
 
     const int time_limit = limits[tower_count-1];
     try {
-        for (int depth = 1; depth <= 100; ++depth) {
-            auto current_time = std::chrono::steady_clock::now();
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(current_time - startTime).count();
+        int ignore = 0;
+        for (int depth = 1; ; ++depth) {
+            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
             if (elapsed_ms * 10 >= time_limit) {
-                // std::cout << "Time limit exceeded at depth " << depth << std::endl;
+                std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            int movecount = 0;
-            best_move = alphaBeta(depth,movecount);
+            best_move = alphaBeta(depth,ignore);
         }
     } catch (const std::runtime_error& e) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
@@ -47,26 +46,28 @@ Move DummyAI::alphaBetaTimed() {
     return best_move;
 }
 
-Move DummyAI::alphaBeta(const int depth, int& _move_count_test) {
-    int move_count = 0;
-
+Move DummyAI::alphaBeta(const int depth, int& move_count_result) {
     game.generateMoves();
-    Move* move_list = game.getMoveList();
 
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
+
+    Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
-    Move best_move = move_list[0];
-
     int alpha = std::numeric_limits<int>::min();
     int beta = std::numeric_limits<int>::max();
 
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-        Game game_copy{game};
-        playerName start_player = game_copy.active_player;
+    int move_count = 0;
+    playerName max_player = game.active_player;
 
-        game_copy.makeMove(move_list[i]);
-        game_copy.toggleActivePlayer();
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
+        int captured_piece = game.makeMove(move_list[i]);
+        game.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, start_player, alpha,beta);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta);
+
+        game.toggleActivePlayer();
+        game.unMakeMove(move_list[i], captured_piece);
 
         if (eval > best_eval) {
             best_eval = eval;
@@ -74,74 +75,65 @@ Move DummyAI::alphaBeta(const int depth, int& _move_count_test) {
         }
 
         alpha = std::max(alpha, eval);
-        if (beta <= alpha) {
-            break;
-        }
-
+        if (beta <= alpha) break;
     }
 
-    _move_count_test = move_count;
+    move_count_result = move_count;
     return best_move;
 }
 
 
-int DummyAI::traverseMovesAlphaBeta(Game& game, int depth, int& move_count, bool maximizing_player, playerName& start_player, int alpha, int beta) {
-    game.generateMoves();
+int DummyAI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta) {
+    node.generateMoves();
 
-    // so we can check if we have 0 moves
-    if (game.isGameOver()) {
+    if (node.isGameOver()) {
         if (!maximizing_player) {
-            return std::numeric_limits<int>::max();
+            return 100000000 + depth;
         }else{
-            return std::numeric_limits<int>::min();
+            return -100000000 - depth;
         }
     }
+
     if (depth == 0) {
-        ++move_count;
-        return evaluationFunction(game, start_player);
+        move_count++;
+        return evaluationFunction(node, max_player);
     }
+
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
 
-        Move* move_list = game.getMoveList();
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = game.makeMove(move_list[i]);
-            game.toggleActivePlayer();
+            int captured_piece = node.makeMove(move_list[i]);
+            node.toggleActivePlayer();
 
-            int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, false, start_player, alpha, beta);
+            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, false, max_player, alpha, beta);
 
-            game.toggleActivePlayer();
-            game.unMakeMove(move_list[i], captured_piece);
+            node.toggleActivePlayer();
+            node.unMakeMove(move_list[i], captured_piece);
 
             maxEval = std::max(maxEval, eval);
             alpha = std::max(alpha, eval);
-            if (beta < alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
-
         return maxEval;
     } else {
         int minEval = std::numeric_limits<int>::max();
-
-        Move* move_list = game.getMoveList();
         for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = game.makeMove(move_list[i]);
-            game.toggleActivePlayer();
+            int captured_piece = node.makeMove(move_list[i]);
+            node.toggleActivePlayer();
 
-            int eval = traverseMovesAlphaBeta(game, depth - 1,move_count, true, start_player, alpha, beta);
+            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, true, max_player, alpha, beta);
 
-            game.toggleActivePlayer();
-            game.unMakeMove(move_list[i] , captured_piece);
+            node.toggleActivePlayer();
+            node.unMakeMove(move_list[i] , captured_piece);
 
             minEval = std::min(minEval, eval);
             beta = std::min(beta, eval);
-            if (beta < alpha) {
-                break;
-            }
+            if (beta <= alpha) break;
         }
-
         return minEval;
     }
 }
@@ -192,10 +184,10 @@ static const uint8_t tower_table_blue[64] = {
 
 #define PLAYER_PIECE_WEIGHT 6
 #define ENEMY_PIECE_WORTH 16
-int DummyAI::evaluationFunction(Game& game, playerName& max_player){
-    uint64_t& player_board = (max_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
-    uint64_t enemy_board = (max_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
-    uint64_t guard_positions = game.bitBoards[T_G];
+int DummyAI::evaluationFunction(Game& new_game, const playerName& max_player){
+    uint64_t& player_board = (max_player == red) ? new_game.bitBoards[C_R] : new_game.bitBoards[C_B];
+    uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
+    uint64_t guard_positions = new_game.bitBoards[T_G];
 
     const uint8_t* tower_table = (max_player == red ? tower_table_red : tower_table_blue);
 
@@ -211,12 +203,12 @@ int DummyAI::evaluationFunction(Game& game, playerName& max_player){
 
     int enemy_amount = 0;
     for (int i = 0; i < 7; i++) {
-        enemy_amount += std::popcount((enemy_board & game.bitBoards[i]));
+        enemy_amount += std::popcount((enemy_board & new_game.bitBoards[i]));
     }
 
     int player_amount = 0;
     for (int i = 0; i < 7; i++) {
-        int count = std::popcount(player_board & game.bitBoards[i]);
+        int count = std::popcount(player_board & new_game.bitBoards[i]);
         int piece_weights[7] = {1, 4, 3, 2, 1, 1, 1};
         player_amount += count * piece_weights[i];
     }

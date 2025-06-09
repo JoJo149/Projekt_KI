@@ -1,6 +1,6 @@
 #pragma once
-
 #include "game.h"
+#include "transposition_table.h"
 
 class AI {
 private:
@@ -11,6 +11,7 @@ public:
     explicit AI(const char *game_string);
     explicit AI(const Game &game);
 
+
     [[nodiscard]] Game& getGame();
 
     [[nodiscard]] Move minmax(int, int&);
@@ -19,7 +20,7 @@ public:
     Move alphaBetaTimed();
 
     Move alphaBeta(int,int&);
-    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int);
+    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&);
 
     [[nodiscard]] int evaluationFunction(Game&, const playerName&);
 };

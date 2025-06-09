@@ -1,10 +1,8 @@
+#include "dummyAI.h"
+
 #include <iostream>
 #include <string>
-#include <thread>
 #include <fstream>
-
-#include "dummyAI.h"
-#include "Utils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>

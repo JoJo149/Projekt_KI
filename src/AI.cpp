@@ -4,9 +4,10 @@
 #include <execution>
 #include <cstring>
 #include <chrono>
-#include "game.h"
 #include <iostream>
 #include <limits>
+
+constexpr int MATE_SCORE = 1'000'000'000;
 
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
@@ -62,7 +63,6 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
         ++move_count;
         return evaluationFunction(game, start_player);
     }
-
 
     if (maximizing_player) {
         int maxEval = std::numeric_limits<int>::min();
@@ -145,12 +145,29 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     int move_count = 0;
     playerName max_player = game.active_player;
 
+    uint64_t key = TT::getKey(game);
+
+    // Probe TT
+    if (TT::TTEntry ttEntry; probe(key, ttEntry)) {
+        const Move tt_move = ttEntry.bestMove.convertToMove();
+        // make sure move is valid
+        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+            if (move_list[i] == tt_move) {
+                std::swap(move_list[0], move_list[i]); // Try TT move first
+                break;
+            }
+        }
+    }
+
+
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
         int captured_piece = game.makeMove(move_list[i]);
         game.toggleActivePlayer();
+        TT::doMoveHash(key, move_list[i]);
 
-        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key);
 
+        TT::doMoveHash(key, move_list[i]);
         game.toggleActivePlayer();
         game.unMakeMove(move_list[i], captured_piece);
 
@@ -158,7 +175,6 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
             best_eval = eval;
             best_move = move_list[i];
         }
-
         alpha = std::max(alpha, eval);
         if (beta <= alpha) break;
     }
@@ -168,61 +184,85 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
 }
 
 
-int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta) {
-    node.generateMoves();
+int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {
 
-    if (node.isGameOver()) {
-        if (!maximizing_player) {
-            return 100000000 + depth;
-        }else{
-            return -100000000 - depth;
+    int originalAlpha = alpha;
+    int originalBeta = beta;
+
+    // Probe TT
+    if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
+        if (ttEntry.depth >= depth) {
+            switch (ttEntry.type) {
+                case TT::Flag::EXACT:
+                    return ttEntry.score;
+                case TT::Flag::UPPERBOUND :
+                    alpha = std::max(alpha, ttEntry.score);
+                    break;
+                case TT::Flag::LOWERBOUND:
+                    beta = std::min(beta, ttEntry.score);
+                    break;
+            }
+            if (beta <= alpha)
+                return ttEntry.score;
         }
     }
 
-    if (depth == 0) {
-        move_count++;
-        return evaluationFunction(node, max_player);
+
+    node.generateMoves();
+
+    if (node.isGameOver()) {
+        return maximizing_player ? -MATE_SCORE - depth : MATE_SCORE + depth;
     }
 
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
-    if (maximizing_player) {
-        int maxEval = std::numeric_limits<int>::min();
-
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
-
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, false, max_player, alpha, beta);
-
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i], captured_piece);
-
-            maxEval = std::max(maxEval, eval);
-            alpha = std::max(alpha, eval);
-            if (beta <= alpha) break;
-        }
-        return maxEval;
-    } else {
-        int minEval = std::numeric_limits<int>::max();
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
-
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, true, max_player, alpha, beta);
-
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i] , captured_piece);
-
-            minEval = std::min(minEval, eval);
-            beta = std::min(beta, eval);
-            if (beta <= alpha) break;
-        }
-        return minEval;
+    if (depth == 0) {
+        move_count++;
+        return  evaluationFunction(node, max_player);
     }
-}
 
+    int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
+
+    Move bestMove{};
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        int captured = node.makeMove(move_list[i]);
+        node.toggleActivePlayer();
+        TT::doMoveHash(current_key, move_list[i]);
+
+        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key);
+
+        TT::doMoveHash(current_key, move_list[i]);
+        node.toggleActivePlayer();
+        node.unMakeMove(move_list[i], captured);
+
+        if (maximizing_player) {
+            if (eval > bestScore) {
+                bestScore = eval;
+                bestMove = move_list[i];
+            }
+            alpha = std::max(alpha, eval);
+        } else {
+            if (eval < bestScore) {
+                bestScore = eval;
+                bestMove = move_list[i];
+            }
+            beta = std::min(beta, eval);
+        }
+
+        if (beta <= alpha) break;
+    }
+
+
+    TT::Flag flag;
+    if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
+    else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
+    else flag = TT::Flag::EXACT;
+
+    TT::store(current_key, bestScore, bestMove, depth, flag);
+
+    return bestScore;
+}
 
 static const uint8_t tower_table_red[64] = {
     0,1,1,1,1,1,1,1,0,

@@ -1,13 +1,13 @@
-#include <iostream>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
-
-#include <Utils_test.h>
+#include <iostream>
 #include <string>
-#include <Utils.h>
+#include <random>
 
+#include "Utils_test.h"
+#include "transposition_table.h"
 #include "AI.h"
-#include "random"
+
 
 #define MAX_DEPTH 5
 
@@ -59,6 +59,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
     std::vector<std::string> best_move{};
 
     for (int i = 1; i <= MAX_DEPTH; i++) {
+        TT::loadFromFile();
         int tmp_move_count = 0;
         std::string tmp_best_move;
 
