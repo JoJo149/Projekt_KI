@@ -1,7 +1,6 @@
 #pragma once
 #include "move.h"
-#include <string>
-#include <cstdint>
+
 #include <vector>
 
 constexpr int BITBOARD_COUNT = 10;

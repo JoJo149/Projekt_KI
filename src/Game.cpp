@@ -1,6 +1,6 @@
-#include <algorithm>
-
 #include "game.h"
+
+#include <algorithm>
 #include <cassert>
 #include <iostream>
 #include <ostream>

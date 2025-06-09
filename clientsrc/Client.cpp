@@ -1,11 +1,8 @@
+#include "AI.h"
+
 #include <iostream>
 #include <string>
-#include <thread>
 #include <fstream>
-
-#include "transposition_table.h"
-#include "AI.h"
-#include "Utils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -124,8 +121,6 @@ void mainLoop() {
         Network n; // start connection in constructor
 
         Game game{};
-
-
 
         int player = stoi(n.getP());
         cout << "You are player " << player << endl;

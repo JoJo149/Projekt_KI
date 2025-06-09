@@ -1,2 +1,2 @@
 GAME.guard-and-towers.com
-35001
+35000

@@ -7,12 +7,12 @@
 #include <iostream>
 #include <limits>
 
-DummyAI::DummyAI(): new_game(red) {}
-DummyAI::DummyAI(const char * game_string): new_game(game_string) {}
-DummyAI::DummyAI(const Game& game) : new_game(game) {}
+DummyAI::DummyAI(): game(red) {}
+DummyAI::DummyAI(const char * game_string): game(game_string) {}
+DummyAI::DummyAI(const Game& game) : game(game) {}
 
 Game& DummyAI::getGame() {
-    return new_game;
+    return game;
 }
 
 Move DummyAI::alphaBetaTimed() {
@@ -24,7 +24,7 @@ Move DummyAI::alphaBetaTimed() {
 
     int tower_count = 0;
     for (int i = 0; i < 7; i++) {
-        tower_count += std::popcount( new_game.bitBoards[i]) * (i+1);
+        tower_count += std::popcount( game.bitBoards[i]) * (i+1);
     }
 
     const int time_limit = limits[tower_count-1];
@@ -47,10 +47,10 @@ Move DummyAI::alphaBetaTimed() {
 }
 
 Move DummyAI::alphaBeta(const int depth, int& move_count_result) {
-    new_game.generateMoves();
+    game.generateMoves();
 
     Move move_list[MOVES_LIST_SIZE];
-    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list);
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
@@ -58,16 +58,16 @@ Move DummyAI::alphaBeta(const int depth, int& move_count_result) {
     int beta = std::numeric_limits<int>::max();
 
     int move_count = 0;
-    playerName max_player = new_game.active_player;
+    playerName max_player = game.active_player;
 
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
-        int captured_piece = new_game.makeMove(move_list[i]);
-        new_game.toggleActivePlayer();
+        int captured_piece = game.makeMove(move_list[i]);
+        game.toggleActivePlayer();
 
-        int eval = traverseMovesAlphaBeta(new_game, depth - 1, move_count, false, max_player, alpha, beta);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta);
 
-        new_game.toggleActivePlayer();
-        new_game.unMakeMove(move_list[i], captured_piece);
+        game.toggleActivePlayer();
+        game.unMakeMove(move_list[i], captured_piece);
 
         if (eval > best_eval) {
             best_eval = eval;
