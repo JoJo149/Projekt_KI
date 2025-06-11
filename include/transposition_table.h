@@ -1,12 +1,9 @@
 #pragma once
-#include "move.h"
 #include "game.h"
 
-#include <cstdint>
 #include <fstream>
 #include <iostream>
 #include <cstring> // for std::memset
-#include <transposition_table.h>
 
 // TODO maybe use History-Heuristic
 namespace TT {

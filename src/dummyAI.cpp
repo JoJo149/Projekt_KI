@@ -1,11 +1,7 @@
 #include "dummyAI.h"
-#include <algorithm>
-#include <execution>
 
-#include <chrono>
-#include "game.h"
 #include <iostream>
-#include <limits>
+#include <chrono>
 
 DummyAI::DummyAI(): game(red) {}
 DummyAI::DummyAI(const char * game_string): game(game_string) {}
