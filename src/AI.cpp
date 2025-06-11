@@ -140,10 +140,10 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
     int alpha = std::numeric_limits<int>::min();
-    int beta = std::numeric_limits<int>::max();
+    constexpr int beta = std::numeric_limits<int>::max();
 
     int move_count = 0;
-    playerName max_player = game.active_player;
+    const playerName max_player = game.active_player;
 
     uint64_t key = TT::getKey(game);
 
@@ -196,6 +196,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         if (ttEntry.depth >= depth) {
             switch (ttEntry.type) {
                 case TT::Flag::EXACT:
+                    move_count++;
                     return ttEntry.score;
                 case TT::Flag::UPPERBOUND:
                     alpha = std::max(alpha, ttEntry.score);
@@ -204,14 +205,17 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                     beta = std::min(beta, ttEntry.score);
                     break;
             }
-            if (beta <= alpha)
+            if (beta <= alpha) {
+                move_count++;
                 return ttEntry.score;
+            }
         }
     }
 
     node.generateMoves();
 
     if (node.isGameOver()) {
+        move_count++;
         return maximizing_player ? -MATE_SCORE - depth : MATE_SCORE + depth;
     }
 
