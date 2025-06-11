@@ -2,7 +2,7 @@
 
 #include <algorithm>
 #include <execution>
-#include <cstring>
+#include <cassert>
 #include <chrono>
 #include <iostream>
 #include <limits>
@@ -161,15 +161,17 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
 
 
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
+        TT::flipHashForMove(game, key, move_list[i]);
         int captured_piece = game.makeMove(move_list[i]);
         game.toggleActivePlayer();
-        TT::doMoveHash(key, move_list[i]);
+        TT::flipHashForMove(game, key, move_list[i]);
 
         int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key);
 
-        TT::doMoveHash(key, move_list[i]);
+        TT::flipHashForMove(game, key, move_list[i]);
         game.toggleActivePlayer();
         game.unMakeMove(move_list[i], captured_piece);
+        TT::flipHashForMove(game, key, move_list[i]);
 
         if (eval > best_eval) {
             best_eval = eval;
@@ -195,7 +197,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
             switch (ttEntry.type) {
                 case TT::Flag::EXACT:
                     return ttEntry.score;
-                case TT::Flag::UPPERBOUND :
+                case TT::Flag::UPPERBOUND:
                     alpha = std::max(alpha, ttEntry.score);
                     break;
                 case TT::Flag::LOWERBOUND:
@@ -206,7 +208,6 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                 return ttEntry.score;
         }
     }
-
 
     node.generateMoves();
 
@@ -219,23 +220,26 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 
     if (depth == 0) {
         move_count++;
-        return  evaluationFunction(node, max_player);
+        const int eval = evaluationFunction(node, max_player);
+        TT::store(current_key, eval, Move{0,0,0}, depth, TT::Flag::EXACT);
+        return  eval;
     }
 
     int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
 
     Move bestMove{};
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        TT::flipHashForMove(node, current_key, move_list[i]);
         int captured = node.makeMove(move_list[i]);
         node.toggleActivePlayer();
-        TT::doMoveHash(current_key, move_list[i]);
+        TT::flipHashForMove(node, current_key, move_list[i]);
 
         int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key);
 
-        TT::doMoveHash(current_key, move_list[i]);
+        TT::flipHashForMove(node, current_key, move_list[i]);
         node.toggleActivePlayer();
         node.unMakeMove(move_list[i], captured);
-
+        TT::flipHashForMove(node, current_key, move_list[i]);
         if (maximizing_player) {
             if (eval > bestScore) {
                 bestScore = eval;
@@ -254,10 +258,9 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     }
 
 
-    TT::Flag flag;
+    TT::Flag flag{};
     if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
     else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
-    else flag = TT::Flag::EXACT;
 
     TT::store(current_key, bestScore, bestMove, depth, flag);
 
@@ -310,17 +313,17 @@ static const uint8_t guard_table_blue[64] = {
 inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
     if (guard == 0 || pieces == 0) return 14;
 
-    int guard_pos = std::countr_zero(guard);
-    int guard_x = (guard_pos & 7) - 1; // x & 7 = x mod 8, for positive nums
-    int guard_y = (guard_pos >> 3) - 1; // x >> 8 = x / 8, for positive nums
+    const int guard_pos = std::countr_zero(guard);
+    const int guard_x = (guard_pos & 7) - 1; // x & 7 = x mod 8, for positive nums
+    const int guard_y = (guard_pos >> 3) - 1; // x >> 8 = x / 8, for positive nums
 
     int min_dist = 14;
     while (pieces) {
-        int pos = std::countr_zero(pieces);
+        const int pos = std::countr_zero(pieces);
         pieces &= pieces - 1;
 
-        int x = (pos & 7) - 1;
-        int y = (pos >> 3) - 1;
+        const int x = (pos & 7) - 1;
+        const int y = (pos >> 3) - 1;
         int dist = std::abs(x - guard_x) + std::abs(y - guard_y);
 
         if (dist < min_dist) {
