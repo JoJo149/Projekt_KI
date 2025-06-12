@@ -431,6 +431,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     while (move_list[enemy_mobility].from != 0) {
         enemy_mobility++;
     }
+    new_game.toggleActivePlayer();
 
 
     int position_value = player_pos_score - enemy_pos_score;
