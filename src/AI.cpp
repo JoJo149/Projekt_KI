@@ -260,6 +260,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     TT::Flag flag{};
     if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
     else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
+    else flag = TT::Flag::EXACT; // should not happen
 
     TT::store(current_key, bestScore, bestMove, depth, flag);
 
@@ -309,7 +310,7 @@ static const uint8_t guard_table_blue[64] = {
 
 
 
-inline int minDistanceGuard(uint64_t pieces, uint64_t guard) {
+inline int minDistanceGuard(uint64_t pieces, const uint64_t guard) {
     if (guard == 0 || pieces == 0) return 14;
 
     const int guard_pos = std::countr_zero(guard);
@@ -416,16 +417,26 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     uint64_t enemy_guard = enemy_board & new_game.bitBoards[T_G];
     int enemy_guard_goal = guard_enemy_pos_board[std::countr_zero(enemy_guard)];
 
-    int mobility_value = 0;
+    int player_mobility = 0;
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list);
-    while (move_list[mobility_value].from != 0) {
-        mobility_value++;
+    while (move_list[player_mobility].from != 0) {
+        player_mobility++;
     }
+
+    int enemy_mobility = 0;
+    new_game.toggleActivePlayer();
+    new_game.generateMoves();
+    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list);
+    while (move_list[enemy_mobility].from != 0) {
+        enemy_mobility++;
+    }
+
 
     int position_value = player_pos_score - enemy_pos_score;
     int guard_value = player_guard_prox - enemy_guard_prox;
     int goal_value = player_guard_goal - enemy_guard_goal;
+    int mobility_value = player_mobility - enemy_mobility;
 
     // early
     if (tower_count >= 13) {
