@@ -93,3 +93,4 @@ For Json parsing in the client we use the [parser](https://github.com/nlohmann/j
 ## interesting references 
 
 [Bitboards](https://ameye.dev/notes/chess-engine/)
+[Evaluation Funktion](https://hxim.github.io/Stockfish-Evaluation-Guide/)
