@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-constexpr int MATE_SCORE = 1'000'000'000;
+constexpr int MATE_SCORE = 2'147'483'64;
 
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
@@ -103,7 +103,7 @@ Move AI::alphaBetaTimed() {
     const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
 
     int tower_count = 0;
-    for (int i = 0; i < 7; i++) {
+    for (int i = 0; i < T_G; i++) {
         tower_count += std::popcount( game.bitBoards[i]) * (i+1);
     }
 
@@ -267,63 +267,101 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     return bestScore;
 }
 
-static const uint8_t tower_table_red[64] = {
-    0,1,1,1,1,1,1,1,0,
-    0,3,6,6,6,6,6,3,0,
-    0,4,6,7,7,7,6,4,0,
-    0,4,6,8,8,8,6,4,0,
-    0,4,6,7,7,7,6,4,0,
-    0,5,6,6,6,6,6,5,0,
-    0,3,3,3,3,3,3,3,0, 0
+static const uint8_t tower_table_red_mg[64] = {
+    0,0,0,0,0,0,0,0,0,
+    0,1,6,8,10,8,6,1,0,
+    0,7,15,16,20,16,15,7,0,
+    0,8,17,20,25,20,17,8,0,
+    0,6,10,15,20,15,10,6,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0, 0
 };
 
-static const uint8_t tower_table_blue[64] = {
-    0,3,3,3,3,3,3,3,0,
-    0,5,6,6,6,6,6,5,0,
-    0,4,6,7,7,7,6,4,0,
-    0,4,6,8,8,8,6,4,0,
-    0,4,6,7,7,7,6,4,0,
-    0,3,6,6,6,6,6,3,0,
-    0,1,1,1,1,1,1,1,0, 0
+static const uint8_t tower_table_blue_mg[64] = {
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,6,10,15,20,15,10,6,0,
+    0,8,17,20,25,20,17,8,0,
+    0,7,15,16,20,16,15,7,0,
+    0,1,6,8,10,8,6,1,0,
+    0,0,0,0,0,0,0,0,0, 0
+};
+
+static const uint8_t tower_table_red_eg[64] = {
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,1,4,5,10,5,4,1,0,
+    0,3,6,14,21,14,6,3,0,
+    0,7,15,22,30,22,15,7,0,
+    0,0,0,0,0,0,0,0,0, 0
+};
+
+static const uint8_t tower_table_blue_eg[64] = {
+    0,0,0,0,0,0,0,0,0,
+    0,7,15,22,30,22,15,7,0,
+    0,3,6,14,21,14,6,3,0,
+    0,1,4,5,10,5,4,1,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,0,0, 0
+};
+
+static const uint8_t guard_table_red_mg[64] = {
+    0,0,65,85,100,85,65,0,0,
+    0,0,55,75,110,75,55,0,0,
+    0,0,50,60,65,60,50,0,0,
+    0,0,40,50,62,50,40,0,0,
+    0,0,30,35,37,35,30,0,0,
+    0,0,15,20,25,20,15,0,0,
+    0,0,5,10,15,10,5,0,0, 0
+};
+
+static const uint8_t guard_table_blue_mg[64] = {
+    0,0,5,10,15,10,5,0,0,
+    0,0,15,20,25,20,15,0,0,
+    0,0,30,35,37,35,30,0,0,
+    0,0,40,50,62,50,40,0,0,
+    0,0,50,60,65,60,50,0,0,
+    0,0,55,75,110,75,55,0,0,
+    0,0,65,85,100,85,65,0,0, 0
 };
 
 
-static const uint8_t guard_table_red[64] = {
-    0,0,1,2,3,2,1,0,0,
-    0,1,2,3,4,3,2,1,0,
-    0,2,4,5,6,5,4,2,0,
-    0,3,6,7,8,7,6,3,0,
-    0,5,9,10,12,10,9,5,0,
-    0,7,12,13,15,13,12,7,0,
-    0,10,15,17,20,17,15,10,0,0
+static const uint8_t guard_table_red_eg[64] = {
+    0,0,0,0,0,0,0,0,0,
+    0,0,10,20,30,20,10,0,0,
+    0,0,40,50,60,50,40,0,0,
+    0,0,70,80,160,80,70,0,0,
+    0,0,160,170,200,170,160,0,0,
+    0,0,180,200,210,200,180,0,0,
+    0,0,180,210,255,210,180,0,0, 0
 };
 
-static const uint8_t guard_table_blue[64] = {
-    0,10,15,17,20,17,15,10,0,
-    0,7,12,13,15,13,12,7,0,
-    0,5,9,10,12,10,9,5,0,
-    0,3,6,7,8,7,6,3,0,
-    0,2,4,5,6,5,4,2,0,
-    0,1,2,3,4,3,2,1,0,
-    0,0,1,2,3,2,1,0,0, 0
+static const uint8_t guard_table_blue_eg[64] = {
+    0,0,180,210,255,210,180,0,0,
+    0,0,180,200,210,200,180,0,0,
+    0,0,160,170,200,170,160,0,0,
+    0,0,70,80,160,80,70,0,0,
+    0,0,40,50,60,50,40,0,0,
+    0,0,10,20,30,20,10,0,0,
+    0,0,0,0,0,0,0,0,0,0
 };
-
-
 
 inline int minDistanceGuard(uint64_t pieces, const uint64_t guard) {
     if (guard == 0 || pieces == 0) return 14;
 
     const int guard_pos = std::countr_zero(guard);
-    const int guard_x = (guard_pos & 7) - 1; // x & 7 = x mod 8, for positive nums
-    const int guard_y = (guard_pos >> 3) - 1; // x >> 8 = x / 8, for positive nums
+    const int guard_x = guard_pos % 9;
+    const int guard_y = guard_pos / 9;
 
     int min_dist = 14;
     while (pieces) {
         const int pos = std::countr_zero(pieces);
         pieces &= pieces - 1;
 
-        const int x = (pos & 7) - 1;
-        const int y = (pos >> 3) - 1;
+        const int x = pos % 9;
+        const int y = pos / 9;
         int dist = std::abs(x - guard_x) + std::abs(y - guard_y);
 
         if (dist < min_dist) {
@@ -335,134 +373,227 @@ inline int minDistanceGuard(uint64_t pieces, const uint64_t guard) {
     return min_dist;
 }
 
-// Todo think about maybe adding a function to set other guard in check and save own from check
+// TODO CHECK IF AI WANTS TO LOSE
 int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
-    // Evaluation weights per phase
-    constexpr int EARLY_MATERIAL_WEIGHT = 2;
-    constexpr int EARLY_POSITION_WEIGHT = 2;
-    constexpr int EARLY_GUARD_WEIGHT = 1;
-    constexpr int EARLY_GOAL_PROGRESS_WEIGHT = 1;
-    constexpr int EARLY_MOBILITY_WEIGHT = 1;
-
-    constexpr int MID_MATERIAL_WEIGHT = 1;
-    constexpr int MID_POSITION_WEIGHT = 3;
-    constexpr int MID_GUARD_WEIGHT = 3;
-    constexpr int MID_GOAL_PROGRESS_WEIGHT = 2;
-    constexpr int MID_MOBILITY_WEIGHT = 1;
-
-    constexpr int LATE_MATERIAL_WEIGHT = 3;
-    constexpr int LATE_POSITION_WEIGHT = 1;
-    constexpr int LATE_GUARD_WEIGHT = 5;
-    constexpr int LATE_GOAL_PROGRESS_WEIGHT = 5;
-    constexpr int LATE_MOBILITY_WEIGHT = 1;
-
-    // Base component weights (max theoretical value comments for context)
-    constexpr int MATERIAL_WEIGHT = 1;       // Max ~150
-    constexpr int POSITION_WEIGHT = 10;       // Max ~64
-    constexpr int GUARD_WEIGHT = 32;         // Max ~14
-    constexpr int GOAL_PROGRESS_WEIGHT = 8;  // Max ~17
-
+    int middle_game_evaluation = 0;
+    int end_game_evaluation = 0;
 
     int tower_count = 0;
     for (int i = 0; i < T_G; i++) {
-        tower_count += std::popcount( new_game.bitBoards[i]) * (i+1);
+        tower_count += std::popcount(new_game.bitBoards[i]) * (i+1);
     }
 
-    uint64_t player_board = (max_player == red) ? new_game.bitBoards[C_R] : new_game.bitBoards[C_B];
-    uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
+    const uint64_t player_board = (max_player == red) ? new_game.bitBoards[C_R] : new_game.bitBoards[C_B];
+    const uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
 
-    // Material max val for each = 200
+    // Material Value
+    constexpr int PIECE_WEIGHTS_MG[7] = {124, 350, 450, 500, 620, 744};
+    constexpr int PIECE_WEIGHTS_EG[7] = {124, 275, 385, 500, 620, 744};
 
-    constexpr int PIECE_WEIGHTS[7] = {100, 300, 350,400, 500, 600};
-
-    int material_value = 0;
     for (int i = 0; i < T_G; i++) {
-        int player_towers_num = std::popcount(player_board & new_game.bitBoards[i]);
-        int enemy_towers_num = std::popcount(enemy_board & new_game.bitBoards[i]);
-        material_value += PIECE_WEIGHTS[i] * (player_towers_num - enemy_towers_num);
+        const int player_towers_num = std::popcount(player_board & new_game.bitBoards[i]);
+        const int enemy_towers_num = std::popcount(enemy_board & new_game.bitBoards[i]);
+        middle_game_evaluation += PIECE_WEIGHTS_MG[i] * (player_towers_num - enemy_towers_num);
+        end_game_evaluation += PIECE_WEIGHTS_EG[i] * (player_towers_num - enemy_towers_num);
     }
 
-    // Position max Val for each = 8
+    // position eval for Towers
+    const uint8_t *tower_table_player_mg = (max_player == red) ? tower_table_red_mg : tower_table_blue_mg;
+    const uint8_t *tower_table_player_eg = (max_player == red) ? tower_table_red_eg : tower_table_blue_eg;
+    for (uint64_t bb = player_board & ~new_game.bitBoards[T_G]; bb; bb &= bb - 1) { // for every Player Tower
+        const int index = std::countr_zero(bb);
+        middle_game_evaluation += 4 * tower_table_player_mg[index];
+        end_game_evaluation += 2 * tower_table_player_eg[index];
 
-    int player_pos_score = 0;
-    // player position value
-    const uint8_t *tower_table_player = (max_player == red) ? tower_table_red : tower_table_blue;
-    for (uint64_t bb = player_board; bb; bb &= bb - 1)
-        player_pos_score += tower_table_player[std::countr_zero(bb)];
+        const uint64_t bottom_square = 1ULL << (index + 9);
+        uint64_t top_square = 0;
+        if (index >= 9) top_square = 1ULL << (index - 9);
+        const uint64_t right_square = 1ULL << (index + 1);
+        const uint64_t left_square = 1ULL << (index - 1);
+        uint64_t top_right_square = 0;
+        if (index >= 8) top_right_square = 1ULL << (index - 9 + 1);
+        uint64_t top_left_square = 0;
+        if (index >= 10) top_left_square = 1ULL << (index - 9 - 1);
+        const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
+        const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
-    int enemy_pos_score = 0;
-    const uint8_t *tower_table_enemy = (max_player == red) ? tower_table_blue : tower_table_red;
-    // enemy position value
-    for (uint64_t bb = enemy_board; bb; bb &= bb - 1)
-        enemy_pos_score += tower_table_enemy[std::countr_zero(bb)];
-
-    // Guard max Val = 14
-
-    // distance from player towers to enemy guard
-    int enemy_guard_prox = minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
-
-    // distance from enemy towers to player guard
-    int player_guard_prox = minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
-
-    // Guard to end Pos max Val = 17
-
-    // distance from player guard to goal field
-    const uint8_t *guard_player_pos_board = (max_player == red) ? guard_table_red : guard_table_blue;
-    uint64_t player_guard = player_board & new_game.bitBoards[T_G];
-    int player_guard_goal = guard_player_pos_board[std::countr_zero(player_guard)];
-
-    // distance from enemy guard to goal field
-    const uint8_t *guard_enemy_pos_board = (max_player == red) ? guard_table_blue : guard_table_red;
-    uint64_t enemy_guard = enemy_board & new_game.bitBoards[T_G];
-    int enemy_guard_goal = guard_enemy_pos_board[std::countr_zero(enemy_guard)];
-
-    int player_mobility = 0;
-    Move move_list[MOVES_LIST_SIZE];
-    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list);
-    while (move_list[player_mobility].from != 0) {
-        player_mobility++;
+        if ( player_board & left_square
+            || player_board & right_square ) {
+            middle_game_evaluation += 10;
+            end_game_evaluation += 5;
+        } else if ( player_board & bottom_square
+            || player_board & top_square) {
+            middle_game_evaluation += 5;
+            end_game_evaluation += 2;
+        } else if ( player_board & bottom_left_square
+            || player_board & bottom_right_square
+            || player_board & top_left_square
+            || player_board & top_right_square ) {
+            middle_game_evaluation += 6;
+            end_game_evaluation += 3;
+        }
     }
 
-    int enemy_mobility = 0;
+    const uint8_t *tower_table_enemy_mg = (max_player == red) ? tower_table_blue_mg : tower_table_red_mg;
+    const uint8_t *tower_table_enemy_eg = (max_player == red) ? tower_table_blue_eg : tower_table_red_eg;
+    for (uint64_t bb = enemy_board & ~new_game.bitBoards[T_G]; bb; bb &= bb - 1) {
+        const int index = std::countr_zero(bb);
+        middle_game_evaluation -= 4 * tower_table_enemy_mg[index];
+        end_game_evaluation -= 2 * tower_table_enemy_eg[index];
+
+        const uint64_t bottom_square = 1ULL << (index + 9);
+        uint64_t top_square = 0;
+        if (index >= 9) top_square = 1ULL << (index - 9);
+        const uint64_t right_square = 1ULL << (index + 1);
+        const uint64_t left_square = 1ULL << (index - 1);
+        uint64_t top_right_square = 0;
+        if (index >= 8) top_right_square = 1ULL << (index - 9 + 1);
+        uint64_t top_left_square = 0;
+        if (index >= 10) top_left_square = 1ULL << (index - 9 - 1);
+        const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
+        const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
+
+        if ( player_board & left_square
+            || player_board & right_square ) {
+                middle_game_evaluation -= 10;
+                end_game_evaluation -= 5;
+        }
+        if ( player_board & bottom_square
+            || player_board & top_square) {
+                middle_game_evaluation -= 5;
+                end_game_evaluation -= 2;
+        }
+        if ( player_board & bottom_left_square
+            || player_board & bottom_right_square
+            || player_board & top_left_square
+            || player_board & top_right_square ) {
+                middle_game_evaluation -= 6;
+                end_game_evaluation -= 3;
+        }
+    }
+
+    // position eval for Guard
+    const uint8_t *guard_table_player_mg = (max_player == red) ? guard_table_red_mg : guard_table_blue_mg;
+    const uint8_t *guard_table_enemy_mg = (max_player == red) ? guard_table_blue_mg : guard_table_red_mg;
+    middle_game_evaluation += (guard_table_player_mg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_mg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]) / 2;
+
+    const uint8_t *guard_table_player_eg = (max_player == red) ? guard_table_red_eg : guard_table_blue_eg;
+    const uint8_t *guard_table_enemy_eg = (max_player == red) ? guard_table_blue_eg : guard_table_red_eg;
+    end_game_evaluation += (guard_table_player_eg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_eg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]);
+
+
+    Move move_list_player[MOVES_LIST_SIZE];
+    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list_player);
+
+    Move move_list_enemy[MOVES_LIST_SIZE];
     new_game.toggleActivePlayer();
     new_game.generateMoves();
-    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list);
-    while (move_list[enemy_mobility].from != 0) {
-        enemy_mobility++;
-    }
+    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list_enemy);
     new_game.toggleActivePlayer();
 
+    // FROM GUARD
+    const int enemy_guard_index = std::countr_zero(enemy_board & new_game.bitBoards[T_G]);
+    uint64_t enemy_guard_edge = 0;
+    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9);
+    if (enemy_guard_index >= 9) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9);
+    enemy_guard_edge |= 1ULL << (enemy_guard_index + 1);
+    enemy_guard_edge |= 1ULL << (enemy_guard_index - 1);
+    if (enemy_guard_index >= 8) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9 + 1);
+    if (enemy_guard_index >= 10) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9 - 1);
+    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9 + 1);
+    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9 - 1);
 
-    int position_value = player_pos_score - enemy_pos_score;
-    int guard_value = player_guard_prox - enemy_guard_prox;
-    int goal_value = player_guard_goal - enemy_guard_goal;
-    int mobility_value = player_mobility - enemy_mobility;
+    const int player_guard_index = std::countr_zero(player_board & new_game.bitBoards[T_G]);
+    uint64_t player_guard_edge =  0;
+    player_guard_edge |= 1ULL << (player_guard_index + 9);
+    if (enemy_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
+    player_guard_edge |= 1ULL << (player_guard_index + 1);
+    player_guard_edge |= 1ULL << (player_guard_index - 1);
+    if (enemy_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
+    if (enemy_guard_index >= 10)player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
+    player_guard_edge |= 1ULL << (player_guard_index + 9 + 1);
+    player_guard_edge |= 1ULL << (player_guard_index + 9 - 1);
 
-    // early
-    if (tower_count >= 13) {
-        material_value *= EARLY_MATERIAL_WEIGHT;
-        position_value *= EARLY_POSITION_WEIGHT;
-        guard_value *= EARLY_GUARD_WEIGHT;
-        goal_value *= EARLY_GOAL_PROGRESS_WEIGHT;
-        mobility_value *= EARLY_MOBILITY_WEIGHT;
-    }else if (tower_count >= 10) {
-        material_value *= MID_MATERIAL_WEIGHT;
-        position_value *= MID_POSITION_WEIGHT;
-        guard_value *= MID_GUARD_WEIGHT;
-        goal_value *= MID_GOAL_PROGRESS_WEIGHT;
-        mobility_value *= MID_MOBILITY_WEIGHT;
-    } else {
-        material_value *= LATE_MATERIAL_WEIGHT;
-        position_value *= LATE_POSITION_WEIGHT;
-        guard_value *= LATE_GUARD_WEIGHT;
-        goal_value *= LATE_GOAL_PROGRESS_WEIGHT;
-        mobility_value *= LATE_MOBILITY_WEIGHT;
+    // check for possible Moves
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list_player[i].from != 0; ++i) {
+        // if u move on own tower
+        if (move_list_player[i].to & player_board) {
+            if (move_list_player[i].to == enemy_guard_edge) {
+                middle_game_evaluation += 50;
+                end_game_evaluation += 70;
+            } else {
+                middle_game_evaluation += 30;
+                end_game_evaluation += 40;
+            }
+        }else if (move_list_player[i].to & player_guard_edge) {
+            middle_game_evaluation += 20;
+            end_game_evaluation += 50;
+        }
+        // if u move onto enemy tower
+        if (move_list_player[i].to & enemy_board) {
+            bool hanging = true;
+            for (int j = 0; j < MOVES_LIST_SIZE && move_list_enemy[j].from != 0 && hanging; ++j) {
+                if (move_list_player[i].to == move_list_enemy[j].to) {
+                    hanging = false;
+                }
+            }
+            if (move_list_player[i].to & new_game.bitBoards[T_G]) {
+                middle_game_evaluation += 60;
+                end_game_evaluation += 70;
+            }
+            if (hanging) {
+                middle_game_evaluation += 120;
+                end_game_evaluation += 110;
+            } else {
+                middle_game_evaluation += 40;
+                end_game_evaluation += 30;
+            }
+        }
     }
 
-    return MATERIAL_WEIGHT * material_value
-        + POSITION_WEIGHT * position_value
-        + GUARD_WEIGHT * guard_value
-        + GOAL_PROGRESS_WEIGHT * goal_value
-        + mobility_value;
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list_enemy[i].from != 0; ++i) {
+        // if enemy move on own tower
+        if (move_list_enemy[i].to & enemy_board) {
+            if (move_list_enemy[i].to == player_guard_edge) {
+                middle_game_evaluation -= 50;
+                end_game_evaluation -= 70;
+            } else {
+                middle_game_evaluation -= 30;
+                end_game_evaluation -= 40;
+            }
+        } else if (move_list_enemy[i].to & enemy_guard_edge) {
+            middle_game_evaluation -= 20;
+            end_game_evaluation -= 50;
+        }
+        // if enemy move onto player tower
+        if (move_list_enemy[i].to & player_board) {
+            bool hanging = true;
+            for (int j = 0; j < MOVES_LIST_SIZE && move_list_player[j].from != 0 && hanging; ++j) {
+                if (move_list_enemy[i].to == move_list_player[j].to) {
+                    hanging = false;
+                }
+            }
+            if (move_list_enemy[i].to & new_game.bitBoards[T_G]) {
+                middle_game_evaluation -= 60;
+                end_game_evaluation -= 70;
+            }
+            if (hanging) {
+                middle_game_evaluation -= 120;
+                end_game_evaluation -= 110;
+            } else {
+                middle_game_evaluation -= 40;
+                end_game_evaluation -= 30;
+            }
+        }
+    }
+
+    // distance from next tower to guard
+    middle_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
+    middle_game_evaluation += 20 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
+
+    end_game_evaluation -= 25 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
+    end_game_evaluation += 25 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
+
+    return (middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count)) / 14;
 }
