@@ -39,7 +39,7 @@ target_link_libraries(projekt_ki PRIVATE core)
 
 # ----------------------------------------------------------------------------
 # client application
-add_executable(Client clientsrc/client.cpp)
+add_executable(Client clientsrc/Client.cpp)
 target_include_directories(Client PRIVATE ext/headerOnly/json)
 target_link_libraries(Client PRIVATE core)
 
