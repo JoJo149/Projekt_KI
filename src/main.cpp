@@ -1,4 +1,5 @@
 #include "AI.h"
+#include "move.h"
 
 int main() {
     const char * input_board = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
