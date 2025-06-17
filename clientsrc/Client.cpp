@@ -164,6 +164,7 @@ void mainLoop() {
 }
 
 int main() {
+    std::cout << "fhujl" << std::endl;
     TT::loadFromFile();
     mainLoop();
     TT::saveToFile();
