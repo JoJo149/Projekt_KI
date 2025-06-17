@@ -2,13 +2,15 @@
 
 ## 🔧 Ausführbare Datei
 
-Die zu ausführende Datei für den Client heißt:
+Auf die zu ausführende Datei für den Client heißt:
 
-client_launcher.exe
+`client_launcher.exe`
 
-## ⚙️ Konfigurationsdatei
+Einfach Doppelkick darauf zum Starten.\
+Da wir einen Subprozess starten, werden nach gewissen Rechten gefragt.
+x## ⚙️ Konfigurationsdatei
 
-Die Exe liest die IP-Adresse und den zu verwendenden Port aus der Konfigurationsdatei:
+Das Executable liest die (DNS-Adresse oder IP-Adresse) und den zu verwendenden Port aus der Konfigurationsdatei:
 
 /clientInfo/config.txt
 
@@ -16,10 +18,10 @@ Die Exe liest die IP-Adresse und den zu verwendenden Port aus der Konfigurations
 
 Die Datei muss wie folgt aufgebaut sein (jeweils eine Angabe pro Zeile):
 
- ```<IP-Adresse> <PORT> ```
+ ```<Adresse> <PORT> ```
 
-Beispiel:
+Beispiel für lokalen Server:
 ```
-127.0.0.1
+localhost
 5555
 ```
