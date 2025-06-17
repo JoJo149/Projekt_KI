@@ -4,7 +4,7 @@
 #include <vector>
 #include <string>
 
-#include "../include/game.h"
+#include "Game.h"
 #include "random"
 #include "catch2/benchmark/catch_benchmark.hpp"
 
