@@ -303,7 +303,7 @@ namespace TT {
     }
 
 
-    inline bool probe(uint64_t key, TTEntry& out) {
+    inline bool probe(const uint64_t key, TTEntry& out) {
         const uint64_t index = key & (TT_SIZE - 1);
         const TTEntry& entry = tt[index];
 

@@ -8,7 +8,7 @@ Auf die zu ausführende Datei für den Client heißt:
 
 Einfach Doppelkick darauf zum Starten.\
 Da wir einen Subprozess starten, werden nach gewissen Rechten gefragt.
-## ⚙️ Konfigurationsdatei
+x## ⚙️ Konfigurationsdatei
 
 Das Executable liest die (DNS-Adresse oder IP-Adresse) und den zu verwendenden Port aus der Konfigurationsdatei:
 
