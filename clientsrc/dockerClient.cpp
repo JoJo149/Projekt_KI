@@ -1,12 +1,14 @@
-#include "AI.h"
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-typedef int SocketType;
+
+#include "AI.h"
 #include "json.hpp"
 
 using json = nlohmann::json;
 using namespace std;
+
+typedef int SocketType;
 
 class Network {
 private:
@@ -58,21 +60,11 @@ public:
     }
 
     void close() const {
-        #ifdef _WIN32
-            closesocket(sock);
-            WSACleanup();
-        #else
             ::close(sock);
-        #endif
     }
 
     ~Network() {
-        #ifdef _WIN32
-            closesocket(sock);
-            WSACleanup();
-        #else
             ::close(sock);
-        #endif
     }
 };
 
