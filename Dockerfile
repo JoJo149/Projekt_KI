@@ -12,13 +12,15 @@ WORKDIR /app
 
 # Copy all necessary source files and directories:
 COPY CMakeLists.txt .
-COPY clientsrc/ /app/clientsrc/
-COPY src/ /app/src/
-COPY include/ /app/include/
-COPY ext/ /app/ext/
-COPY transposition_table/ /app/transposition_table/
-COPY tests/ /app/tests/
-COPY benchmark/ /app/benchmark/
+
+COPY src/ ./src/
+COPY clientsrc/ ./clientsrc/
+COPY tests/ ./tests/
+COPY benchmark/ ./benchmark/
+
+COPY include/ ./include/
+COPY ext/ ./ext/
+COPY transposition_table/ ./transposition_table/
 
 # Remove old build if any, then create clean build folder
 RUN rm -rf build && mkdir build
