@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include "AI.h"
+#include "move.h"
 
 int main() {
     const auto input_board = "1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b";
