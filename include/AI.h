@@ -1,5 +1,5 @@
 #pragma once
-#include "game.h"
+#include "Game.h"
 #include "transposition_table.h"
 
 class AI {
