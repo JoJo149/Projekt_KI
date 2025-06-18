@@ -62,10 +62,12 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
         TT::loadFromFile();
         int tmp_move_count = 0;
         std::string tmp_best_move;
+        Move move_list[MOVES_LIST_SIZE];
 
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                tmp_best_move = ki.alphaBeta(i, tmp_move_count).toString();
+                ki.alphaBeta(i, tmp_move_count, move_list);
+                tmp_best_move = move_list[0].toString();
                 return 0;
             });
         };
