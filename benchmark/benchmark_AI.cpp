@@ -57,7 +57,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
 
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};
-    Move move_list[MOVES_LIST_SIZE];
+    Move move_list[MOVES_LIST_SIZE] = {};
 
     for (int i = 1; i <= MAX_DEPTH; i++) {
         TT::loadFromFile();

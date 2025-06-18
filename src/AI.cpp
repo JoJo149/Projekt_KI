@@ -127,7 +127,7 @@ Move AI::alphaBetaTimed() {
     return best_move;
 }
 
-// TODO notes for carsten: return move list, best move is first move -> use this move list for ordering in next depth
+
 void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given) {
     Move move_list[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE] = {};
