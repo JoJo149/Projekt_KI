@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include "Utils_test.h"
-#include "../include/Game.h"
+#include "Game.h"
 #include "random"
 
 

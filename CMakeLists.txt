@@ -43,6 +43,11 @@ add_executable(Client clientsrc/Client.cpp)
 target_include_directories(Client PRIVATE ext/headerOnly/json)
 target_link_libraries(Client PRIVATE core)
 
+# ----------------------------------------------------------------------------
+# dockerClient application
+add_executable(dockerClient clientsrc/dockerClient.cpp)
+target_include_directories(dockerClient PRIVATE ext/headerOnly/json)
+target_link_libraries(dockerClient PRIVATE core)
 
 # ----------------------------------------------------------------------------
 # client application
