@@ -2,7 +2,7 @@
 
 #include <chrono>
 
-constexpr int MATE_SCORE = 2'147'483'64;
+constexpr int MATE_SCORE = 214748364;
 
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
