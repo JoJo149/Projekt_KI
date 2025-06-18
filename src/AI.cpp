@@ -106,7 +106,7 @@ Move AI::alphaBetaTimed() {
     for (int i = 0; i < T_G; i++) {
         tower_count += std::popcount( game.bitBoards[i]) * (i+1);
     }
-
+    Move move_list[MOVES_LIST_SIZE] = {};
     const int time_limit = limits[tower_count-1];
     try {
         int ignore = 0;
@@ -117,7 +117,8 @@ Move AI::alphaBetaTimed() {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            best_move = alphaBeta(depth,ignore);
+            alphaBeta(depth,ignore, move_list);
+            best_move = move_list[0];
         }
     } catch (const std::runtime_error& e) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
@@ -126,11 +127,20 @@ Move AI::alphaBetaTimed() {
     return best_move;
 }
 
-Move AI::alphaBeta(const int depth, int& move_count_result) {
-    game.generateMoves();
 
+void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given) {
     Move move_list[MOVES_LIST_SIZE];
-    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
+    int eval_list[MOVES_LIST_SIZE] = {};
+    int eval_count = 0;
+    if (depth == 1) {
+        game.generateMoves();
+        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
+    }else {
+        for (int i = 0; i < MOVES_LIST_SIZE; i++) {
+            move_list[i] = move_list_given[i];
+        }
+    }
+
 
     Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
@@ -168,6 +178,17 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
         game.unMakeMove(move_list[i], captured_piece);
         TT::flipHashForMove(game, key, move_list[i]);
 
+        // sort new eval and move into list
+        int j = eval_count - 1;
+        while (j >= 0 && eval_list[j] < eval) {
+            eval_list[j + 1] = eval_list[j];
+            move_list_given[j + 1] = move_list_given[j];
+            j--;
+        }
+        eval_list[j + 1] = eval;
+        move_list_given[j + 1] = move_list[i];
+        eval_count++;
+
         if (eval > best_eval) {
             best_eval = eval;
             best_move = move_list[i];
@@ -177,7 +198,6 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     }
 
     move_count_result = move_count;
-    return best_move;
 }
 
 
