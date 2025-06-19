@@ -9,7 +9,7 @@
 #include "AI.h"
 
 
-#define MAX_DEPTH 6
+#define MAX_DEPTH 7
 #define MAX_DEPTH_MINMAX 4
 
 TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {
@@ -59,6 +59,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};
     Move move_list[MOVES_LIST_SIZE] = {};
+    int last_eval = 0;
 
     for (int i = 1; i <= MAX_DEPTH; i++) {
         TT::loadFromFile();
@@ -68,7 +69,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
 
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                ki.alphaBeta(i, tmp_move_count, move_list);
+                ki.aspirationWindowAlphaBeta(i, tmp_move_count, move_list, last_eval);
                 tmp_best_move = move_list[0].toString();
                 return 0;
             });

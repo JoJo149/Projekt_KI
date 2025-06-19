@@ -119,6 +119,7 @@ Move AI::alphaBetaTimed() {
                 break;
             }
             aspirationWindowAlphaBeta(depth,ignore, move_list, last_eval);
+            std::cout << last_eval << std::endl;
             best_move = move_list[0];
         }
     } catch (const std::runtime_error& e) {
@@ -130,19 +131,19 @@ Move AI::alphaBetaTimed() {
 
 void AI::aspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval) {
     bool aspiration_window_missed = false;
-    int aspiration_margin = 2356;
+    int aspiration_margin = 200;
     if (depth == 1) {
-        aspiration_margin = 100000;
+        aspiration_margin = 99999;
     }
     bool retry = true;
     Move last_move_list[MOVES_LIST_SIZE] = {};
 
     while (retry) {
+        aspiration_window_missed = false;
         std::copy(move_list_given, move_list_given + MOVES_LIST_SIZE, last_move_list);
         alphaBeta(depth,move_count_result, last_move_list, last_eval, aspiration_margin, aspiration_window_missed);
         if (aspiration_window_missed == true) {
-            std::cout << "warum raus: " << last_eval << std::endl;
-            aspiration_margin = 100000;
+            aspiration_margin *= 4;
         }else {
             std::copy(last_move_list, last_move_list + MOVES_LIST_SIZE, move_list_given);
             retry = false;
