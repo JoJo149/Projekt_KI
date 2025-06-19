@@ -9,7 +9,7 @@
 #include "AI.h"
 
 
-#define MAX_DEPTH 7
+#define MAX_DEPTH 8
 #define MAX_DEPTH_MINMAX 4
 
 TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {

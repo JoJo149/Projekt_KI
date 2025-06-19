@@ -129,25 +129,24 @@ Move AI::alphaBetaTimed() {
 }
 
 
-void AI::MTDf(const int depth, int& move_count_result, Move* move_list_given, int& last_eval) {
-    int g = last_eval;
+void AI::MTDf(const int depth, int& move_count_result, Move* move_list_given, int& eval) {
     int beta;
-    int upper = 99999;
-    int lower = -99999;
+    int upper = std::numeric_limits<int>::max();
+    int lower = std::numeric_limits<int>::min();
+
     while (lower < upper) {
-        if (g == lower) {
-            beta = g + 1;
+        if (eval == lower) {
+            beta = eval + 1;
         }else {
-            beta = g;
+            beta = eval;
         }
-        g = alphaBeta(depth, move_count_result, move_list_given, beta - 1, beta);
-        if (g < beta) {
-            upper = g;
+        eval = alphaBeta(depth, move_count_result, move_list_given, beta - 1, beta);
+        if (eval < beta) {
+            upper = eval;
         }else {
             lower = beta;
         }
     }
-    last_eval = g;
 }
 
 
