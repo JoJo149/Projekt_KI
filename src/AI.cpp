@@ -118,8 +118,7 @@ Move AI::alphaBetaTimed() {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            aspirationWindowAlphaBeta(depth,ignore, move_list, last_eval);
-            //std::cout << last_eval << std::endl;
+            MTDf(depth, ignore, move_list, last_eval);
             best_move = move_list[0];
         }
     } catch (const std::runtime_error& e) {
@@ -129,36 +128,30 @@ Move AI::alphaBetaTimed() {
     return best_move;
 }
 
-void AI::aspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval) {
-    bool aspiration_window_missed = false;
-    int aspiration_margin = 200;
-    if (depth == 1) {
-        aspiration_margin = 99999;
-    }
-    bool retry = true;
-    int retry_count = 0;
-    const int MAX_RETRIES = 1;
-    Move last_move_list[MOVES_LIST_SIZE] = {};
 
-    while (retry && retry_count < MAX_RETRIES) {
-        aspiration_window_missed = false;
-        std::copy(move_list_given, move_list_given + MOVES_LIST_SIZE, last_move_list);
-        alphaBeta(depth,move_count_result, last_move_list, last_eval, aspiration_margin, aspiration_window_missed);
-        if (aspiration_window_missed == true) {
-            aspiration_margin *= 2;
+void AI::MTDf(const int depth, int& move_count_result, Move* move_list_given, int& last_eval) {
+    int g = last_eval;
+    int beta;
+    int upper = 99999;
+    int lower = -99999;
+    while (lower < upper) {
+        if (g == lower) {
+            beta = g + 1;
         }else {
-            std::copy(last_move_list, last_move_list + MOVES_LIST_SIZE, move_list_given);
-            retry = false;
+            beta = g;
         }
-        retry_count++;
+        g = alphaBeta(depth, move_count_result, move_list_given, beta - 1, beta);
+        if (g < beta) {
+            upper = g;
+        }else {
+            lower = beta;
+        }
     }
-    if (retry == true) {
-        alphaBeta(depth,move_count_result, last_move_list, last_eval, 99999, aspiration_window_missed);
-    }
+    last_eval = g;
 }
 
 
-void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, int aspiration_margin, bool& aspiration_window_missed) {
+int AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given, int alpha_given, int beta_given) {
     Move move_list[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE] = {};
     int eval_count = 0;
@@ -173,10 +166,8 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
     Move& best_move = move_list[0];
 
     int best_eval = std::numeric_limits<int>::min();
-    int alpha = last_eval - aspiration_margin;
-    int beta = last_eval + aspiration_margin;
-    int original_alpha = alpha;
-    int original_beta = beta;
+    int alpha = alpha_given;
+    int beta = beta_given;
 
     int move_count = 0;
     const playerName max_player = game.active_player;
@@ -228,11 +219,8 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
         if (beta <= alpha) break;
     }
 
-    if (best_eval <= original_alpha || best_eval >= original_beta) {
-        aspiration_window_missed = true;
-    }
-    last_eval = best_eval;
     move_count_result = move_count;
+    return eval_list[0];
 }
 
 

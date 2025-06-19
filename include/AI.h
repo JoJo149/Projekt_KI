@@ -18,9 +18,9 @@ public:
     int traverseMoves(Game, int, int&, bool, playerName);
 
     Move alphaBetaTimed();
-    void aspirationWindowAlphaBeta(int, int&, Move*, int&);
+    void MTDf(int, int&, Move*, int&);
 
-    void alphaBeta(int,int&, Move*, int&, int, bool&);
+    int alphaBeta(int,int&, Move*, int, int);
     int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&);
 
     [[nodiscard]] int evaluationFunction(Game&, const playerName&);

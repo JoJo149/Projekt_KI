@@ -69,7 +69,7 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
 
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                ki.aspirationWindowAlphaBeta(i, tmp_move_count, move_list, last_eval);
+                ki.MTDf(i, tmp_move_count, move_list, last_eval);
                 tmp_best_move = move_list[0].toString();
                 return 0;
             });
