@@ -9,7 +9,7 @@
 #include "AI.h"
 
 
-#define MAX_DEPTH 8
+#define MAX_DEPTH 7
 #define MAX_DEPTH_MINMAX 4
 
 TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {
@@ -53,7 +53,9 @@ TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
     }
 }
 
-TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
+
+
+TEST_CASE("Benchmark for MTDF", "[benchmarks][MTDF]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
 
     std::vector<int> move_count{};
@@ -70,6 +72,72 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
                 ki.MTDf(i, tmp_move_count, move_list, last_eval);
+                tmp_best_move = move_list[0].toString();
+                return 0;
+            });
+        };
+
+        move_count.push_back(tmp_move_count);
+        best_move.push_back(tmp_best_move);
+    }
+
+    for (int i = 1; i <= MAX_DEPTH; i++) {
+        int move = move_count.at(i - 1);
+        const std::string& best_move_string = best_move.at(i - 1);
+        std::cout << "\nDEPTH " << i << " ALPHABETA used " << move << " moves. Best Move: " << best_move_string << std::endl;
+    }
+}
+
+TEST_CASE("Benchmark for MIXED", "[benchmarks][mixed]") {
+    AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
+
+    std::vector<int> move_count{};
+    std::vector<std::string> best_move{};
+    Move move_list[MOVES_LIST_SIZE] = {};
+    int last_eval = 0;
+
+    for (int i = 1; i <= MAX_DEPTH; i++) {
+        TT::loadFromFile();
+        int tmp_move_count = 0;
+        std::string tmp_best_move;
+
+
+        BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
+            meter.measure([&] {
+                ki.mixed(i, tmp_move_count, move_list, last_eval);
+                tmp_best_move = move_list[0].toString();
+                return 0;
+            });
+        };
+
+        move_count.push_back(tmp_move_count);
+        best_move.push_back(tmp_best_move);
+    }
+
+    for (int i = 1; i <= MAX_DEPTH; i++) {
+        int move = move_count.at(i - 1);
+        const std::string& best_move_string = best_move.at(i - 1);
+        std::cout << "\nDEPTH " << i << " ALPHABETA used " << move << " moves. Best Move: " << best_move_string << std::endl;
+    }
+}
+
+TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
+    AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
+
+    std::vector<int> move_count{};
+    std::vector<std::string> best_move{};
+    Move move_list[MOVES_LIST_SIZE] = {};
+    int last_eval = 0;
+
+    for (int i = 1; i <= MAX_DEPTH; i++) {
+        TT::loadFromFile();
+        int tmp_move_count = 0;
+        std::string tmp_best_move;
+
+
+        BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
+            meter.measure([&] {
+                ki.alphaBeta(i, tmp_move_count, move_list,std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
                 tmp_best_move = move_list[0].toString();
                 return 0;
             });

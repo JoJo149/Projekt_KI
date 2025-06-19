@@ -128,6 +128,14 @@ Move AI::alphaBetaTimed() {
     return best_move;
 }
 
+void AI::mixed(const int depth, int& move_count_result, Move* move_list_given, int& eval) {
+    if (depth % 2 == 0) {
+        MTDf(depth, move_count_result, move_list_given, eval);
+    }else {
+        eval = alphaBeta(depth, move_count_result, move_list_given,std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+    }
+}
+
 
 void AI::MTDf(const int depth, int& move_count_result, Move* move_list_given, int& eval) {
     int beta;
