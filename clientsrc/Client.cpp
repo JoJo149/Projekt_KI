@@ -79,18 +79,19 @@ public:
         infile.close();
     }
 
-    string getP() {
+    [[nodiscard]] string getP() const {
         char buffer[2048] = {0};
         recv(sock, buffer, sizeof(buffer), 0);
-        return string(buffer);
+        return string{buffer};
     }
 
-    string sendData(const string& data) {
+    string sendData(const string& data) const {
         send(sock, data.c_str(), data.size(), 0);
-        char buffer[4096] = {0};
-        int len = recv(sock, buffer, sizeof(buffer), 0);
+        char buffer[4096];
+        const size_t len = recv(sock, buffer, sizeof(buffer) - 1, 0);
         if (len <= 0) return "";
-        return string(buffer, len);
+        buffer[len] = '\0';
+        return string{buffer};
     }
 
     void close() const {
@@ -113,12 +114,13 @@ public:
 };
 
 void mainLoop() {
+
     try {
-        Network n; // start connection in constructor
+        const Network n; // start connection in constructor
 
         Game game{};
 
-        int player = stoi(n.getP());
+        const int player = stoi(n.getP());
         cout << "You are player " << player << endl;
         int moves = 0;
         while (true) {
@@ -135,7 +137,7 @@ void mainLoop() {
             if (input_json["bothConnected"]) {
                 string turn = input_json["turn"];
                 string board = input_json["board"];
-                int time_left = input_json["time"];
+                const int time_left = input_json["time"];
 
                 if ((player == 0 && turn == "r") || (player == 1 && turn == "b")) {
                     cout << "New Board: " << board << endl;

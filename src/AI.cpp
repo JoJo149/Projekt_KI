@@ -288,7 +288,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 }
 
 static const uint8_t tower_table_red_mg[64] = {
-    0,0,0,0,0,0,0,0,0,
+    0,0,2,0,0,0,2,0,0,
     0,1,6,8,10,8,6,1,0,
     0,7,15,16,20,16,15,7,0,
     0,8,17,20,25,20,17,8,0,
@@ -304,7 +304,7 @@ static const uint8_t tower_table_blue_mg[64] = {
     0,8,17,20,25,20,17,8,0,
     0,7,15,16,20,16,15,7,0,
     0,1,6,8,10,8,6,1,0,
-    0,0,0,0,0,0,0,0,0, 0
+    0,0,2,0,0,0,2,0,0, 0
 };
 
 static const uint8_t tower_table_red_eg[64] = {
@@ -607,6 +607,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
             }
         }
     }
+
+    // TODO maybe do extra check for how many moves GUARD HAS ?
 
     // distance from next tower to guard
     middle_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
