@@ -114,9 +114,10 @@ public:
 };
 
 void mainLoop() {
-
     try {
         const Network n; // start connection in constructor
+        tuple<string, string> old;
+        tuple<string, string> older;
 
         Game game{};
 
@@ -147,10 +148,19 @@ void mainLoop() {
                     game.stringToGame(board.c_str());
 
                     game.printGame();
+                    string ki_result{};
 
-                    AI AI{game};
+                    // if in loop
+                    if (board == std::get<0>(older)) {
+                        ki_result = std::get<1>(older);
+                    } else {
+                        AI AI{game};
 
-                    string ki_result = AI.alphaBetaTimed().toString();
+                         ki_result = AI.alphaBetaTimed().toString();
+                    }
+
+                    older = old;
+                    old = std::make_tuple(board, ki_result);
 
                     cout << "KI makes Move: " << ki_result << endl;
                     cout << endl;
