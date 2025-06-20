@@ -96,7 +96,7 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 
 
 Move AI::alphaBetaTimed() {
-    auto startTime = std::chrono::steady_clock::now();
+    const auto startTime = std::chrono::steady_clock::now();
     Move best_move{};
 
     // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
@@ -203,8 +203,8 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
 
 int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {
 
-    int originalAlpha = alpha;
-    int originalBeta = beta;
+    const int originalAlpha = alpha;
+    const int originalBeta = beta;
 
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
@@ -231,7 +231,8 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 
     if (node.isGameOver()) {
         move_count++;
-        return maximizing_player ? -MATE_SCORE - depth : MATE_SCORE + depth;
+        const int SCORE = MATE_SCORE + depth;
+        return maximizing_player ? -SCORE : SCORE;
     }
 
     Move move_list[MOVES_LIST_SIZE];
@@ -527,11 +528,11 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     const int player_guard_index = std::countr_zero(player_board & new_game.bitBoards[T_G]);
     uint64_t player_guard_edge =  0;
     player_guard_edge |= 1ULL << (player_guard_index + 9);
-    if (enemy_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
+    if (player_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
     player_guard_edge |= 1ULL << (player_guard_index + 1);
     player_guard_edge |= 1ULL << (player_guard_index - 1);
-    if (enemy_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
-    if (enemy_guard_index >= 10)player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
+    if (player_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
+    if (player_guard_index >= 10) player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
     player_guard_edge |= 1ULL << (player_guard_index + 9 + 1);
     player_guard_edge |= 1ULL << (player_guard_index + 9 - 1);
 
