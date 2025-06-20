@@ -110,6 +110,7 @@ Move AI::alphaBetaTimed(const int time_left) {
         tower_count_player += std::popcount( game.bitBoards[i] & player_board) * (i+1);
         tower_count_enemy += std::popcount( game.bitBoards[i] & enemy_board) * (i+1);
     }
+    int last_eval = 0;
     Move move_list[MOVES_LIST_SIZE] = {};
     int time_limit = limits[tower_count_player + tower_count_enemy -1];
 
@@ -138,7 +139,7 @@ Move AI::alphaBetaTimed(const int time_left) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            alphaBeta(depth,ignore, move_list);
+            MTDf(depth, ignore, move_list, last_eval);
             best_move = move_list[0];
         }
     } catch (const std::runtime_error& e) {
@@ -148,8 +149,37 @@ Move AI::alphaBetaTimed(const int time_left) {
     return best_move;
 }
 
+void AI::mixed(const int depth, int& move_count_result, Move* move_list_given, int& eval) {
+    if (depth % 2 == 0) {
+        MTDf(depth, move_count_result, move_list_given, eval);
+    }else {
+        eval = alphaBeta(depth, move_count_result, move_list_given,std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
+    }
+}
 
-void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given) {
+
+void AI::MTDf(const int depth, int& move_count_result, Move* move_list_given, int& eval) {
+    int beta;
+    int upper = std::numeric_limits<int>::max();
+    int lower = std::numeric_limits<int>::min();
+
+    while (lower < upper) {
+        if (eval == lower) {
+            beta = eval + 1;
+        }else {
+            beta = eval;
+        }
+        eval = alphaBeta(depth, move_count_result, move_list_given, beta - 1, beta);
+        if (eval < beta) {
+            upper = eval;
+        }else {
+            lower = beta;
+        }
+    }
+}
+
+
+int AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given, int alpha_given, int beta_given) {
     Move move_list[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE] = {};
     int eval_count = 0;
@@ -165,8 +195,8 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
 
     Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
-    int alpha = std::numeric_limits<int>::min();
-    constexpr int beta = std::numeric_limits<int>::max();
+    int alpha = alpha_given;
+    int beta = beta_given;
 
     int move_count = 0;
     const playerName max_player = game.active_player;
@@ -219,6 +249,7 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
     }
 
     move_count_result = move_count;
+    return eval_list[0];
 }
 
 

@@ -4,6 +4,7 @@
 
 int main() {
     const auto input_board = "1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b";
+    //const auto input_board = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
 
     Game game{input_board};
     game.generateMoves();
