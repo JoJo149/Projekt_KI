@@ -153,32 +153,33 @@ void AI::aspirationWindowAlphaBeta(const int depth, int& move_count_result, Move
     bool aspiration_window_missed = false;
     int aspiration_margin = 50;
     if (depth == 1) {
-        aspiration_margin = MATE_SCORE;
+        aspiration_margin = 999999;
     }
     bool retry = true;
     int retry_count = 0;
-    const int MAX_RETRIES = 2;
+    constexpr int MAX_RETRIES = 3;
     Move last_move_list[MOVES_LIST_SIZE] = {};
 
     while (retry && retry_count < MAX_RETRIES) {
         aspiration_window_missed = false;
-        std::copy(move_list_given, move_list_given + MOVES_LIST_SIZE, last_move_list);
+        std::copy_n(move_list_given, MOVES_LIST_SIZE, last_move_list);
         alphaBeta(depth,move_count_result, last_move_list, last_eval, aspiration_margin, aspiration_window_missed);
         if (aspiration_window_missed == true) {
             aspiration_margin *= 4;
+            retry_count++;
         }else {
-            std::copy(last_move_list, last_move_list + MOVES_LIST_SIZE, move_list_given);
+            std::copy_n(last_move_list, MOVES_LIST_SIZE, move_list_given);
             retry = false;
         }
-        retry_count++;
     }
     if (retry == true) {
-        alphaBeta(depth,move_count_result, last_move_list, last_eval, 99999, aspiration_window_missed);
+        alphaBeta(depth,move_count_result, last_move_list, last_eval, 999999, aspiration_window_missed);
+        std::copy_n(last_move_list, MOVES_LIST_SIZE, move_list_given);
     }
 }
 
 
-void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, int aspiration_margin, bool& aspiration_window_missed) {
+void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, const int aspiration_margin, bool& aspiration_window_missed) {
     Move move_list[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE] = {};
     int eval_count = 0;
@@ -194,10 +195,12 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
 
     Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
+
     int alpha = last_eval - aspiration_margin;
-    int beta = last_eval + aspiration_margin;
-    int original_alpha = alpha;
-    int original_beta = beta;
+    const int beta = last_eval + aspiration_margin;
+
+    const int original_alpha = alpha;
+    const int original_beta = beta;
 
     int move_count = 0;
     const playerName max_player = game.active_player;
@@ -251,8 +254,9 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
 
     if (best_eval <= original_alpha || best_eval >= original_beta) {
         aspiration_window_missed = true;
+    } else {
+        last_eval = best_eval;
     }
-    last_eval = best_eval;
     move_count_result = move_count;
 }
 
@@ -270,10 +274,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                     move_count++;
                     return ttEntry.score;
                 case TT::Flag::UPPERBOUND:
-                    alpha = std::max(alpha, ttEntry.score);
+                    beta = std::min(beta, ttEntry.score);
                     break;
                 case TT::Flag::LOWERBOUND:
-                    beta = std::min(beta, ttEntry.score);
+                    alpha = std::max(alpha, ttEntry.score);
                     break;
             }
             if (beta <= alpha) {
@@ -337,7 +341,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     TT::Flag flag{};
     if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
     else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
-    else flag = TT::Flag::EXACT; // should not happen
+    else flag = TT::Flag::EXACT;
 
     TT::store(current_key, bestScore, bestMove, depth, flag);
 
@@ -531,20 +535,20 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
-        if ( player_board & left_square
-            || player_board & right_square ) {
+        if ( enemy_board & left_square
+            || enemy_board & right_square ) {
                 middle_game_evaluation -= 10;
                 end_game_evaluation -= 5;
         }
-        if ( player_board & bottom_square
-            || player_board & top_square) {
+        if ( enemy_board & bottom_square
+            || enemy_board & top_square) {
                 middle_game_evaluation -= 5;
                 end_game_evaluation -= 2;
         }
-        if ( player_board & bottom_left_square
-            || player_board & bottom_right_square
-            || player_board & top_left_square
-            || player_board & top_right_square ) {
+        if ( enemy_board & bottom_left_square
+            || enemy_board & bottom_right_square
+            || enemy_board & top_left_square
+            || enemy_board & top_right_square ) {
                 middle_game_evaluation -= 6;
                 end_game_evaluation -= 3;
         }
