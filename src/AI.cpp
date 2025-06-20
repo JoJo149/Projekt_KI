@@ -95,25 +95,44 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 }
 
 
-Move AI::alphaBetaTimed() {
+Move AI::alphaBetaTimed(const int time_left) {
     auto startTime = std::chrono::steady_clock::now();
+    const int max_time = 120000;
     Move best_move{};
 
-    // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
-    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
+    const int limits[16] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000,6000,8000};
+    uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
+    uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
-    int tower_count = 0;
+    int tower_count_player = 0;
+    int tower_count_enemy = 0;
     for (int i = 0; i < T_G; i++) {
-        tower_count += std::popcount( game.bitBoards[i]) * (i+1);
+        tower_count_player += std::popcount( game.bitBoards[i] & player_board) * (i+1);
+        tower_count_enemy += std::popcount( game.bitBoards[i] & enemy_board) * (i+1);
     }
     Move move_list[MOVES_LIST_SIZE] = {};
-    const int time_limit = limits[tower_count-1];
+    int time_limit = limits[tower_count_player + tower_count_enemy -1];
+
+    if (time_left >= (max_time - 100)) {
+        time_limit = 1000;
+    }
+    if (time_limit <= (max_time / 4)) {
+        time_limit = time_limit / 4;
+    }
+
+
     try {
         int ignore = 0;
         for (int depth = 1; ; ++depth) {
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
-            if (elapsed_ms * 10 >= time_limit) {
+            long time_to_move;
+            if (depth % 2 == 1) {
+                time_to_move = elapsed_ms * tower_count_player;
+            }else {
+                time_to_move = elapsed_ms * tower_count_enemy;
+            }
+            if (time_to_move >= time_limit) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
