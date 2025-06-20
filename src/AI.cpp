@@ -100,7 +100,7 @@ Move AI::alphaBetaTimed(const int time_left) {
     constexpr int max_time = 120000;
     Move best_move{};
 
-    const int limits[16] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000,6000,8000};
+    const int limits[14] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000};
     const uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
     const uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
@@ -110,23 +110,23 @@ Move AI::alphaBetaTimed(const int time_left) {
         tower_count_player += std::popcount( game.bitBoards[i] & player_board) * (i+1);
         tower_count_enemy += std::popcount( game.bitBoards[i] & enemy_board) * (i+1);
     }
-    Move move_list[MOVES_LIST_SIZE] = {};
-    int time_limit = limits[tower_count_player + tower_count_enemy -1];
+    Move ordered_move_list[MOVES_LIST_SIZE] = {};
+    int time_limit = limits[tower_count_player + tower_count_enemy - 1];
 
-    if (time_left >= (max_time - 100)) {
+    /*if (time_left >= (max_time - 100)) {
         time_limit = 1000;
-    }
+    }*/
     if (time_limit <= (max_time / 4)) {
         time_limit = time_limit / 4;
     }
-    if (time_left <= (10000)) {
+    if (time_left <= 10000) {
         time_limit = 400;
     }
 
     try {
         int ignore = 0;
         for (int depth = 1; ; ++depth) {
-            const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
+            const long long elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
             long time_to_move;
             if (depth % 2 == 1) {
@@ -138,8 +138,8 @@ Move AI::alphaBetaTimed(const int time_left) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
-            alphaBeta(depth,ignore, move_list);
-            best_move = move_list[0];
+            alphaBeta(depth,ignore, ordered_move_list);
+            best_move = ordered_move_list[0];
         }
     } catch (const std::runtime_error& e) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
@@ -149,26 +149,19 @@ Move AI::alphaBetaTimed(const int time_left) {
 }
 
 
-void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given) {
-    Move move_list[MOVES_LIST_SIZE];
-    int eval_list[MOVES_LIST_SIZE] = {};
-    int eval_count = 0;
+void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
+    Move ordered_move_list_copy[MOVES_LIST_SIZE];
+    int eval_list[MOVES_LIST_SIZE];
     if (depth == 1) {
         game.generateMoves();
-        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
-    }else {
-        for (int i = 0; i < MOVES_LIST_SIZE; i++) {
-            move_list[i] = move_list_given[i];
-        }
+        std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, ordered_move_list_copy);
+    } else {
+        std::copy_n(ordered_move_list, MOVES_LIST_SIZE, ordered_move_list_copy);
     }
 
-
-    Move& best_move = move_list[0];
-    int best_eval = std::numeric_limits<int>::min();
     int alpha = std::numeric_limits<int>::min();
     constexpr int beta = std::numeric_limits<int>::max();
 
-    int move_count = 0;
     const playerName max_player = game.active_player;
 
     uint64_t key = TT::getKey(game);
@@ -177,48 +170,41 @@ void AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_give
     if (TT::TTEntry ttEntry; probe(key, ttEntry)) {
         const Move tt_move = ttEntry.bestMove.convertToMove();
         // make sure move is valid
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
-            if (move_list[i] == tt_move) {
-                std::swap(move_list[0], move_list[i]); // Try TT move first
+        for (int i = 0; i < MOVES_LIST_SIZE && ordered_move_list_copy[i].from != 0; ++i) {
+            if (ordered_move_list_copy[i] == tt_move) {
+                std::swap(ordered_move_list_copy[0], ordered_move_list_copy[i]); // Try TT move first
                 break;
             }
         }
     }
 
-
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
-        TT::flipHashForMove(game, key, move_list[i]);
-        int captured_piece = game.makeMove(move_list[i]);
+    for (int i = 0; i < MOVES_LIST_SIZE && ordered_move_list_copy[i].from != 0; i++) {
+        TT::flipHashForMove(game, key, ordered_move_list_copy[i]);
+        int captured_piece = game.makeMove(ordered_move_list_copy[i]);
         game.toggleActivePlayer();
-        TT::flipHashForMove(game, key, move_list[i]);
+        TT::flipHashForMove(game, key, ordered_move_list_copy[i]);
 
         int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key);
 
-        TT::flipHashForMove(game, key, move_list[i]);
+        TT::flipHashForMove(game, key, ordered_move_list_copy[i]);
         game.toggleActivePlayer();
-        game.unMakeMove(move_list[i], captured_piece);
-        TT::flipHashForMove(game, key, move_list[i]);
+        game.unMakeMove(ordered_move_list_copy[i], captured_piece);
+        TT::flipHashForMove(game, key, ordered_move_list_copy[i]);
 
         // sort new eval and move into list
-        int j = eval_count - 1;
-        while (j >= 0 && eval_list[j] < eval) {
-            eval_list[j + 1] = eval_list[j];
-            move_list_given[j + 1] = move_list_given[j];
-            j--;
+        int eval_index = i;
+        while (eval_index > 0 && eval > eval_list[eval_index - 1]) {
+            eval_list[eval_index] = eval_list[eval_index - 1];
+            ordered_move_list[eval_index] = ordered_move_list[eval_index - 1];
+            eval_index--;
         }
-        eval_list[j + 1] = eval;
-        move_list_given[j + 1] = move_list[i];
-        eval_count++;
 
-        if (eval > best_eval) {
-            best_eval = eval;
-            best_move = move_list[i];
-        }
+        eval_list[eval_index] = eval;
+        ordered_move_list[eval_index] = ordered_move_list_copy[i];
+
         alpha = std::max(alpha, eval);
         if (beta <= alpha) break;
     }
-
-    move_count_result = move_count;
 }
 
 
@@ -227,28 +213,46 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     const int originalAlpha = alpha;
     const int originalBeta = beta;
 
+    node.generateMoves();
+
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
+
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth >= depth) {
-            if (ttEntry.type == TT::Flag::EXACT
-                || (ttEntry.type == TT::Flag::UPPERBOUND && ttEntry.score <= alpha)
-                || (ttEntry.type == TT::Flag::LOWERBOUND && ttEntry.score >= beta) ) {
+            bool is_correct = false;
+            for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+                if (ttEntry.bestMove.convertToMove() == move_list[i]) {
+                    is_correct = true;
+                    break;
+                }
+            }
+            if (is_correct) {
+                switch (ttEntry.type) {
+                    case TT::Flag::EXACT:
+                        move_count++;
+                    return ttEntry.score;
+                    case TT::Flag::UPPERBOUND:
+                        beta = std::min(beta, ttEntry.score);
+                        break;
+                    case TT::Flag::LOWERBOUND:
+                        alpha = std::max(alpha, ttEntry.score);
+                        break;
+                }
+                if (beta <= alpha) {
                     move_count++;
                     return ttEntry.score;
+                }
             }
         }
     }
-
-    node.generateMoves();
 
     if (node.isGameOver()) {
         move_count++;
         const int SCORE = MATE_SCORE + depth;
         return maximizing_player ? -SCORE : SCORE;
     }
-
-    Move move_list[MOVES_LIST_SIZE];
-    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     if (depth == 0) {
         move_count++;

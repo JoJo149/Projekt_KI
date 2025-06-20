@@ -116,8 +116,8 @@ public:
 void mainLoop() {
     try {
         const Network n; // start connection in constructor
-        tuple<string, string> old;
-        tuple<string, string> older;
+        tuple<string, string> old("", "");
+        tuple<string, string> older("", "");
 
         Game game{};
 
@@ -178,6 +178,6 @@ void mainLoop() {
 int main() {
     TT::loadFromFile();
     mainLoop();
-    TT::saveToFile();
+    // TT::saveToFile();
     return 0;
 }
