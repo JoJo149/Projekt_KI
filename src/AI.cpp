@@ -235,10 +235,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                     move_count++;
                     return ttEntry.score;
                 case TT::Flag::UPPERBOUND:
-                    alpha = std::max(alpha, ttEntry.score);
+                    beta = std::min(beta, ttEntry.score);
                     break;
                 case TT::Flag::LOWERBOUND:
-                    beta = std::min(beta, ttEntry.score);
+                    alpha = std::max(alpha, ttEntry.score);
                     break;
             }
             if (beta <= alpha) {
@@ -302,7 +302,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     TT::Flag flag{};
     if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
     else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
-    else flag = TT::Flag::EXACT; // should not happen
+    else flag = TT::Flag::EXACT;
 
     TT::store(current_key, bestScore, bestMove, depth, flag);
 
@@ -496,20 +496,20 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
-        if ( player_board & left_square
-            || player_board & right_square ) {
+        if ( enemy_board & left_square
+            || enemy_board & right_square ) {
                 middle_game_evaluation -= 10;
                 end_game_evaluation -= 5;
         }
-        if ( player_board & bottom_square
-            || player_board & top_square) {
+        if ( enemy_board & bottom_square
+            || enemy_board & top_square) {
                 middle_game_evaluation -= 5;
                 end_game_evaluation -= 2;
         }
-        if ( player_board & bottom_left_square
-            || player_board & bottom_right_square
-            || player_board & top_left_square
-            || player_board & top_right_square ) {
+        if ( enemy_board & bottom_left_square
+            || enemy_board & bottom_right_square
+            || enemy_board & top_left_square
+            || enemy_board & top_right_square ) {
                 middle_game_evaluation -= 6;
                 end_game_evaluation -= 3;
         }
