@@ -17,7 +17,7 @@ public:
     [[nodiscard]] Move minmax(int, int&);
     int traverseMoves(Game, int, int&, bool, playerName);
 
-    Move alphaBetaTimed();
+    Move alphaBetaTimed(int);
     void MTDf(int, int&, Move*, int&);
     void mixed(int depth, int &move_count_result, Move *move_list_given, int &eval);
 

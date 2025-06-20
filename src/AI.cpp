@@ -95,26 +95,47 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 }
 
 
-Move AI::alphaBetaTimed() {
-    auto startTime = std::chrono::steady_clock::now();
+Move AI::alphaBetaTimed(const int time_left) {
+    const auto startTime = std::chrono::steady_clock::now();
+    constexpr int max_time = 120000;
     Move best_move{};
 
-    // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
-    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
+    const int limits[16] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000,6000,8000};
+    const uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
+    const uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
-    int tower_count = 0;
+    int tower_count_player = 0;
+    int tower_count_enemy = 0;
     for (int i = 0; i < T_G; i++) {
-        tower_count += std::popcount( game.bitBoards[i]) * (i+1);
+        tower_count_player += std::popcount( game.bitBoards[i] & player_board) * (i+1);
+        tower_count_enemy += std::popcount( game.bitBoards[i] & enemy_board) * (i+1);
     }
-    Move move_list[MOVES_LIST_SIZE] = {};
     int last_eval = 0;
-    const int time_limit = limits[tower_count-1];
+    Move move_list[MOVES_LIST_SIZE] = {};
+    int time_limit = limits[tower_count_player + tower_count_enemy -1];
+
+    if (time_left >= (max_time - 100)) {
+        time_limit = 1000;
+    }
+    if (time_limit <= (max_time / 4)) {
+        time_limit = time_limit / 4;
+    }
+    if (time_left <= (10000)) {
+        time_limit = 400;
+    }
+
     try {
         int ignore = 0;
         for (int depth = 1; ; ++depth) {
             auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
-            if (elapsed_ms * 10 >= time_limit) {
+            long time_to_move;
+            if (depth % 2 == 1) {
+                time_to_move = elapsed_ms * tower_count_player;
+            }else {
+                time_to_move = elapsed_ms * tower_count_enemy;
+            }
+            if (time_to_move >= time_limit) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
@@ -170,8 +191,9 @@ int AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given
             move_list[i] = move_list_given[i];
         }
     }
-    Move& best_move = move_list[0];
 
+
+    Move& best_move = move_list[0];
     int best_eval = std::numeric_limits<int>::min();
     int alpha = alpha_given;
     int beta = beta_given;
@@ -233,8 +255,8 @@ int AI::alphaBeta(const int depth, int& move_count_result, Move* move_list_given
 
 int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {
 
-    int originalAlpha = alpha;
-    int originalBeta = beta;
+    const int originalAlpha = alpha;
+    const int originalBeta = beta;
 
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
@@ -261,7 +283,8 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 
     if (node.isGameOver()) {
         move_count++;
-        return maximizing_player ? -MATE_SCORE - depth : MATE_SCORE + depth;
+        const int SCORE = MATE_SCORE + depth;
+        return maximizing_player ? -SCORE : SCORE;
     }
 
     Move move_list[MOVES_LIST_SIZE];
@@ -318,7 +341,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 }
 
 static const uint8_t tower_table_red_mg[64] = {
-    0,0,0,0,0,0,0,0,0,
+    0,0,2,0,0,0,2,0,0,
     0,1,6,8,10,8,6,1,0,
     0,7,15,16,20,16,15,7,0,
     0,8,17,20,25,20,17,8,0,
@@ -334,7 +357,7 @@ static const uint8_t tower_table_blue_mg[64] = {
     0,8,17,20,25,20,17,8,0,
     0,7,15,16,20,16,15,7,0,
     0,1,6,8,10,8,6,1,0,
-    0,0,0,0,0,0,0,0,0, 0
+    0,0,2,0,0,0,2,0,0, 0
 };
 
 static const uint8_t tower_table_red_eg[64] = {
@@ -557,11 +580,11 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     const int player_guard_index = std::countr_zero(player_board & new_game.bitBoards[T_G]);
     uint64_t player_guard_edge =  0;
     player_guard_edge |= 1ULL << (player_guard_index + 9);
-    if (enemy_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
+    if (player_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
     player_guard_edge |= 1ULL << (player_guard_index + 1);
     player_guard_edge |= 1ULL << (player_guard_index - 1);
-    if (enemy_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
-    if (enemy_guard_index >= 10)player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
+    if (player_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
+    if (player_guard_index >= 10) player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
     player_guard_edge |= 1ULL << (player_guard_index + 9 + 1);
     player_guard_edge |= 1ULL << (player_guard_index + 9 - 1);
 
@@ -637,6 +660,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
             }
         }
     }
+
+    // TODO maybe do extra check for how many moves GUARD HAS ?
 
     // distance from next tower to guard
     middle_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
