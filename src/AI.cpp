@@ -96,13 +96,13 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 
 
 Move AI::alphaBetaTimed(const int time_left) {
-    auto startTime = std::chrono::steady_clock::now();
-    const int max_time = 120000;
+    const auto startTime = std::chrono::steady_clock::now();
+    constexpr int max_time = 120000;
     Move best_move{};
 
     const int limits[16] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000,6000,8000};
-    uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
-    uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
+    const uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
+    const uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
     int tower_count_player = 0;
     int tower_count_enemy = 0;
@@ -119,7 +119,9 @@ Move AI::alphaBetaTimed(const int time_left) {
     if (time_limit <= (max_time / 4)) {
         time_limit = time_limit / 4;
     }
-
+    if (time_left <= (10000)) {
+        time_limit = 400;
+    }
 
     try {
         int ignore = 0;
