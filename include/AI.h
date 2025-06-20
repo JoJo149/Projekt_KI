@@ -17,7 +17,7 @@ public:
     [[nodiscard]] Move minmax(int, int&);
     int traverseMoves(Game, int, int&, bool, playerName);
 
-    Move alphaBetaTimed();
+    Move alphaBetaTimed(const int);
 
     void alphaBeta(int,int&, Move*);
     int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&);

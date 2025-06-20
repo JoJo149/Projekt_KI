@@ -156,7 +156,7 @@ void mainLoop() {
                     } else {
                         AI AI{game};
 
-                         ki_result = AI.alphaBetaTimed().toString();
+                         ki_result = AI.alphaBetaTimed(time_left).toString();
                     }
 
                     older = old;
