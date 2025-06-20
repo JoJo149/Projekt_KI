@@ -126,7 +126,7 @@ Move AI::alphaBetaTimed(const int time_left) {
     try {
         int ignore = 0;
         for (int depth = 1; ; ++depth) {
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
+            const auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
             long time_to_move;
             if (depth % 2 == 1) {
@@ -230,20 +230,11 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth >= depth) {
-            switch (ttEntry.type) {
-                case TT::Flag::EXACT:
+            if (ttEntry.type == TT::Flag::EXACT
+                || (ttEntry.type == TT::Flag::UPPERBOUND && ttEntry.score <= alpha)
+                || (ttEntry.type == TT::Flag::LOWERBOUND && ttEntry.score >= beta) ) {
                     move_count++;
                     return ttEntry.score;
-                case TT::Flag::UPPERBOUND:
-                    beta = std::min(beta, ttEntry.score);
-                    break;
-                case TT::Flag::LOWERBOUND:
-                    alpha = std::max(alpha, ttEntry.score);
-                    break;
-            }
-            if (beta <= alpha) {
-                move_count++;
-                return ttEntry.score;
             }
         }
     }
@@ -261,9 +252,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
 
     if (depth == 0) {
         move_count++;
-        const int eval = evaluationFunction(node, max_player);
-        TT::store(current_key, eval, Move{0,0,0}, depth, TT::Flag::EXACT);
-        return  eval;
+        return evaluationFunction(node, max_player);
     }
 
     int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
