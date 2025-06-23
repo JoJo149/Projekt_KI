@@ -219,7 +219,7 @@ namespace TT {
     };
 
     enum class Flag : uint8_t {
-        EXACT, LOWERBOUND, UPPERBOUND
+        EXACT, ALPHA_CUTOFF, BETA_CUTOFF
     };
 
     // only save index for smaller form factor

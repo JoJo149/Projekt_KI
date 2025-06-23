@@ -3,7 +3,7 @@
 #include "AI.h"
 
 int main() {
-    const auto input_board = "1RG5/3r13/2r1r13/7/3r2b2b21/4BG2/7 b";
+    const auto input_board = "3RG1r1r1/2r14/1r25/7/2b1r21b11/4b12/1b21BG1b1b1 b";
 
     Game game{input_board};
     game.generateMoves();

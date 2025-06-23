@@ -233,10 +233,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                     case TT::Flag::EXACT:
                         move_count++;
                         return ttEntry.score;
-                    case TT::Flag::UPPERBOUND:
+                    case TT::Flag::BETA_CUTOFF:
                         beta = std::min(beta, ttEntry.score);
                         break;
-                    case TT::Flag::LOWERBOUND:
+                    case TT::Flag::ALPHA_CUTOFF:
                         alpha = std::max(alpha, ttEntry.score);
                         break;
                 }
@@ -291,10 +291,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         if (beta <= alpha) break;
     }
 
-
+    // CUTOFF FLAGS
     TT::Flag flag{};
-    if (bestScore <= originalAlpha) flag = TT::Flag::UPPERBOUND;
-    else if (bestScore >= originalBeta) flag = TT::Flag::LOWERBOUND;
+    if (bestScore <= originalAlpha) flag = TT::Flag::ALPHA_CUTOFF;
+    else if (bestScore >= originalBeta) flag = TT::Flag::BETA_CUTOFF;
     else flag = TT::Flag::EXACT;
 
     TT::store(current_key, bestScore, bestMove, depth, flag);
