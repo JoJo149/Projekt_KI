@@ -94,6 +94,41 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
     }
 }
 
+void print_move_list(Move * move_list) {
+    std::cout << "ordered move list: " ;
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        std::cout <<"(" << move_list[i].toString() << ")" << ", ";
+    }
+    std::cout << std::endl;
+}
+
+void print_eval_list(int * eval_list) {
+    std::cout << "eval list: " ;
+    for (int i = 0; i < MOVES_LIST_SIZE; ++i) {
+        std::cout <<"(" << eval_list[i] << ")" << ", ";
+    }
+    std::cout << std::endl;
+}
+
+void AI::check_move_list(Move * move_list) {
+    this->game.generateMoves();
+    Move move_list_test[MOVES_LIST_SIZE];
+    this->game.generateMoves();
+    std::copy_n(this->game.getMoveList(), MOVES_LIST_SIZE, move_list_test);
+    bool enthalten = false;
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        enthalten = false;
+        for (int j = 0; j < MOVES_LIST_SIZE && move_list_test[j].from != 0; ++j) {
+            if (move_list[i] == move_list_test[j]) {
+                enthalten = true;
+            }
+        }
+    }
+    if (enthalten == false) {
+        std::cout << "falsche move Liste !!!!!!" << std::endl;
+    }
+}
+
 
 Move AI::alphaBetaTimed(const int time_left) {
     const auto startTime = std::chrono::steady_clock::now();
@@ -145,13 +180,14 @@ Move AI::alphaBetaTimed(const int time_left) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
     }
 
+    print_move_list(ordered_move_list);
     return best_move;
 }
 
 
 void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
     Move ordered_move_list_copy[MOVES_LIST_SIZE];
-    int eval_list[MOVES_LIST_SIZE];
+    int eval_list[MOVES_LIST_SIZE] = {0};
     if (depth == 1) {
         game.generateMoves();
         std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, ordered_move_list_copy);
@@ -205,6 +241,9 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
         alpha = std::max(alpha, eval);
         if (beta <= alpha) break;
     }
+    print_move_list(ordered_move_list);
+    print_eval_list(eval_list);
+    std::cout << std::endl;
 }
 
 

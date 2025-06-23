@@ -5,7 +5,7 @@
 int main() {
     TT::loadFromFile();
 
-    const auto input_board = "3RG1r1r1/2r14/1r25/7/2b1r21b11/4b12/1b21BG1b1b1 b";
+    const auto input_board = "1r1r1RG2r1/2r12r11/3b2r1b21/7/7/4b12/b1b11BG3 r";
 
     Game game{input_board};
     game.generateMoves();
