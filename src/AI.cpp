@@ -29,7 +29,7 @@ Move AI::minmax(int depth, int& move_count_result) {
         int captured_piece = game.makeMove(move_list[i]);
         game.toggleActivePlayer();
 
-        int eval = traverseMoves(game, depth - 1, local_count, false, start_player);
+        const int eval = traverseMoves(game, depth - 1, local_count, false, start_player);
         move_count += local_count;
 
         game.toggleActivePlayer();
@@ -232,7 +232,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                 switch (ttEntry.type) {
                     case TT::Flag::EXACT:
                         move_count++;
-                    return ttEntry.score;
+                        return ttEntry.score;
                     case TT::Flag::UPPERBOUND:
                         beta = std::min(beta, ttEntry.score);
                         break;

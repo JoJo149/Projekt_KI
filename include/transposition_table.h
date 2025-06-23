@@ -292,7 +292,7 @@ namespace TT {
                     break;
             }
         }
-        const int offset_to = ((game.bitBoards[C_R] & move.from) == 0) ? 0 : ZOBRIST_COLOR_OFFSET;
+        const int offset_to = ((game.bitBoards[C_R] & move.to) == 0) ? 0 : ZOBRIST_COLOR_OFFSET;
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
             if (const uint64_t tower = game.bitBoards[tower_type] & move.to) {
                 const int bit_index = std::countr_zero(tower);
