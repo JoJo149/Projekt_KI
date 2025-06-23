@@ -85,7 +85,7 @@ public:
         return string{buffer};
     }
 
-    string sendData(const string& data) const {
+    [[nodiscard]] string sendData(const string& data) const {
         send(sock, data.c_str(), data.size(), 0);
         char buffer[4096];
         const size_t len = recv(sock, buffer, sizeof(buffer) - 1, 0);

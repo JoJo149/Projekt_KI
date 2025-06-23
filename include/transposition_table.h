@@ -1,4 +1,6 @@
 #pragma once
+#include <cassert>
+
 #include "Game.h"
 
 #include <fstream>
@@ -19,7 +21,7 @@ namespace TT {
         0x6a5d932b45ff2c83ULL, 0x7b85179ad5b077e0ULL
     };
 
-    constexpr uint64_t zobrist_table[NUM_TOWER_TYPES * NUM_PLAYERS * BOARD_SIZE] = {
+    constexpr uint64_t zobrist_table[NUM_PLAYERS * NUM_TOWER_TYPES * BOARD_SIZE] = {
         0x1c80317fa3b1799dULL, 0xbdd640fb06671ad1ULL, 0x3eb13b9046685257ULL, 0x23b8c1e9392456deULL,
         0x1a3d1fa7bc8960a9ULL, 0xbd9c66b3ad3c2d6dULL, 0x8b9d2434e465e150ULL, 0x972a846916419f82ULL,
         0x0822e8f36c031199ULL, 0x17fc695a07a0ca6eULL, 0x3b8faa1837f8a88bULL, 0x9a1de644815ef6d1ULL,
@@ -253,10 +255,9 @@ namespace TT {
 
     inline void store(const uint64_t key, const int score, const Move &bestMove, const int depth, const Flag type) {
         const uint64_t index = key & (TT_SIZE - 1);
-        TTEntry& entry = tt[index];
 
         // Replace if deeper or new
-        if (entry.key == 0 || depth >= entry.depth) {
+        if (TTEntry& entry = tt[index]; entry.key == 0 || depth >= entry.depth) {
             entry = TTEntry{key, score, TT_Move(bestMove), depth, type};
         }
     }
@@ -271,7 +272,7 @@ namespace TT {
                 if (uint64_t tower = game.bitBoards[tower_type] & color_mask) {
                     while (tower) {
                         const int bit_index = std::countr_zero(tower);
-                        key ^= zobrist_table[offset + tower_type * 49 + (convert_pos[bit_index] - 1)];
+                        key ^= zobrist_table[offset + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                         tower &= (tower - 1);
                     }
                 }
@@ -282,21 +283,22 @@ namespace TT {
 
     // first call removes old hashes, second call adds new hashes
     inline void flipHashForMove(const Game &game, uint64_t& old_key, const Move& move) {
+         assert(move.from != 0 && move.to != 0);
          old_key ^= player_keys[game.active_player];
 
-        const int offset_from = ((game.bitBoards[C_R] & move.from) == 0) ? 0 : ZOBRIST_COLOR_OFFSET;
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
             if (const uint64_t tower = game.bitBoards[tower_type] & move.from) {
+                    const int offset_from = (game.bitBoards[C_B] & tower) ? 0 : ZOBRIST_COLOR_OFFSET;
                     const int bit_index = std::countr_zero(tower);
-                    old_key ^= zobrist_table[offset_from + tower_type * 49 + (convert_pos[bit_index] - 1)];
+                    old_key ^= zobrist_table[offset_from + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                     break;
             }
         }
-        const int offset_to = ((game.bitBoards[C_R] & move.to) == 0) ? 0 : ZOBRIST_COLOR_OFFSET;
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
             if (const uint64_t tower = game.bitBoards[tower_type] & move.to) {
+                const int offset_to = (game.bitBoards[C_B] & tower) ? 0 : ZOBRIST_COLOR_OFFSET;
                 const int bit_index = std::countr_zero(tower);
-                old_key ^= zobrist_table[offset_to + tower_type * 49 + (convert_pos[bit_index] - 1)];
+                old_key ^= zobrist_table[offset_to + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                 break;
             }
         }
@@ -305,9 +307,8 @@ namespace TT {
 
     inline bool probe(const uint64_t key, TTEntry& out) {
         const uint64_t index = key & (TT_SIZE - 1);
-        const TTEntry& entry = tt[index];
 
-        if (entry.key == key) {
+        if (const TTEntry& entry = tt[index]; entry.key == key) {
             out = entry;
             return true;
         }

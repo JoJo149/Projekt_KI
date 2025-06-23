@@ -234,10 +234,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                         move_count++;
                         return ttEntry.score;
                     case TT::Flag::BETA_CUTOFF:
-                        beta = std::min(beta, ttEntry.score);
+                        alpha = std::max(alpha, ttEntry.score);
                         break;
                     case TT::Flag::ALPHA_CUTOFF:
-                        alpha = std::max(alpha, ttEntry.score);
+                        beta = std::min(beta, ttEntry.score);
                         break;
                 }
                 if (beta <= alpha) {
@@ -561,12 +561,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
                 middle_game_evaluation += 30;
                 end_game_evaluation += 40;
             }
-        }else if (move_list_player[i].to & player_guard_edge) {
-            middle_game_evaluation += 20;
-            end_game_evaluation += 50;
-        }
         // if u move onto enemy tower
-        if (move_list_player[i].to & enemy_board) {
+        } else if (move_list_player[i].to & enemy_board) {
             bool hanging = true;
             for (int j = 0; j < MOVES_LIST_SIZE && move_list_enemy[j].from != 0 && hanging; ++j) {
                 if (move_list_player[i].to == move_list_enemy[j].to) {
@@ -584,6 +580,9 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
                 middle_game_evaluation += 40;
                 end_game_evaluation += 30;
             }
+        } else if (move_list_player[i].to & player_guard_edge) {
+            middle_game_evaluation += 20;
+            end_game_evaluation += 50;
         }
     }
 
@@ -597,12 +596,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
                 middle_game_evaluation -= 30;
                 end_game_evaluation -= 40;
             }
-        } else if (move_list_enemy[i].to & enemy_guard_edge) {
-            middle_game_evaluation -= 20;
-            end_game_evaluation -= 50;
-        }
         // if enemy move onto player tower
-        if (move_list_enemy[i].to & player_board) {
+        } else if (move_list_enemy[i].to & player_board) {
             bool hanging = true;
             for (int j = 0; j < MOVES_LIST_SIZE && move_list_player[j].from != 0 && hanging; ++j) {
                 if (move_list_enemy[i].to == move_list_player[j].to) {
@@ -620,17 +615,20 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
                 middle_game_evaluation -= 40;
                 end_game_evaluation -= 30;
             }
+        } else if (move_list_enemy[i].to & enemy_guard_edge) {
+            middle_game_evaluation -= 20;
+            end_game_evaluation -= 50;
         }
     }
 
     // TODO maybe do extra check for how many moves GUARD HAS ?
 
     // distance from next tower to guard
-    middle_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
-    middle_game_evaluation += 20 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
+    middle_game_evaluation -= 15 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
+    middle_game_evaluation += 15 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
 
-    end_game_evaluation -= 25 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
-    end_game_evaluation += 25 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
+    end_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
+    end_game_evaluation += 20 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
 
     return (middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count)) / 14;
 }

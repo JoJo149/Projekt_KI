@@ -3,6 +3,8 @@
 #include "AI.h"
 
 int main() {
+    TT::loadFromFile();
+
     const auto input_board = "3RG1r1r1/2r14/1r25/7/2b1r21b11/4b12/1b21BG1b1b1 b";
 
     Game game{input_board};
