@@ -92,25 +92,46 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
 }
 
 
-Move AI::alphaBetaTimed() {
-    auto startTime = std::chrono::steady_clock::now();
+Move AI::alphaBetaTimed(const int time_left) {
+    const auto startTime = std::chrono::steady_clock::now();
+    constexpr int max_time = 120000;
+    // constexpr int max_time = 180000;
     Move best_move{};
 
-    // TIME_LIMIT_MS TODO: maybe nochmal ein wenig anpassen
-    const int limits[16] = {500,1500,1500,1500,1750,2500,2500,2500,2000,1500,1500,1500,1250,1250,1000,1000};
+    const int limits[14] = {4000,6000,6000,6000,7000,8000,9000,9000,9000,9000,9000,8000,7000,6000};
+    const uint64_t player_board = (game.active_player == red) ? game.bitBoards[C_R] : game.bitBoards[C_B];
+    const uint64_t enemy_board = (game.active_player == red) ? game.bitBoards[C_B] : game.bitBoards[C_R];
 
-    int tower_count = 0;
-    for (int i = 0; i < 7; i++) {
-        tower_count += std::popcount( game.bitBoards[i]) * (i+1);
+    int tower_count_player = 0;
+    int tower_count_enemy = 0;
+    for (int i = 0; i < T_G; i++) {
+        tower_count_player += std::popcount( game.bitBoards[i] & player_board) * (i+1);
+        tower_count_enemy += std::popcount( game.bitBoards[i] & enemy_board) * (i+1);
+    }
+    int time_limit = 2 * limits[tower_count_player + tower_count_enemy - 1];
+
+    if (time_left >= (max_time - 100)) {
+        time_limit = 1000;
+    }
+    if (time_limit <= (max_time / 4)) {
+        time_limit = time_limit / 4;
+    }
+    if (time_left <= 10000) {
+        time_limit = 400;
     }
 
-    const int time_limit = limits[tower_count-1];
     try {
         int ignore = 0;
         for (int depth = 1; ; ++depth) {
-            auto elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
+            const long long elapsed_ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - startTime).count();
 
-            if (elapsed_ms * 10 >= time_limit) {
+            long time_to_move;
+            if (depth % 2 == 1) {
+                time_to_move = elapsed_ms * tower_count_player;
+            }else {
+                time_to_move = elapsed_ms * tower_count_enemy;
+            }
+            if (time_to_move >= time_limit) {
                 std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
@@ -434,6 +455,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
+        /*
         if ( player_board & left_square
             || player_board & right_square ) {
             middle_game_evaluation += 7;
@@ -451,6 +473,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
             middle_game_evaluation += 6;
             end_game_evaluation += 3;
             }
+            */
 
     }
 
@@ -473,6 +496,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
+        /*
         if ( enemy_board & left_square
             || enemy_board & right_square ) {
             middle_game_evaluation -= 7;
@@ -490,6 +514,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
             middle_game_evaluation -= 6;
             end_game_evaluation -= 3;
             }
+            */
     }
 
     // position eval for Guard
