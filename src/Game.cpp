@@ -1,14 +1,4 @@
-#include <algorithm>
-
-#include "game.h"
-#include <cassert>
-#include <iostream>
-#include <ostream>
-#include <string>
-#include <cstdint>
-#include <vector>
-#include <cstring>
-#include <set>
+#include "Game.h"
 
 Game::Game() = default;
 

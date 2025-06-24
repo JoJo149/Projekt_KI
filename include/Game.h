@@ -1,8 +1,10 @@
 #pragma once
-#include "move.h"
-#include <string>
-#include <cstdint>
 #include <vector>
+#include <algorithm>
+#include <cassert>
+#include <iostream>
+
+#include "move.h"
 
 constexpr int BITBOARD_COUNT = 10;
 constexpr int MOVES_LIST_SIZE = 32;

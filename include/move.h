@@ -1,6 +1,4 @@
 #pragma once
-#include <cstdint>
-#include <tuple>
 #include <string>
 
 struct Move {
@@ -10,7 +8,7 @@ struct Move {
 
     Move() = default;
 
-    Move(uint64_t from, uint64_t to, int steps)
+    Move(const uint64_t from, const uint64_t to, const int steps)
         : from(from), to(to), move_distance(steps) {}
 
     bool operator==(const Move& other) const {

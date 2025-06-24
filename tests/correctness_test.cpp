@@ -1,10 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <vector>
-#include <string>
 #include "Utils_test.h"
-#include "../include/game.h"
-#include "random"
+#include "Game.h"
 
 
 TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, readableMoves") {

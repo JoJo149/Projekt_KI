@@ -1,10 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
-#include <vector>
-#include <string>
-#include <Utils_test.h>
 
+#include "Utils_test.h"
 #include "../include/game.h"
-#include "random"
+
 
 // TODO automate test for moving
 TEST_CASE("Test correctness of: makeMove and unMakeMove") {

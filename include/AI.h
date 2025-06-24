@@ -1,6 +1,7 @@
 #pragma once
+#include <chrono>
 
-#include "game.h"
+#include "Game.h"
 
 class AI {
 private:

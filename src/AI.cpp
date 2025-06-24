@@ -1,14 +1,5 @@
 #include "AI.h"
 
-#include <algorithm>
-#include <cassert>
-#include <execution>
-#include <cstring>
-#include <chrono>
-#include "game.h"
-#include <iostream>
-#include <limits>
-
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
 AI::AI(const Game& game) : game(game) {}

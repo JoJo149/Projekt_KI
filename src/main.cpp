@@ -1,8 +1,4 @@
-#include <iostream>
-#include <random>
 #include "AI.h"
-#include "Utils.h"
-
 
 int main() {
     const char * input_board = "3RG1r21/4r12/1r2r1r13/7/2b1b11b21/4b12/b22BG3 r";
