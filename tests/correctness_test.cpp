@@ -2,6 +2,7 @@
 
 #include "Utils_test.h"
 #include "Game.h"
+#include "AI.h"
 
 
 TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, readableMoves") {
@@ -104,4 +105,20 @@ TEST_CASE("isGameOver: game is still running") {
     CHECK(game.isGameOver() == false);
 }
 
+
+TEST_CASE("right moves") {
+    AI ai = {};
+    Move best_move = {};
+    std::string s;
+
+    ai.getGame().stringToGame("1r1r1RG2r1/2r12r11/3b2r1b21/7/7/4b12/b1b11BG3 r");
+    best_move = ai.alphaBetaTimed(120000);
+    s = best_move.toString();
+    CHECK(s == "D7-E7-1");
+
+    ai.getGame().stringToGame("1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b");
+    best_move = ai.alphaBetaTimed(120000);
+    s = best_move.toString();
+    CHECK(s == "D1-D2-1");
+}
 
