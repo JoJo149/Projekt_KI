@@ -1,5 +1,8 @@
 #include "AI.h"
 
+constexpr int MATE_SCORE = 214748364;
+
+
 AI::AI(): game(red) {}
 AI::AI(const char * game_string): game(game_string) {}
 AI::AI(const Game& game) : game(game) {}
@@ -156,7 +159,7 @@ Move AI::alphaBeta(const int depth, int& move_count_result) {
     int beta = std::numeric_limits<int>::max();
 
     int move_count = 0;
-    playerName max_player = game.active_player;
+    const playerName max_player = game.active_player;
 
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++) {
         int captured_piece = game.makeMove(move_list[i]);
@@ -185,11 +188,9 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     node.generateMoves();
 
     if (node.isGameOver()) {
-        if (!maximizing_player) {
-            return 100000000 + depth;
-        }else{
-            return -100000000 - depth;
-        }
+        move_count++;
+        const int SCORE = MATE_SCORE + depth;
+        return maximizing_player ? -SCORE : SCORE;
     }
 
     if (depth == 0) {
@@ -200,40 +201,27 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
-    if (maximizing_player) {
-        int maxEval = std::numeric_limits<int>::min();
+    int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        int captured = node.makeMove(move_list[i]);
+        node.toggleActivePlayer();
 
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
+        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta);
 
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, false, max_player, alpha, beta);
+        node.toggleActivePlayer();
+        node.unMakeMove(move_list[i], captured);
 
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i], captured_piece);
-
-            maxEval = std::max(maxEval, eval);
+        if (maximizing_player) {
+            bestScore = std::max(bestScore, eval);
             alpha = std::max(alpha, eval);
-            if (beta <= alpha) break;
-        }
-        return maxEval;
-    } else {
-        int minEval = std::numeric_limits<int>::max();
-        for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; i++){
-            int captured_piece = node.makeMove(move_list[i]);
-            node.toggleActivePlayer();
-
-            int eval = traverseMovesAlphaBeta(node, depth - 1,move_count, true, max_player, alpha, beta);
-
-            node.toggleActivePlayer();
-            node.unMakeMove(move_list[i] , captured_piece);
-
-            minEval = std::min(minEval, eval);
+        } else {
+            bestScore = std::min(bestScore, eval);
             beta = std::min(beta, eval);
-            if (beta <= alpha) break;
         }
-        return minEval;
+
+        if (beta <= alpha) break;
     }
+    return bestScore;
 }
 
 static const uint8_t tower_table_red_mg[64] = {
