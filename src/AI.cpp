@@ -1,6 +1,7 @@
 #include "AI.h"
 
 #include <algorithm>
+#include <cassert>
 #include <execution>
 #include <cstring>
 #include <chrono>
@@ -248,15 +249,15 @@ static const uint8_t tower_table_red_eg[64] = {
     0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,
     0,1,4,5,10,5,4,1,0,
-    0,3,6,14,21,14,6,3,0,
-    0,7,15,22,30,22,15,7,0,
-    0,0,0,0,0,0,0,0,0, 0
+    0,3,6,14,18,14,6,3,0,
+    0,7,15,19,23,19,15,7,0,
+    0,0,12,16,16,16,12,0,0, 0
 };
 
 static const uint8_t tower_table_blue_eg[64] = {
-    0,0,0,0,0,0,0,0,0,
-    0,7,15,22,30,22,15,7,0,
-    0,3,6,14,21,14,6,3,0,
+    0,0,12,16,16,16,12,0,0,
+    0,7,15,19,23,19,15,7,0,
+    0,3,6,14,18,14,6,3,0,
     0,1,4,5,10,5,4,1,0,
     0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,
@@ -264,8 +265,8 @@ static const uint8_t tower_table_blue_eg[64] = {
 };
 
 static const uint8_t guard_table_red_mg[64] = {
-    0,0,65,85,100,85,65,0,0,
-    0,0,55,75,110,75,55,0,0,
+    0,0,30,50,30,50,30,0,0,
+    0,0,75,95,110,95,75,0,0,
     0,0,50,60,65,60,50,0,0,
     0,0,40,50,62,50,40,0,0,
     0,0,30,35,37,35,30,0,0,
@@ -279,8 +280,8 @@ static const uint8_t guard_table_blue_mg[64] = {
     0,0,30,35,37,35,30,0,0,
     0,0,40,50,62,50,40,0,0,
     0,0,50,60,65,60,50,0,0,
-    0,0,55,75,110,75,55,0,0,
-    0,0,65,85,100,85,65,0,0, 0
+    0,0,75,95,110,95,75,0,0,
+    0,0,30,50,30,50,30,0,0, 0
 };
 
 
@@ -304,33 +305,101 @@ static const uint8_t guard_table_blue_eg[64] = {
     0,0,0,0,0,0,0,0,0,0
 };
 
-inline int minDistanceGuard(uint64_t pieces, const uint64_t guard) {
-    if (guard == 0 || pieces == 0) return 14;
 
-    const int guard_pos = std::countr_zero(guard);
-    const int guard_x = guard_pos % 9;
-    const int guard_y = guard_pos / 9;
+inline void evalGuardEdge(const bool player, const uint64_t guard_board, const uint64_t player_board, const uint64_t enemy_board, int& middle_game_evaluation, int& end_game_evaluation) {
+    int guard_middle_game_evaluation = 0;
+    int guard_end_game_evaluation = 0;
 
-    int min_dist = 14;
-    while (pieces) {
-        const int pos = std::countr_zero(pieces);
-        pieces &= pieces - 1;
+    constexpr int player_ortho_mg = 15;
+    constexpr int enemy_ortho_mg = 20;
+    constexpr int enemy_diag_mg = 10;
 
-        const int x = pos % 9;
-        const int y = pos / 9;
-        int dist = std::abs(x - guard_x) + std::abs(y - guard_y);
+    constexpr int player_ortho_eg = 25;
+    constexpr int enemy_ortho_eg = 30;
+    constexpr int enemy_diag_eg = 20;
 
-        if (dist < min_dist) {
-            min_dist = dist;
-            if (min_dist == 1) break;
-        }
+
+    const int player_guard_index = std::countr_zero(guard_board);
+    const uint64_t player_guard_bottom_square = 1ULL << (player_guard_index + 9);
+    uint64_t player_guard_top_square = 0;
+    if (player_guard_index >= 9) player_guard_top_square = 1ULL << (player_guard_index - 9);
+    const uint64_t player_guard_right_square = 1ULL << (player_guard_index + 1);
+    const uint64_t player_guard_left_square = 1ULL << (player_guard_index - 1);
+    uint64_t player_guard_top_right_square = 0;
+    if (player_guard_index >= 8) player_guard_top_right_square = 1ULL << (player_guard_index - 9 + 1);
+    uint64_t player_guard_top_left_square = 0;
+    if (player_guard_index >= 10) player_guard_top_left_square = 1ULL << (player_guard_index - 9 - 1);
+    const uint64_t player_guard_bottom_right_square = 1ULL << (player_guard_index + 9 + 1);
+    const uint64_t player_guard_bottom_left_square = 1ULL << (player_guard_index + 9 - 1);
+
+    // defense
+    if ( player_board & player_guard_left_square) {
+        guard_middle_game_evaluation += player_ortho_mg;
+        guard_end_game_evaluation += player_ortho_eg;
+    }
+    if ( player_board & player_guard_right_square) {
+        guard_middle_game_evaluation += player_ortho_mg;
+        guard_end_game_evaluation += player_ortho_eg;
+    }
+    if ( player_board & player_guard_top_square) {
+        guard_middle_game_evaluation += player_ortho_mg;
+        guard_end_game_evaluation += player_ortho_eg;
+    }
+    if ( player_board & player_guard_bottom_square) {
+        guard_middle_game_evaluation += player_ortho_mg;
+        guard_end_game_evaluation += player_ortho_eg;
     }
 
-    return min_dist;
+    // guard gets attacked
+    if ( enemy_board & player_guard_left_square) {
+        guard_middle_game_evaluation -= enemy_ortho_mg;
+        guard_end_game_evaluation -= enemy_ortho_eg;
+    }
+    if ( enemy_board & player_guard_right_square) {
+        guard_middle_game_evaluation -= enemy_ortho_mg;
+        guard_end_game_evaluation -= enemy_ortho_eg;
+    }
+    if ( enemy_board & player_guard_top_square) {
+        guard_middle_game_evaluation -= enemy_ortho_mg;
+        guard_end_game_evaluation -= enemy_ortho_eg;
+    }
+    if ( enemy_board & player_guard_bottom_square) {
+        guard_middle_game_evaluation -= enemy_ortho_mg;
+        guard_end_game_evaluation -= enemy_ortho_eg;
+    }
+
+    if ( enemy_board & player_guard_bottom_left_square) {
+        guard_middle_game_evaluation -= enemy_diag_mg;
+        guard_end_game_evaluation -= enemy_diag_eg;
+    }
+    if ( enemy_board & player_guard_bottom_right_square) {
+        guard_middle_game_evaluation -= enemy_diag_mg;
+        guard_end_game_evaluation -= enemy_diag_eg;
+    }
+    if ( enemy_board & player_guard_top_left_square) {
+        guard_middle_game_evaluation -= enemy_diag_mg;
+        guard_end_game_evaluation -= enemy_diag_eg;
+    }
+    if ( enemy_board & player_guard_top_right_square) {
+        guard_middle_game_evaluation -= enemy_diag_mg;
+        guard_end_game_evaluation -= enemy_diag_eg;
+    }
+
+    if (player) {
+        middle_game_evaluation += guard_middle_game_evaluation;
+        end_game_evaluation += guard_end_game_evaluation;
+    } else {
+        middle_game_evaluation -= guard_middle_game_evaluation;
+        end_game_evaluation -= guard_end_game_evaluation;
+    }
 }
 
-// TODO CHECK IF AI WANTS TO LOSE
-int AI::evaluationFunction(Game& new_game, const playerName& max_player){
+// make sure generate moves was already run on game, before running eval
+int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
+    constexpr int pos_tower_faktor_mg = 4;
+    constexpr int pos_tower_faktor_eg = 2;
+    constexpr int tower_faktor = 2;
+
 
     int middle_game_evaluation = 0;
     int end_game_evaluation = 0;
@@ -344,14 +413,14 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     const uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
 
     // Material Value
-    constexpr int PIECE_WEIGHTS_MG[7] = {124, 350, 450, 500, 620, 744};
-    constexpr int PIECE_WEIGHTS_EG[7] = {124, 275, 385, 500, 620, 744};
+    constexpr int PIECE_WEIGHTS_MG[7] = {100, 260, 340, 500, 500, 600};
+    constexpr int PIECE_WEIGHTS_EG[7] = {100, 230, 320, 450, 500, 600};
 
     for (int i = 0; i < T_G; i++) {
         const int player_towers_num = std::popcount(player_board & new_game.bitBoards[i]);
         const int enemy_towers_num = std::popcount(enemy_board & new_game.bitBoards[i]);
-        middle_game_evaluation += PIECE_WEIGHTS_MG[i] * (player_towers_num - enemy_towers_num);
-        end_game_evaluation += PIECE_WEIGHTS_EG[i] * (player_towers_num - enemy_towers_num);
+        middle_game_evaluation += PIECE_WEIGHTS_MG[i] * (player_towers_num - enemy_towers_num) * tower_faktor;
+        end_game_evaluation += PIECE_WEIGHTS_EG[i] * (player_towers_num - enemy_towers_num) * tower_faktor;
     }
 
     // position eval for Towers
@@ -359,8 +428,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
     const uint8_t *tower_table_player_eg = (max_player == red) ? tower_table_red_eg : tower_table_blue_eg;
     for (uint64_t bb = player_board & ~new_game.bitBoards[T_G]; bb; bb &= bb - 1) { // for every Player Tower
         const int index = std::countr_zero(bb);
-        middle_game_evaluation += 4 * tower_table_player_mg[index];
-        end_game_evaluation += 2 * tower_table_player_eg[index];
+        middle_game_evaluation += pos_tower_faktor_mg * tower_table_player_mg[index];
+        end_game_evaluation += pos_tower_faktor_eg * tower_table_player_eg[index];
 
         const uint64_t bottom_square = 1ULL << (index + 9);
         uint64_t top_square = 0;
@@ -376,27 +445,30 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
         if ( player_board & left_square
             || player_board & right_square ) {
-            middle_game_evaluation += 10;
+            middle_game_evaluation += 7;
             end_game_evaluation += 5;
-        } else if ( player_board & bottom_square
+            }
+        if ( player_board & bottom_square
             || player_board & top_square) {
             middle_game_evaluation += 5;
             end_game_evaluation += 2;
-        } else if ( player_board & bottom_left_square
+            }
+        if ( player_board & bottom_left_square
             || player_board & bottom_right_square
             || player_board & top_left_square
             || player_board & top_right_square ) {
             middle_game_evaluation += 6;
             end_game_evaluation += 3;
-        }
+            }
+
     }
 
     const uint8_t *tower_table_enemy_mg = (max_player == red) ? tower_table_blue_mg : tower_table_red_mg;
     const uint8_t *tower_table_enemy_eg = (max_player == red) ? tower_table_blue_eg : tower_table_red_eg;
     for (uint64_t bb = enemy_board & ~new_game.bitBoards[T_G]; bb; bb &= bb - 1) {
         const int index = std::countr_zero(bb);
-        middle_game_evaluation -= 4 * tower_table_enemy_mg[index];
-        end_game_evaluation -= 2 * tower_table_enemy_eg[index];
+        middle_game_evaluation -= pos_tower_faktor_mg * tower_table_enemy_mg[index];
+        end_game_evaluation -= pos_tower_faktor_eg * tower_table_enemy_eg[index];
 
         const uint64_t bottom_square = 1ULL << (index + 9);
         uint64_t top_square = 0;
@@ -412,144 +484,35 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player){
 
         if ( enemy_board & left_square
             || enemy_board & right_square ) {
-                middle_game_evaluation -= 10;
-                end_game_evaluation -= 5;
-        }
+            middle_game_evaluation -= 7;
+            end_game_evaluation -= 5;
+            }
         if ( enemy_board & bottom_square
             || enemy_board & top_square) {
-                middle_game_evaluation -= 5;
-                end_game_evaluation -= 2;
-        }
+            middle_game_evaluation -= 5;
+            end_game_evaluation -= 2;
+            }
         if ( enemy_board & bottom_left_square
             || enemy_board & bottom_right_square
             || enemy_board & top_left_square
             || enemy_board & top_right_square ) {
-                middle_game_evaluation -= 6;
-                end_game_evaluation -= 3;
-        }
+            middle_game_evaluation -= 6;
+            end_game_evaluation -= 3;
+            }
     }
 
     // position eval for Guard
     const uint8_t *guard_table_player_mg = (max_player == red) ? guard_table_red_mg : guard_table_blue_mg;
     const uint8_t *guard_table_enemy_mg = (max_player == red) ? guard_table_blue_mg : guard_table_red_mg;
-    middle_game_evaluation += (guard_table_player_mg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_mg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]) / 2;
+    middle_game_evaluation += (guard_table_player_mg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_mg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]);
 
     const uint8_t *guard_table_player_eg = (max_player == red) ? guard_table_red_eg : guard_table_blue_eg;
     const uint8_t *guard_table_enemy_eg = (max_player == red) ? guard_table_blue_eg : guard_table_red_eg;
     end_game_evaluation += (guard_table_player_eg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_eg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]);
 
 
-    Move move_list_player[MOVES_LIST_SIZE];
-    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list_player);
+    evalGuardEdge(true, player_board & new_game.bitBoards[T_G], player_board, enemy_board, middle_game_evaluation,end_game_evaluation);
+    evalGuardEdge(false, enemy_board & new_game.bitBoards[T_G], enemy_board, player_board, middle_game_evaluation,end_game_evaluation);
 
-    Move move_list_enemy[MOVES_LIST_SIZE];
-    new_game.toggleActivePlayer();
-    new_game.generateMoves();
-    std::copy_n(new_game.getMoveList(), MOVES_LIST_SIZE, move_list_enemy);
-    new_game.toggleActivePlayer();
-
-    // FROM GUARD
-    const int enemy_guard_index = std::countr_zero(enemy_board & new_game.bitBoards[T_G]);
-    uint64_t enemy_guard_edge = 0;
-    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9);
-    if (enemy_guard_index >= 9) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9);
-    enemy_guard_edge |= 1ULL << (enemy_guard_index + 1);
-    enemy_guard_edge |= 1ULL << (enemy_guard_index - 1);
-    if (enemy_guard_index >= 8) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9 + 1);
-    if (enemy_guard_index >= 10) enemy_guard_edge |= 1ULL << (enemy_guard_index - 9 - 1);
-    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9 + 1);
-    enemy_guard_edge |= 1ULL << (enemy_guard_index + 9 - 1);
-
-    const int player_guard_index = std::countr_zero(player_board & new_game.bitBoards[T_G]);
-    uint64_t player_guard_edge =  0;
-    player_guard_edge |= 1ULL << (player_guard_index + 9);
-    if (player_guard_index >= 9) player_guard_edge |= 1ULL << (player_guard_index - 9);
-    player_guard_edge |= 1ULL << (player_guard_index + 1);
-    player_guard_edge |= 1ULL << (player_guard_index - 1);
-    if (player_guard_index >= 8) player_guard_edge |= 1ULL << (player_guard_index - 9 + 1);
-    if (player_guard_index >= 10) player_guard_edge |= 1ULL << (player_guard_index - 9 - 1);
-    player_guard_edge |= 1ULL << (player_guard_index + 9 + 1);
-    player_guard_edge |= 1ULL << (player_guard_index + 9 - 1);
-
-    // check for possible Moves
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list_player[i].from != 0; ++i) {
-        // if u move on own tower
-        if (move_list_player[i].to & player_board) {
-            if (move_list_player[i].to == enemy_guard_edge) {
-                middle_game_evaluation += 50;
-                end_game_evaluation += 70;
-            } else {
-                middle_game_evaluation += 30;
-                end_game_evaluation += 40;
-            }
-        // if u move onto enemy tower
-        } else if (move_list_player[i].to & enemy_board) {
-            bool hanging = true;
-            for (int j = 0; j < MOVES_LIST_SIZE && move_list_enemy[j].from != 0 && hanging; ++j) {
-                if (move_list_player[i].to == move_list_enemy[j].to) {
-                    hanging = false;
-                }
-            }
-            if (move_list_player[i].to & new_game.bitBoards[T_G]) {
-                middle_game_evaluation += 60;
-                end_game_evaluation += 70;
-            }
-            if (hanging) {
-                middle_game_evaluation += 120;
-                end_game_evaluation += 110;
-            } else {
-                middle_game_evaluation += 40;
-                end_game_evaluation += 30;
-            }
-        } else if (move_list_player[i].to & player_guard_edge) {
-            middle_game_evaluation += 20;
-            end_game_evaluation += 50;
-        }
-    }
-
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list_enemy[i].from != 0; ++i) {
-        // if enemy move on own tower
-        if (move_list_enemy[i].to & enemy_board) {
-            if (move_list_enemy[i].to == player_guard_edge) {
-                middle_game_evaluation -= 50;
-                end_game_evaluation -= 70;
-            } else {
-                middle_game_evaluation -= 30;
-                end_game_evaluation -= 40;
-            }
-        // if enemy move onto player tower
-        } else if (move_list_enemy[i].to & player_board) {
-            bool hanging = true;
-            for (int j = 0; j < MOVES_LIST_SIZE && move_list_player[j].from != 0 && hanging; ++j) {
-                if (move_list_enemy[i].to == move_list_player[j].to) {
-                    hanging = false;
-                }
-            }
-            if (move_list_enemy[i].to & new_game.bitBoards[T_G]) {
-                middle_game_evaluation -= 60;
-                end_game_evaluation -= 70;
-            }
-            if (hanging) {
-                middle_game_evaluation -= 120;
-                end_game_evaluation -= 110;
-            } else {
-                middle_game_evaluation -= 40;
-                end_game_evaluation -= 30;
-            }
-        } else if (move_list_enemy[i].to & enemy_guard_edge) {
-            middle_game_evaluation -= 20;
-            end_game_evaluation -= 50;
-        }
-    }
-
-    // TODO maybe do extra check for how many moves GUARD HAS ?
-
-    // distance from next tower to guard
-    middle_game_evaluation -= 15 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
-    middle_game_evaluation += 15 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
-
-    end_game_evaluation -= 20 * minDistanceGuard(player_board ^ new_game.bitBoards[T_G], enemy_board & new_game.bitBoards[T_G]);
-    end_game_evaluation += 20 * minDistanceGuard(enemy_board ^ new_game.bitBoards[T_G], player_board & new_game.bitBoards[T_G]);
-
-    return (middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count)) / 14;
+    return middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count);
 }
