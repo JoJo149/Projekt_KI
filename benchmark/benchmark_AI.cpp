@@ -1,13 +1,7 @@
-#include <iostream>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
 
-#include <Utils_test.h>
-#include <string>
-#include <Utils.h>
-
 #include "AI.h"
-#include "random"
 
 #define MAX_DEPTH 5
 

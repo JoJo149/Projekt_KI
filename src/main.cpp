@@ -9,7 +9,7 @@ int main() {
     std::cout << "KI berechnet besten Zug..." << std::endl;
 
     // TODO fix
-    Move best_move_ab = ki.alphaBetaTimed();
+    Move best_move_ab = ki.alphaBetaTimed(10000);
     std::cout << "best_move: " << best_move_ab.toString() << std::endl;
     std::cout << "move_count: " << move_count << std::endl;
 }

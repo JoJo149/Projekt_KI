@@ -154,7 +154,7 @@ void mainLoop() {
 
                     AI AI{game};
 
-                    string ki_result = AI.alphaBetaTimed().toString();
+                    string ki_result = AI.alphaBetaTimed(time_left).toString();
 
                     cout << "KI makes Move: " << ki_result << endl;
                     cout << endl;

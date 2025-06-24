@@ -1,12 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/benchmark/catch_benchmark.hpp>
 
-#include <Utils_test.h>
-#include <vector>
-#include <string>
-
-#include "../include/game.h"
-#include "random"
-#include "catch2/benchmark/catch_benchmark.hpp"
+#include "Game.h"
+#include "Utils_test.h"
 
 
 TEST_CASE("Benchmark for generateMoves", "[benchmark][generate_moves]") {

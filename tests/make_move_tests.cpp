@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include "Utils_test.h"
-#include "../include/game.h"
+#include "Game.h"
 
 
 // TODO automate test for moving
