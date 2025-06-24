@@ -216,7 +216,7 @@ void Game::generatorBaseCase(const int& shift_dir, const int& tower_type, int& w
 {
     const bool is_guard = (tower_type == T_G);
 
-    for (int move_len = 1; move_len <= (tower_type + 1); move_len++) {
+    for (uint8_t move_len = 1; move_len <= (tower_type + 1); move_len++) {
         const uint64_t possible_move = shift_dir > 0 ?
             (from_pos << (shift_dir * move_len)) :
             (from_pos >> (-shift_dir * move_len));
@@ -341,19 +341,67 @@ Move Game::moveStringToBitboard (const std::string& str) {
     return player_move;
 }
 
-// TODO optimize
 void Game::unMakeMove(const Move& move, const int& enemy_type) {
     assert(move.to != 0);
     assert(move.from != 0);
-    Move revert(move.to,move.from, move.move_distance);
-    makeMove(revert);
 
+    uint64_t& player_board = (active_player == red) ? bitBoards[C_R] : bitBoards[C_B];
     uint64_t& enemy_board = (active_player == red) ? bitBoards[C_B] : bitBoards[C_R];
 
-    if (enemy_type != -1) {
-        bitBoards[enemy_type] |= move.to;
-        enemy_board |= move.to;
+    const uint64_t end_mask = ~move.to;
+
+    // if player moved the Guard
+    if (move.to & bitBoards[T_G]) {
+        // delete guard from
+        player_board &= end_mask;
+        bitBoards[T_G] &= end_mask;
+
+        // write enemy back
+        if (enemy_type != -1) {
+            enemy_board |= move.to;
+            bitBoards[enemy_type] |= move.to;
+        }
+
+        // add guard from where he came
+        player_board |= move.from;
+        bitBoards[T_G] |= move.from;
+        return;
     }
+
+    // handle move.to Tower
+    // write enemy onto move.to
+    for (int tower_type = 0; tower_type < T_G; ++tower_type) {
+        if (bitBoards[tower_type] & move.to) {
+            // delete old tower
+            bitBoards[tower_type] &= end_mask;
+            // if part of tower stays behind
+            if (tower_type + 1 > move.move_distance) {
+                bitBoards[tower_type - move.move_distance] |= move.to;
+            } else {
+                player_board &= end_mask;
+            }
+        }
+    }
+
+    // if tower got enemy tower
+    if (enemy_type != -1) {
+        enemy_board |= move.to;
+        bitBoards[enemy_type] |= move.to;
+    }
+
+    // check if tower came from mate tower
+    if (player_board & move.from) {
+        for (int tower_type = 0; tower_type < T_G; ++tower_type) {
+            if (bitBoards[tower_type] & move.from) {
+                bitBoards[tower_type] &= ~move.from;
+                bitBoards[tower_type + move.move_distance] |= move.from;
+                return;
+            }
+        }
+    }
+    // if u did not come from mate Tower
+    player_board |= move.from;
+    bitBoards[move.move_distance - 1] |= move.from;
 }
 
 int Game::makeMove(const Move& move) {
@@ -365,8 +413,8 @@ int Game::makeMove(const Move& move) {
     assert(std::popcount(move.from) == 1);
     assert(std::popcount(move.to) == 1);
 
-    uint64_t start_mask = ~move.from;
-    uint64_t end_mask = ~move.to;
+    const uint64_t start_mask = ~move.from;
+    const uint64_t end_mask = ~move.to;
 
     assert(std::popcount(start_mask) == 63);
     assert(std::popcount(end_mask) == 63);
