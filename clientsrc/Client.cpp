@@ -128,7 +128,7 @@ void mainLoop() {
         int moves = 0;
         while (true) {
             string game_data = n.sendData(json("get").dump());
-            if (game_data.empty()) {
+            if (game_data.empty() || !json::accept(game_data)) {
                 cout << "Game Over" << endl;
                 cout << "Moves played:  "<< moves << endl;
                 n.close();
