@@ -20,12 +20,6 @@ file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
 # find_package(TBB REQUIRED)
 
 # ----------------------------------------------------------------------------
-# Main application
-add_executable(projekt_ki ${SRC_FILES})
-target_include_directories(projekt_ki PRIVATE include)
-# target_link_libraries(projekt_ki PRIVATE TBB::tbb)
-
-# ----------------------------------------------------------------------------
 # Exclude main.cpp for tests
 set(SRC_FILES_NO_MAIN "")
 foreach(file ${SRC_FILES})
@@ -35,17 +29,31 @@ foreach(file ${SRC_FILES})
 endforeach()
 
 # ----------------------------------------------------------------------------
-# client application
-add_executable(Client ${SRC_FILES_NO_MAIN} clientsrc/client.cpp)
-target_include_directories(Client PRIVATE include ext/headerOnly/json)
-# target_link_libraries(Client PRIVATE TBB::tbb)
+# Main application
 
+add_library(core STATIC ${SRC_FILES_NO_MAIN})
+target_include_directories(core PUBLIC include)
+
+add_executable(projekt_ki src/main.cpp)
+target_link_libraries(projekt_ki PRIVATE core)
 
 # ----------------------------------------------------------------------------
 # client application
-add_executable(DummyClient ${SRC_FILES_NO_MAIN} clientsrc/dummyClient.cpp)
-target_include_directories(DummyClient PRIVATE include ext/headerOnly/json)
-# target_link_libraries(DummyClient PRIVATE TBB::tbb)
+add_executable(Client clientsrc/Client.cpp)
+target_include_directories(Client PRIVATE ext/headerOnly/json)
+target_link_libraries(Client PRIVATE core)
+
+# ----------------------------------------------------------------------------
+# dockerClient application
+add_executable(dockerClient clientsrc/dockerClient.cpp)
+target_include_directories(dockerClient PRIVATE ext/headerOnly/json)
+target_link_libraries(dockerClient PRIVATE core)
+
+# ----------------------------------------------------------------------------
+# client application
+add_executable(DummyClient clientsrc/dummyClient.cpp)
+target_include_directories(DummyClient PRIVATE ext/headerOnly/json)
+target_link_libraries(DummyClient PRIVATE core)
 
 # ----------------------------------------------------------------------------
 # External dependencies
@@ -53,31 +61,28 @@ add_subdirectory(ext/Catch2)
 
 # ----------------------------------------------------------------------------
 # Test executable
-add_executable(tests
-        ${TEST_FILES}
-        ${SRC_FILES_NO_MAIN}
-)
+add_executable(tests ${TEST_FILES})
 
-target_include_directories(tests PRIVATE include ext/Catch2/single_include ext/headerOnly/csv tests)
+target_include_directories(tests PRIVATE ext/Catch2/single_include ext/headerOnly/csv tests)
 
 target_link_libraries(tests
         PRIVATE
+        core
         # TBB::tbb
         Catch2::Catch2WithMain
 )
 
-add_executable(benchmarks
-        ${BENCHMARKS}
-        ${SRC_FILES_NO_MAIN}
-)
+add_executable(benchmarks ${BENCHMARKS})
 
-target_include_directories(benchmarks PRIVATE include ext/Catch2/single_include ext/headerOnly/csv tests)
+target_include_directories(benchmarks PRIVATE ext/Catch2/single_include ext/headerOnly/csv tests)
 
 target_link_libraries(benchmarks
         PRIVATE
+        core
         # TBB::tbb
         Catch2::Catch2WithMain
 )
+
 # ----------------------------------------------------------------------------
 # Enable test discovery
 include(CTest)

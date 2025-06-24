@@ -7,7 +7,7 @@ To optimize the AI we will use: bitboards, Alpha-Beta Search and other technique
 
 ## Dependencies for C++ Client and AI
 - #### [cmake](https://cmake.org/download/) as our Build System
-- ####  [GNU Compiler Collection](https://gcc.gnu.org/install/index.html) which supports C++ version 20 
+- ####  [GNU Compiler Collection](https://gcc.gnu.org/install/index.html) which supports C++ version 20
 
 ## getting started
 Go to your designated project folder
@@ -90,6 +90,7 @@ For testing and performance analysis we use [Catch 2](https://github.com/catchor
 For reading in csv files we use a [csv parser](https://github.com/vincentlaucsb/csv-parser).\
 For Json parsing in the client we use the [parser](https://github.com/nlohmann/json) by nlohmann.
 
-## interesting references 
+## interesting references
 
-[Bitboards](https://ameye.dev/notes/chess-engine/)
+[Bitboards](https://ameye.dev/notes/chess-engine/) \
+[Evaluation Funktion](https://hxim.github.io/Stockfish-Evaluation-Guide/)
