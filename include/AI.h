@@ -20,7 +20,7 @@ public:
     Move alphaBetaTimed(int);
 
     void alphaBeta(int,int&, Move*);
-    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int);
+    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&);
 
     [[nodiscard]] int evaluationFunction(Game&, const playerName&);
 

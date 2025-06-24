@@ -1,3 +1,4 @@
+#include <transposition_table.h>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/benchmark/catch_benchmark.hpp>
 
@@ -49,6 +50,8 @@ TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
 
 TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
+
+    TT::loadFromFile();
 
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};

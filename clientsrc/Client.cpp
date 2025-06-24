@@ -1,6 +1,5 @@
 #include "AI.h"
-
-#include <fstream>
+#include "transposition_table.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -87,7 +86,7 @@ public:
         return string{buffer};
     }
 
-    [[nodiscard]] string sendData(const string& data) const {
+     string sendData(const string& data) const {
         send(sock, data.c_str(), data.size(), 0);
         char buffer[4096];
         const size_t len = recv(sock, buffer, sizeof(buffer) - 1, 0);
@@ -178,7 +177,7 @@ void mainLoop() {
 }
 
 int main() {
-    //TT::loadFromFile();
+    TT::loadFromFile();
     mainLoop();
     // TT::saveToFile();
     return 0;
