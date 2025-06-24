@@ -51,14 +51,16 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
 
     std::vector<int> move_count{};
     std::vector<std::string> best_move{};
+    Move move_list[MOVES_LIST_SIZE] = {};
 
     for (int i = 1; i <= MAX_DEPTH; i++) {
-        int tmp_move_count = 0;
         std::string tmp_best_move;
-
+        int tmp_move_count;
         BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
             meter.measure([&] {
-                tmp_best_move = ki.alphaBeta(i, tmp_move_count).toString();
+                tmp_move_count = 0;
+                ki.alphaBeta(i, tmp_move_count, move_list);
+                tmp_best_move = move_list[0].toString();
                 return 0;
             });
         };
