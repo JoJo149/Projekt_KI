@@ -1,7 +1,7 @@
 #include "AI.h"
 
 int main() {
-    const char * input_board = "1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b";
+    const char * input_board = "RG6/7/7/7/3r13/3BG3/b36 b";
 
     AI ki{input_board};
     int move_count = 0;
