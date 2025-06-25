@@ -1,3 +1,4 @@
+#include <transposition_table.h>
 #include <catch2/catch_test_macros.hpp>
 
 #include "Utils_test.h"
@@ -104,6 +105,39 @@ TEST_CASE("isGameOver: game is still running") {
 
     CHECK(game.isGameOver() == false);
 }
+
+TEST_CASE("TT_table: convert move") {
+    Game game{};
+    const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"; // Zwei Wächter, alles aktiv
+    game.stringToGame(input);
+    game.generateMoves();
+    Move move = game.getMoveList()[0];
+    Move converted_move = TT::TT_Move(move).convertToMove();
+    CHECK(move == converted_move);
+}
+
+TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
+    const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
+    TT::loadFromFile();
+
+    Game game{input};
+    const uint64_t new_key = TT::getKey(game);
+
+    game.generateMoves();
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(game.getMoveList(), MOVES_LIST_SIZE, move_list);
+    for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
+        Game game_copy{game};
+        uint64_t key_copy = new_key;
+
+        TT::flipHashForMove(game_copy, key_copy, move_list[i]);
+        game_copy.makeMove(move_list[i]);
+        game_copy.toggleActivePlayer();
+        TT::flipHashForMove(game_copy, key_copy, move_list[i]);
+        CHECK(key_copy == TT::getKey(game_copy));
+    }
+}
+
 
 
 TEST_CASE("right moves") {

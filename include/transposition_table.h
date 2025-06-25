@@ -17,6 +17,7 @@ namespace TT {
         0x6a5d932b45ff2c83ULL, 0x7b85179ad5b077e0ULL
     };
 
+    // 784 Entries
     constexpr uint64_t zobrist_table[NUM_PLAYERS * NUM_TOWER_TYPES * BOARD_SIZE] = {
         0x1c80317fa3b1799dULL, 0xbdd640fb06671ad1ULL, 0x3eb13b9046685257ULL, 0x23b8c1e9392456deULL,
         0x1a3d1fa7bc8960a9ULL, 0xbd9c66b3ad3c2d6dULL, 0x8b9d2434e465e150ULL, 0x972a846916419f82ULL,
@@ -257,7 +258,7 @@ namespace TT {
         const uint64_t index = key & (TT_SIZE - 1);
 
         // Replace if deeper or new (move not set)
-        if (TTEntry& entry = tt[index]; entry.bestMove == TT_Move{} || depth >= entry.depth) {
+        if (TTEntry& entry = tt[index]; (entry.bestMove == TT_Move{} || depth >= entry.depth) ) {
             entry = TTEntry{key, score, TT_Move(bestMove), depth, type};
         }
     }
@@ -287,17 +288,18 @@ namespace TT {
          old_key ^= player_keys[game.active_player];
 
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
-            if (const uint64_t tower = game.bitBoards[tower_type] & move.from) {
-                    const int offset_from = (game.bitBoards[C_B] & tower) ? 0 : ZOBRIST_COLOR_OFFSET;
-                    const int bit_index = std::countr_zero(tower);
+            if (game.bitBoards[tower_type] & move.from) {
+                    const int offset_from = (game.bitBoards[C_B] & move.from) ? 0 : ZOBRIST_COLOR_OFFSET;
+                    const int bit_index = std::countr_zero(move.from);
                     old_key ^= zobrist_table[offset_from + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                     break;
             }
         }
+        // todo tests run threw even if i du move.from
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
-            if (const uint64_t tower = game.bitBoards[tower_type] & move.to) {
-                const int offset_to = (game.bitBoards[C_B] & tower) ? 0 : ZOBRIST_COLOR_OFFSET;
-                const int bit_index = std::countr_zero(tower);
+            if (game.bitBoards[tower_type] & move.to) {
+                const int offset_to = (game.bitBoards[C_B] & move.to) ? 0 : ZOBRIST_COLOR_OFFSET;
+                const int bit_index = std::countr_zero(move.to);
                 old_key ^= zobrist_table[offset_to + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                 break;
             }

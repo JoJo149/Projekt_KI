@@ -271,28 +271,32 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
-    /*
+
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth >= depth) {
             bool is_correct = false;
+            const Move best_move = ttEntry.bestMove.convertToMove();
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
-                if (ttEntry.bestMove.convertToMove() == move_list[i]) {
+                if (best_move == move_list[i]) {
                     is_correct = true;
                     break;
                 }
             }
             if (is_correct) {
                 move_count++;
-                if (ttEntry.type == TT::Flag::EXACT
-                    || ttEntry.type == TT::Flag::BETA_CUTOFF && ttEntry.score >= beta
-                    || ttEntry.type == TT::Flag::ALPHA_CUTOFF && ttEntry.score <= alpha) {
+                if (ttEntry.type == TT::Flag::EXACT) {
+                    return ttEntry.score;
+                }
+                if (ttEntry.type == TT::Flag::ALPHA_CUTOFF && ttEntry.score <= alpha) {
+                    return ttEntry.score;
+                }
+                if (ttEntry.type == TT::Flag::BETA_CUTOFF && ttEntry.score >= beta) {
                     return ttEntry.score;
                 }
             }
         }
     }
-    */
 
     Move bestMove{};
     int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
@@ -323,18 +327,18 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
             beta = std::min(beta, eval);
         }
 
-        if (beta <= alpha) break;
+        if (beta <= alpha) {
+            if (bestScore <= originalAlpha) {
+                TT::store(current_key, bestScore, bestMove, depth, TT::Flag::ALPHA_CUTOFF);
+            }
+            if (bestScore >= originalBeta) {
+                TT::store(current_key, bestScore, bestMove, depth, TT::Flag::BETA_CUTOFF);
+            }
+            return bestScore;
+        }
     }
 
-    // CUTOFF FLAGS
-    /*
-    TT::Flag flag{};
-    if (bestScore <= originalAlpha) flag = TT::Flag::ALPHA_CUTOFF;
-    else if (bestScore >= originalBeta) flag = TT::Flag::BETA_CUTOFF;
-    else flag = TT::Flag::EXACT;
-
-    TT::store(current_key, bestScore, bestMove, depth, flag);
-    */
+    TT::store(current_key, bestScore, bestMove, depth, TT::Flag::EXACT);
 
     return bestScore;
 }
@@ -546,6 +550,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         middle_game_evaluation += pos_tower_faktor_mg * tower_table_player_mg[index];
         end_game_evaluation += pos_tower_faktor_eg * tower_table_player_eg[index];
 
+        /*
         const uint64_t bottom_square = 1ULL << (index + 9);
         uint64_t top_square = 0;
         if (index >= 9) top_square = 1ULL << (index - 9);
@@ -558,7 +563,6 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
-        /*
         if ( player_board & left_square
             || player_board & right_square ) {
             middle_game_evaluation += 7;
@@ -587,6 +591,7 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         middle_game_evaluation -= pos_tower_faktor_mg * tower_table_enemy_mg[index];
         end_game_evaluation -= pos_tower_faktor_eg * tower_table_enemy_eg[index];
 
+        /*
         const uint64_t bottom_square = 1ULL << (index + 9);
         uint64_t top_square = 0;
         if (index >= 9) top_square = 1ULL << (index - 9);
@@ -599,7 +604,6 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
         const uint64_t bottom_right_square = 1ULL << (index + 9 + 1);
         const uint64_t bottom_left_square = 1ULL << (index + 9 - 1);
 
-        /*
         if ( enemy_board & left_square
             || enemy_board & right_square ) {
             middle_game_evaluation -= 7;
