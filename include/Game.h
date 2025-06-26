@@ -54,7 +54,6 @@ private:
     void clearSeparatingBits();
 
 public:
-    // TODO move back to private and move some logic from KI to game
     uint64_t bitBoards[BITBOARD_COUNT]{};
     playerName active_player{};
 
@@ -67,9 +66,7 @@ public:
 
     void stringToGame(const char*);
     void gameToString(char*) const;
-
-    [[nodiscard]] static Move moveStringToBitboard (const std::string&);
-
+    
     [[nodiscard]] std::vector<std::string> readableMoves() const;
 
     [[nodiscard]] bool isGameOver() const;

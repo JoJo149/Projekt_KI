@@ -329,18 +329,6 @@ std::vector<std::string> Game::readableMoves() const {
     return move_list;
 }
 
-Move Game::moveStringToBitboard (const std::string& str) {
-    Move player_move{};
-    player_move.from = 0b1 << (str[0] - 'A' + 1);
-    player_move.from <<= (('7' - str[1]) * 9);
-
-    player_move.to = 0b1 << (str[3] - 'A' + 1);
-    player_move.to <<= (('7' - str[4]) * 9);
-
-    player_move.move_distance = str[6] - '0';
-    return player_move;
-}
-
 void Game::unMakeMove(const Move& move, const int& enemy_type) {
     assert(move.to != 0);
     assert(move.from != 0);
