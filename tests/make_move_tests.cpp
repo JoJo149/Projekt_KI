@@ -36,7 +36,7 @@ TEST_CASE("makeMove: normaler Zug ohne Kollision, 1er Türme") {
      Game game{input};
 
     const char* move_str = "A7-A6-1";
-    Move move = Game::moveStringToBitboard(move_str);
+    Move move(move_str);
 
     int enemy_type = game.makeMove(move);
 

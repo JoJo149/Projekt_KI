@@ -273,6 +273,7 @@ namespace TT {
                 if (uint64_t tower = game.bitBoards[tower_type] & color_mask) {
                     while (tower) {
                         const int bit_index = std::countr_zero(tower);
+                        // Pos is from top left to bottom right -> Counting 0-48
                         key ^= zobrist_table[offset + tower_type * BOARD_SIZE + (convert_pos[bit_index] - 1)];
                         tower &= (tower - 1);
                     }

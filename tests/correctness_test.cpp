@@ -116,7 +116,7 @@ TEST_CASE("TT_table: convert move") {
     CHECK(move == converted_move);
 }
 
-TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
+TEST_CASE("Test correctness of: flipHashForMove") {
     const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
     TT::loadFromFile();
 
@@ -134,8 +134,30 @@ TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
         game_copy.makeMove(move_list[i]);
         game_copy.toggleActivePlayer();
         TT::flipHashForMove(game_copy, key_copy, move_list[i]);
+        INFO("start HASH: "<< new_key << ", flipped HASH: " << key_copy << ", recomputed HASH: " << TT::getKey(game_copy) << ", move: " << move_list[i].toString());
         CHECK(key_copy == TT::getKey(game_copy));
     }
+}
+TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
+    const char* input = "2RG4/7/2b24/7/7/7/7 b";
+    TT::loadFromFile();
+
+    Game game{input};
+    Move move("C5-C7-2");
+
+    uint64_t flipped_key = TT::getKey(game);
+
+    TT::flipHashForMove(game, flipped_key, move);
+    game.makeMove(move);
+    game.toggleActivePlayer();
+    TT::flipHashForMove(game, flipped_key, move);
+
+    game.printGame();
+    const uint64_t generated_key = TT::getKey(game);
+    INFO(convert_pos[std::countr_zero(game.bitBoards[1])] - 1);
+    const uint64_t own_key = TT::player_keys[red] ^ TT::zobrist_table[0 + 1 * TT::BOARD_SIZE + 2];
+    CHECK(generated_key == flipped_key);
+    CHECK(generated_key == own_key);
 }
 
 
