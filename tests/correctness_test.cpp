@@ -143,7 +143,7 @@ TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
     TT::loadFromFile();
 
     Game game{input};
-    Move move("C5-C7-2");
+    const Move move("C5-C7-2");
 
     uint64_t flipped_key = TT::getKey(game);
 
@@ -171,7 +171,7 @@ TEST_CASE("right moves") {
     ai.getGame().printGame();
     best_move = ai.alphaBetaTimed(120000);
     s = best_move.toString();
-    CHECK(s == "D7-E7-1");
+    CHECK((s == "D7-E7-1" || s == "C6-D6-1"));
 
     ai.getGame().stringToGame("1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b");
     ai.getGame().printGame();

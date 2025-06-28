@@ -96,7 +96,7 @@ int AI::traverseMoves(Game game, int depth, int& move_count, bool maximizing_pla
     }
 }
 
-void print_move_list(Move * move_list) {
+void print_move_list(const Move * move_list) {
     std::cout << "ordered move list: " ;
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
          std::cout <<"(" << move_list[i].toString() << ")" << ", ";
@@ -104,7 +104,7 @@ void print_move_list(Move * move_list) {
     std::cout << std::endl;
 }
 
-void print_eval_list(int * eval_list) {
+void print_eval_list(const int * eval_list) {
     std::cout << "eval list: " ;
     for (int i = 0; i < MOVES_LIST_SIZE; ++i) {
         std::cout <<"(" << eval_list[i] << ")" << ", ";
@@ -178,8 +178,9 @@ Move AI::alphaBetaTimed(const int time_left) {
             }
             alphaBeta(depth,ignore, ordered_move_list);
             best_move = ordered_move_list[0];
-            print_move_list(ordered_move_list);
-            check_move_list(ordered_move_list);
+            // print_move_list(ordered_move_list);
+            // check_move_list(ordered_move_list);
+            // TT::printTT();
         }
     } catch (const std::runtime_error& e) {
         std::cout << "Search stopped early: " << e.what() << std::endl;
@@ -259,24 +260,23 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         const int SCORE = MATE_SCORE + depth;
         return maximizing_player ? -SCORE : SCORE;
     }
+    Move move_list[MOVES_LIST_SIZE];
+    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     if (depth == 0) {
         move_count++;
         const int eval = evaluationFunction(node, max_player);
         // dummy Move
-        TT::store(current_key, eval, Move{255, 255, 255}, depth, TT::Flag::EXACT);
+        TT::store(current_key, eval, move_list[0], depth, TT::Flag::EXACT);
         return eval;
     }
-
-    Move move_list[MOVES_LIST_SIZE];
-    std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
-
 
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth >= depth) {
             bool is_correct = false;
             const Move best_move = ttEntry.bestMove.convertToMove();
+            // extra check if board is the same
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
                 if (best_move == move_list[i]) {
                     is_correct = true;

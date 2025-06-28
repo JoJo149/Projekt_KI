@@ -258,8 +258,9 @@ namespace TT {
         const uint64_t index = key & (TT_SIZE - 1);
 
         // Replace if deeper or new (move not set)
-        if (TTEntry& entry = tt[index]; (entry.bestMove == TT_Move{} || depth >= entry.depth) ) {
-            entry = TTEntry{key, score, TT_Move(bestMove), depth, type};
+        if (TTEntry& entry = tt[index]; entry.bestMove == TT_Move{} || depth > entry.depth ||
+            (depth == entry.depth && type == Flag::EXACT)) {
+            entry = TTEntry{key, score, TT_Move{bestMove}, depth, type};
         }
     }
 
@@ -316,6 +317,17 @@ namespace TT {
         }
         return false;
     }
+
+    inline void printTT() {
+        std::cout << "TT entries:" << std::endl;
+        for (int i = 0; i < TT_SIZE; i++) {
+            if (TTEntry& entry = tt[i]; entry.bestMove != TT_Move{}) {
+                std::cout << " Hash: " << entry.key << " move: " << entry.bestMove.convertToMove().toString() << " score: " << entry.score;
+            }
+        }
+        std::cout << std::endl;
+    }
+
 
     inline bool loadFromFile() {
         std::ifstream in("../transposition_table/transposition_table.bin", std::ios::binary);
