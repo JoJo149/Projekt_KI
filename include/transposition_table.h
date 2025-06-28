@@ -296,7 +296,6 @@ namespace TT {
                     break;
             }
         }
-        // todo tests run threw even if i du move.from
         for (int tower_type = 0; tower_type <= T_G; tower_type++) {
             if (game.bitBoards[tower_type] & move.to) {
                 const int offset_to = (game.bitBoards[C_B] & move.to) ? 0 : ZOBRIST_COLOR_OFFSET;
