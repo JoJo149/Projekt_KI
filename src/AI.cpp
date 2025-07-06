@@ -251,25 +251,17 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
 }
 
 
-int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {    node.generateMoves();
-    const int originalAlpha = alpha;
-    const int originalBeta = beta;
+int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {
+    node.generateMoves();
 
     if (node.isGameOver()) {
         move_count++;
         const int SCORE = MATE_SCORE + depth;
         return maximizing_player ? -SCORE : SCORE;
     }
+
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
-
-    if (depth == 0) {
-        move_count++;
-        const int eval = evaluationFunction(node, max_player);
-        // dummy Move
-        TT::store(current_key, eval, move_list[0], depth, TT::Flag::EXACT);
-        return eval;
-    }
 
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
@@ -284,21 +276,38 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                 }
             }
             if (is_correct) {
-                move_count++;
-                if (ttEntry.type == TT::Flag::EXACT) {
+                if (ttEntry.type == TT::Flag::EXACT && alpha <= ttEntry.score && ttEntry.score <= beta) {
+                    move_count++;
                     return ttEntry.score;
                 }
-                if (ttEntry.type == TT::Flag::ALPHA_CUTOFF && ttEntry.score <= alpha) {
-                    return ttEntry.score;
+                if (ttEntry.type == TT::Flag::ALPHA_CUTOFF) {
+                    if (ttEntry.score > alpha) {
+                        beta = std::min(beta, ttEntry.score);
+                    } else {
+                        return alpha;
+                    }
                 }
-                if (ttEntry.type == TT::Flag::BETA_CUTOFF && ttEntry.score >= beta) {
-                    return ttEntry.score;
+                if (ttEntry.type == TT::Flag::BETA_CUTOFF) {
+                    if (ttEntry.score < beta) {
+                        alpha = std::max(alpha, ttEntry.score);
+                    } else {
+                        return beta;
+                    }
                 }
             }
         }
     }
 
+    if (depth == 0) {
+        move_count++;
+        const int eval = evaluationFunction(node, max_player);
+        // dummy Move
+        TT::store(current_key, eval, move_list[0], depth, TT::Flag::EXACT);
+        return eval;
+    }
+
     Move bestMove{};
+    auto flag = TT::Flag::EXACT;
     int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
     for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
         TT::flipHashForMove(node, current_key, move_list[i]);
@@ -328,17 +337,16 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         }
 
         if (beta <= alpha) {
-            if (bestScore <= originalAlpha) {
-                TT::store(current_key, bestScore, bestMove, depth, TT::Flag::ALPHA_CUTOFF);
+            if (maximizing_player) {
+                flag = TT::Flag::BETA_CUTOFF;
+            } else {
+                flag = TT::Flag::ALPHA_CUTOFF;
             }
-            if (bestScore >= originalBeta) {
-                TT::store(current_key, bestScore, bestMove, depth, TT::Flag::BETA_CUTOFF);
-            }
-            return bestScore;
+            break;
         }
     }
 
-    TT::store(current_key, bestScore, bestMove, depth, TT::Flag::EXACT);
+    TT::store(current_key, bestScore, bestMove, depth, flag);
 
     return bestScore;
 }

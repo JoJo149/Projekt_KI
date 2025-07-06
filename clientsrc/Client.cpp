@@ -1,5 +1,6 @@
+#include <fstream>
+
 #include "AI.h"
-#include "transposition_table.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -177,8 +178,6 @@ void mainLoop() {
 }
 
 int main() {
-    TT::loadFromFile();
     mainLoop();
-    // TT::saveToFile();
     return 0;
 }

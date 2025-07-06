@@ -13,8 +13,6 @@ TEST_CASE("Test correctness of: stringToGame, gameToString, generateMoves, reada
 
     static std::vector<std::string> len_saved = getColumn(4,"../tests/board_daten.csv");
 
-
-
     Game game{};
     for (size_t i = 0; i < start_setup.size(); i++) {
         const std::string& input_str = start_setup[i];
@@ -118,7 +116,6 @@ TEST_CASE("TT_table: convert move") {
 
 TEST_CASE("Test correctness of: flipHashForMove") {
     const char* input = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
-    TT::loadFromFile();
 
     Game game{input};
     const uint64_t new_key = TT::getKey(game);
@@ -140,7 +137,6 @@ TEST_CASE("Test correctness of: flipHashForMove") {
 }
 TEST_CASE("Test correctness of: flipHashForMove, spezial case") {
     const char* input = "2RG4/7/2b24/7/7/7/7 b";
-    TT::loadFromFile();
 
     Game game{input};
     const Move move("C5-C7-2");
@@ -167,23 +163,28 @@ TEST_CASE("right moves") {
     Move best_move = {};
     std::string s;
 
+    TT::clear();
     ai.getGame().stringToGame("1r1r1RG2r1/2r12r11/3b2r1b21/7/7/4b12/b1b11BG3 r");
     ai.getGame().printGame();
     best_move = ai.alphaBetaTimed(120000);
     s = best_move.toString();
+    INFO(s);
     CHECK((s == "D7-E7-1" || s == "C6-D6-1"));
 
+    TT::clear();
     ai.getGame().stringToGame("1r21RG1r1r1/2r14/7/7/b26/3r13/3BG1b21 b");
     ai.getGame().printGame();
     best_move = ai.alphaBetaTimed(120000);
     s = best_move.toString();
+    INFO(s);
     CHECK(s == "D1-D2-1");
 
-
+    TT::clear();
     ai.getGame().stringToGame("RG6/7/7/7/3r13/3BG3/b36 b");
     ai.getGame().printGame();
     best_move = ai.alphaBetaTimed(120000);
     s = best_move.toString();
+    INFO(s);
     CHECK(s == "D2-D3-1");
 }
 
