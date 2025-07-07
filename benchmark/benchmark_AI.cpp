@@ -20,6 +20,7 @@ TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {
     };
 }
 
+/*
 TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};
 
@@ -46,7 +47,7 @@ TEST_CASE("Benchmark for MINMAX", "[benchmarks][minmax]") {
         const std::string& best_move_string = best_move.at(i - 1);
         std::cout << "\nDEPTH " << i << " MINMAX used " << move << " moves. Best Move: " << best_move_string << std::endl;
     }
-}
+}*/
 
 TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};

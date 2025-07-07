@@ -206,6 +206,7 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
 
     uint64_t key = TT::getKey(game);
 
+    /*
     // Probe TT
     if (TT::TTEntry ttEntry; probe(key, ttEntry)) {
         const Move tt_move = ttEntry.bestMove.convertToMove();
@@ -216,7 +217,7 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list) {
                 break;
             }
         }
-    }
+    }*/
 
     for (int i = 0; i < MOVES_LIST_SIZE && move_list_copy[i].from != 0; i++) {
         TT::flipHashForMove(game, key, move_list_copy[i]);
@@ -263,6 +264,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     Move move_list[MOVES_LIST_SIZE];
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
+    /*
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth >= depth) {
@@ -296,13 +298,13 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                 }
             }
         }
-    }
+    }*/
 
     if (depth == 0) {
         move_count++;
         const int eval = evaluationFunction(node, max_player);
         // dummy Move
-        TT::store(current_key, eval, move_list[0], depth, TT::Flag::EXACT);
+        // TT::store(current_key, eval, move_list[0], depth, TT::Flag::EXACT);
         return eval;
     }
 
@@ -346,7 +348,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         }
     }
 
-    TT::store(current_key, bestScore, bestMove, depth, flag);
+    // TT::store(current_key, bestScore, bestMove, depth, flag);
 
     return bestScore;
 }
