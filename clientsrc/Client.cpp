@@ -125,6 +125,8 @@ void mainLoop() {
 
         const int player = stoi(n.getP());
         cout << "You are player " << player << endl;
+        TT::loadFromFile(player);
+
         int moves = 0;
         while (true) {
             string game_data = n.sendData(json("get").dump());
@@ -132,6 +134,7 @@ void mainLoop() {
                 cout << "Game Over" << endl;
                 cout << "Moves played:  "<< moves << endl;
                 n.close();
+                TT::saveToFile(player);
                 break;
             }
 
@@ -178,6 +181,7 @@ void mainLoop() {
 }
 
 int main() {
+    TT::clear();
     mainLoop();
     return 0;
 }

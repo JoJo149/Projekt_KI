@@ -332,4 +332,50 @@ namespace TT {
         std::fill_n(tt, TT_SIZE, TTEntry{});
     }
 
+    inline bool loadFromFile(int player) {
+        const std::string filePath = "../transposition_table/transposition_table" + std::to_string(player) + ".bin";
+        std::ifstream in(filePath , std::ios::binary);
+        if (!in) {
+            std::cerr << "TT load failed: file not found. Initializing TT and creating file...\n";
+            std::memset(tt, 0, sizeof(tt));
+
+            // Create and write the initialized TT to the file
+            std::ofstream out(filePath, std::ios::binary);
+            if (!out) {
+                std::cerr << "Failed to create TT file.\n";
+                return false;
+            }
+            out.write(reinterpret_cast<const char*>(tt), sizeof(tt));
+            out.close();
+            return true;  // File created and written successfully
+        }
+
+        in.read(reinterpret_cast<char*>(tt), sizeof(tt));
+        if (!in) {
+            std::cerr << "TT load failed: read error. Initializing TT...\n";
+            std::memset(tt, 0, sizeof(tt));
+            return false;
+        }
+
+        std::cout << "Loading TT finished" << std::endl;
+
+        in.close();
+        return true;
+    }
+
+    inline bool saveToFile(const int player) {
+        const std::string filePath = "../transposition_table/transposition_table" + std::to_string(player) + ".bin";
+        std::ofstream out(filePath, std::ios::binary);
+        if (!out) {
+            std::cerr << "TT save failed: could not open file.\n";
+            return false;
+        }
+
+        out.write(reinterpret_cast<const char*>(tt), sizeof(tt));
+        out.close();
+        std::cout << "Saved TT finished" << std::endl;
+        return out.good();
+    }
+
+
 }

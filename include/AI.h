@@ -1,6 +1,7 @@
 #pragma once
 #include <chrono>
 
+#include "transposition_table.h"
 #include "Game.h"
 
 class AI {
