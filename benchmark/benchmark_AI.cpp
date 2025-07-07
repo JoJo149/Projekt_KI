@@ -81,3 +81,37 @@ TEST_CASE("Benchmark for ALPHABETA", "[benchmarks][alphabeta]") {
         std::cout << "\nDEPTH " << i << " ALPHABETA used " << move << " moves. Best Move: " << best_move_string << std::endl;
     }
 }
+
+
+TEST_CASE("Benchmark for ALPHABETA 2", "[benchmarks][alphabeta]") {
+    AI ki{"3RG1r1r1/4r12/7/7/1r2b24/4b12/3BG1b21 r"};
+
+    TT::clear();
+
+    std::vector<int> move_count{};
+    std::vector<std::string> best_move{};
+    Move move_list[MOVES_LIST_SIZE] = {};
+    int last_eval = 0;
+
+    for (int i = 1; i <= MAX_DEPTH_ALPHABETA; i++) {
+        std::string tmp_best_move;
+        int tmp_move_count;
+        BENCHMARK_ADVANCED("ALPHABETA DEPTH " + std::to_string(i))(Catch::Benchmark::Chronometer meter) {
+            meter.measure([&] {
+                tmp_move_count = 0;
+                ki.aspirationWindowAlphaBeta(i, tmp_move_count, move_list, last_eval);
+                tmp_best_move = move_list[0].toString();
+                return 0;
+            });
+        };
+
+        move_count.push_back(tmp_move_count);
+        best_move.push_back(tmp_best_move);
+    }
+
+    for (int i = 1; i <= MAX_DEPTH_ALPHABETA; i++) {
+        int move = move_count.at(i - 1);
+        const std::string& best_move_string = best_move.at(i - 1);
+        std::cout << "\nDEPTH " << i << " ALPHABETA used " << move << " moves. Best Move: " << best_move_string << std::endl;
+    }
+}
