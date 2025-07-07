@@ -3,7 +3,7 @@
 #include "AI.h"
 
 int main() {
-    const char * input_board = "RG6/7/7/7/3r13/3BG3/b36 b";
+    const char * input_board = "3RG1r1r1/4r12/7/7/1r2b24/4b12/3BG1b21 r";
 
     TT::clear();
 
