@@ -1,6 +1,7 @@
 #include <fstream>
 
 #include "AI.h"
+#include "transposition_table.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -178,6 +179,7 @@ void mainLoop() {
 }
 
 int main() {
+    TT::clear();
     mainLoop();
     return 0;
 }
