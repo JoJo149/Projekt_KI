@@ -44,6 +44,12 @@ target_include_directories(Client PRIVATE ext/headerOnly/json)
 target_link_libraries(Client PRIVATE core)
 
 # ----------------------------------------------------------------------------
+# tuning application
+add_executable(Tuning src/Tuning.cpp)
+target_include_directories(Tuning PRIVATE ext/headerOnly/json)
+target_link_libraries(Tuning PRIVATE core)
+
+# ----------------------------------------------------------------------------
 # dockerClient application
 add_executable(dockerClient clientsrc/dockerClient.cpp)
 target_include_directories(dockerClient PRIVATE ext/headerOnly/json)
