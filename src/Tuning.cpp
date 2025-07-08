@@ -22,14 +22,20 @@ int main() {
         std::cout << "Unentschieden." << std::endl;
     }
     */
-    constexpr int number_of_ai = 3;
+    auto now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
+    std::cout << "Start time: " << now << std::endl;
+
+    constexpr int number_of_ai = 37;
+    float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
+    //                                          3, 5, 4, 185, 256, 646, 265, 645, 355, 10, 12, 6,
+    //                                          1, 4, 7, 73, 372, 378, 598, 723, 419, 24, 20, 7
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
 
-    Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter);
+    Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter, ranges);
 
     for (int i = 0; i < number_of_ai; i++) {
         std::cout << "AI Nummer " << i << " Wertung: " << win_amount[i] << std::endl;
@@ -40,10 +46,12 @@ int main() {
         std::cout << std::endl;
     }
     //std::cout << "size: " <<  parameters.size() << std::endl;
+    now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
+    std::cout << "End time: " << now << std::endl;
 }
 
 
-void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, std::array<int, P_AMOUNT> best_parameter) {
+void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
 
     // best parameters play unchanged
     parameters[0] = best_parameter;
@@ -53,7 +61,7 @@ void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::arra
             // get random number
             std::random_device rd;
             std::mt19937 gen(rd());
-            std::uniform_real_distribution<> dis(std::log(1.0 / 4), std::log(4.0));
+            std::uniform_real_distribution<> dis(std::log(1.0 / ranges[p]), std::log(ranges[p]));
             double r = dis(gen);
             double random_number = std::exp(r);
             p_set[p] = static_cast<int>(std::round(p_set[p] * random_number));
@@ -89,6 +97,7 @@ void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::arra
             }
         }
     }
+    std::cout << std::endl;
 }
 
 
