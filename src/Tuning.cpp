@@ -5,10 +5,12 @@
 
 constexpr int MATE_SCORE = 214748364;
 #define P_AMOUNT 12
+#include <random>
 
 
 int main() {
     // alt: {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
+    /*
     std::vector<std::array<int, P_AMOUNT>> parameters = {{2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}, {2, 4, 2, 1, 2, 3, 5, 5, 6, 15, 20, 10}};
     int erg = Tuning::AiDuel(parameters);
     std::cout << "Ergebnis: " << erg << std::endl;
@@ -18,6 +20,74 @@ int main() {
         std::cout << "Blau hat gewonnen." << std::endl;
     }else {
         std::cout << "Unentschieden." << std::endl;
+    }
+    */
+    constexpr int number_of_ai = 3;
+    int win_amount[number_of_ai] = {};
+    std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
+    std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
+    std::cout << number_of_ai << " AIs playing total" << std::endl;
+    std::cout << std::endl;
+
+    Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter);
+
+    for (int i = 0; i < number_of_ai; i++) {
+        std::cout << "AI Nummer " << i << " Wertung: " << win_amount[i] << std::endl;
+        for (int j = 0; j < P_AMOUNT; j++) {
+            std::cout << parameters[i][j] << ", ";
+        }
+        std::cout << std::endl;
+        std::cout << std::endl;
+    }
+    //std::cout << "size: " <<  parameters.size() << std::endl;
+}
+
+
+void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, std::array<int, P_AMOUNT> best_parameter) {
+
+    // best parameters play unchanged
+    parameters[0] = best_parameter;
+    for (int i = 1; i < number_of_ai; i++) {
+        std::array<int, P_AMOUNT> p_set = {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
+        for (int p = 0; p < P_AMOUNT; p++) {
+            // get random number
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::uniform_real_distribution<> dis(std::log(1.0 / 4), std::log(4.0));
+            double r = dis(gen);
+            double random_number = std::exp(r);
+            p_set[p] = static_cast<int>(std::round(p_set[p] * random_number));
+            parameters[i] = p_set;
+        }
+    }
+
+    for (int ply = 0; ply < number_of_ai; ply++) {
+        std::cout << "AI " << ply << " is playing against the others" << std::endl;
+        for (int opp = ply + 1; opp < number_of_ai; opp++) {
+            int erg = 0;
+            erg = Tuning::AiDuel(parameters, ply, opp);
+            if (erg % 2 == 0 && erg > 0) {
+                win_amount[ply]++;
+                win_amount[opp]--;
+            }else if (erg % 2 == 1 && erg > 0){
+                win_amount[ply]--;
+                win_amount[opp]++;
+            }else {
+                // draw -> nothing
+            }
+
+            // other ai begins
+            erg = Tuning::AiDuel(parameters, opp, ply);
+            if (erg % 2 == 0 && erg > 0) {
+                win_amount[ply]--;
+                win_amount[opp]++;
+            }else if (erg % 2 == 1 && erg > 0){
+                win_amount[ply]++;
+                win_amount[opp]--;
+            }else {
+                // draw -> nothing
+            }
+        }
     }
 }
 
@@ -53,29 +123,38 @@ void switch_player_string(char *str) {
     }
 }
 
-// TODO draw erkennung
-int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters) {
+
+int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters, int ai_ply, int ai_opp) {
     char  input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
-    int ai_nr = 0;
+    int ai_nr = ai_ply;
+    std::map<std::string, int> position_counts;
+
     for (int i = 0; i < 100; i++) {
         TT::clear();
         AI ki{input_board};
         int move_count = 0;
-        std::cout << "KI berechnet besten Zug..." << std::endl;
 
         if (i % 2 == 0) {
-            ai_nr = 0;
+            ai_nr = ai_ply;
         }else {
-            ai_nr = 1;
+            ai_nr = ai_opp;
         }
+
+        // check for loop
+        position_counts[input_board]++;
+        if (position_counts[input_board] >= 3) {
+            return -1; // draw
+        }
+
         Move best_move_ab = ki.TuningalphaBetaTimed(10000, ai_nr, parameters);
-        ki.getGame().printGame();
-        std::cout << "best_move: " << best_move_ab.toString() << std::endl;
-        std::cout << "move_count: " << move_count << std::endl;
+        //ki.getGame().printGame();
+        //std::cout << "best_move: " << best_move_ab.toString() << std::endl;
+        //std::cout << "move_count: " << move_count << std::endl;
 
         ki.getGame().makeMove(best_move_ab);
         ki.getGame().gameToString(input_board);
         switch_player_string(input_board);
+
 
         if (TuningisGameOver(ki.getGame()) == true) {
             return i; //ungerade: blau hat verloren(wenn rot beginnt)
@@ -127,7 +206,7 @@ Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::a
                 time_to_move = elapsed_ms * tower_count_enemy;
             }
             if (time_to_move >= time_limit) {
-                std::cout << "Time limit exceeded at depth " << depth << std::endl;
+                //std::cout << "Time limit exceeded at depth " << depth << std::endl;
                 break;
             }
             TuningaspirationWindowAlphaBeta(depth,ignore, ordered_move_list, last_eval, ai_nr, parameters);
@@ -526,6 +605,7 @@ int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, i
     int tower_faktor = parameters[ai_nr][0];
     int pos_tower_faktor_mg = parameters[ai_nr][1];
     int pos_tower_faktor_eg = parameters[ai_nr][2];
+    //std::cout << "tower factor: " << tower_faktor << std::endl;
 
     // Material Value
     int PIECE_WEIGHTS_MG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};

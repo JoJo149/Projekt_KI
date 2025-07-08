@@ -7,5 +7,8 @@
 
 class Tuning {
 public:
-    static int AiDuel(std::vector<std::array<int, P_AMOUNT>>);
+
+
+    static void Turnament(int, int *, std::vector<std::array<int, P_AMOUNT>> &, std::array<int, P_AMOUNT>);
+    static int AiDuel(std::vector<std::array<int, P_AMOUNT>>, int, int);
 };
