@@ -4,12 +4,40 @@
 #include <thread>
 
 constexpr int MATE_SCORE = 214748364;
+#define P_AMOUNT 12
 
 
 int main() {
-    std::vector<std::array<int, 1>> parameters = {{2}, {99}};
+    // alt: {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
+    std::vector<std::array<int, P_AMOUNT>> parameters = {{2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}, {2, 4, 2, 1, 2, 3, 5, 5, 6, 15, 20, 10}};
     int erg = Tuning::AiDuel(parameters);
     std::cout << "Ergebnis: " << erg << std::endl;
+    if (erg % 2 == 0 && erg > 0) {
+        std::cout << "Rot hat gewonnen." << std::endl;
+    }else if (erg % 2 == 1 && erg > 0){
+        std::cout << "Blau hat gewonnen." << std::endl;
+    }else {
+        std::cout << "Unentschieden." << std::endl;
+    }
+}
+
+
+bool TuningisGameOver(Game game){
+    constexpr uint64_t guard_pos_down = 0b0000010000000000000000000000000000000000000000000000000000000000;
+    constexpr uint64_t guard_pos_up =   0b0000000000000000000000000000000000000000000000000000000000010000;
+
+    // if red guard is in bot guard field
+    if (game.bitBoards[T_G] & game.bitBoards[C_R] & guard_pos_down) {
+        return true;
+    }
+    // if blue guard is in top guard field
+    if (game.bitBoards[T_G] & game.bitBoards[C_B] & guard_pos_up) {
+        return true;
+    }
+
+    game.generateMoves();
+    // check if ther are no moves possible or if one of the guards got killed
+    return game.getMoveList()[0].from == 0 || std::popcount(game.bitBoards[T_G]) == 1;
 }
 
 void switch_player_string(char *str) {
@@ -25,7 +53,8 @@ void switch_player_string(char *str) {
     }
 }
 
-int Tuning::AiDuel(std::vector<std::array<int, 1>> parameters) {
+// TODO draw erkennung
+int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters) {
     char  input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
     int ai_nr = 0;
     for (int i = 0; i < 100; i++) {
@@ -48,14 +77,14 @@ int Tuning::AiDuel(std::vector<std::array<int, 1>> parameters) {
         ki.getGame().gameToString(input_board);
         switch_player_string(input_board);
 
-        if (ki.getGame().isGameOver()) {
+        if (TuningisGameOver(ki.getGame()) == true) {
             return i; //ungerade: blau hat verloren(wenn rot beginnt)
         }
     }
     return -1; //draw
 }
 
-Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::array<int, 1>> parameters) {
+Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
     const auto startTime = std::chrono::steady_clock::now();
     constexpr int max_time = 120000;
     // constexpr int max_time = 180000;
@@ -114,7 +143,7 @@ Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::a
     return best_move;
 }
 
-void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, int ai_nr, std::vector<std::array<int, 1>> parameters) {
+void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
     constexpr int MAX_RETRIES = 1;
     constexpr int MUL_FACTOR = 4;
     int aspiration_margin = 20;
@@ -146,7 +175,7 @@ void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result
 }
 
 
-void AI::TuningalphaBeta(const int depth, int& move_count, Move* ordered_move_list, int& last_eval, const int aspiration_margin, bool& aspiration_window_missed, int ai_nr, std::vector<std::array<int, 1>> parameters) {
+void AI::TuningalphaBeta(const int depth, int& move_count, Move* ordered_move_list, int& last_eval, const int aspiration_margin, bool& aspiration_window_missed, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
     Move move_list_copy[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE];
     if (depth == 1) {
@@ -220,7 +249,7 @@ void AI::TuningalphaBeta(const int depth, int& move_count, Move* ordered_move_li
 }
 
 
-int AI::TuningtraverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key, int ai_nr, std::vector<std::array<int, 1>> parameters) {
+int AI::TuningtraverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
     node.generateMoves();
 
     if (node.isGameOver()) {
@@ -403,17 +432,17 @@ static const uint8_t guard_table_blue_eg[64] = {
 };
 
 
-inline void evalGuardEdge(const bool player, const uint64_t guard_board, const uint64_t player_board, const uint64_t enemy_board, int& middle_game_evaluation, int& end_game_evaluation) {
+inline void evalGuardEdge(const bool player, const uint64_t guard_board, const uint64_t player_board, const uint64_t enemy_board, int& middle_game_evaluation, int& end_game_evaluation, int * guard_parameters) {
     int guard_middle_game_evaluation = 0;
     int guard_end_game_evaluation = 0;
 
-    constexpr int player_ortho_mg = 15;
-    constexpr int enemy_ortho_mg = 20;
-    constexpr int enemy_diag_mg = 10;
+    int player_ortho_mg = guard_parameters[0];
+    int enemy_ortho_mg = guard_parameters[1];
+    int enemy_diag_mg = guard_parameters[2];
 
-    constexpr int player_ortho_eg = 25;
-    constexpr int enemy_ortho_eg = 30;
-    constexpr int enemy_diag_eg = 20;
+    int player_ortho_eg = guard_parameters[3];
+    int enemy_ortho_eg = guard_parameters[4];
+    int enemy_diag_eg = guard_parameters[5];
 
 
     const int player_guard_index = std::countr_zero(guard_board);
@@ -491,12 +520,21 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
     }
 }
 
+// TODO midgame zu endgame unterscheidung einbauen -> 12 werte aktuell
 // make sure generate moves was already run on game, before running eval
-int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, int ai_nr, std::vector<std::array<int, 1>> parameters) {
-    constexpr int pos_tower_faktor_mg = 4;
-    constexpr int pos_tower_faktor_eg = 2;
+int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
     int tower_faktor = parameters[ai_nr][0];
-    //std::cout << "tower factor:" <<tower_faktor << std::endl;
+    int pos_tower_faktor_mg = parameters[ai_nr][1];
+    int pos_tower_faktor_eg = parameters[ai_nr][2];
+
+    // Material Value
+    int PIECE_WEIGHTS_MG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};
+    //int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][12], parameters[ai_nr][13], parameters[ai_nr][14]};
+    int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};
+
+
+    //int guard_parameters[6] = {parameters[ai_nr][15], parameters[ai_nr][16], parameters[ai_nr][17], parameters[ai_nr][18], parameters[ai_nr][19], parameters[ai_nr][20]};
+    int guard_parameters[6] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11]};
 
 
     int middle_game_evaluation = 0;
@@ -510,9 +548,7 @@ int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, i
     const uint64_t player_board = (max_player == red) ? new_game.bitBoards[C_R] : new_game.bitBoards[C_B];
     const uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
 
-    // Material Value
-    constexpr int PIECE_WEIGHTS_MG[7] = {100, 260, 340, 500, 500, 600};
-    constexpr int PIECE_WEIGHTS_EG[7] = {100, 230, 320, 450, 500, 600};
+
 
     for (int i = 0; i < T_G; i++) {
         const int player_towers_num = std::popcount(player_board & new_game.bitBoards[i]);
@@ -613,8 +649,8 @@ int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, i
     end_game_evaluation += (guard_table_player_eg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_eg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]);
 
 
-    evalGuardEdge(true, player_board & new_game.bitBoards[T_G], player_board, enemy_board, middle_game_evaluation,end_game_evaluation);
-    evalGuardEdge(false, enemy_board & new_game.bitBoards[T_G], enemy_board, player_board, middle_game_evaluation,end_game_evaluation);
+    evalGuardEdge(true, player_board & new_game.bitBoards[T_G], player_board, enemy_board, middle_game_evaluation,end_game_evaluation, guard_parameters);
+    evalGuardEdge(false, enemy_board & new_game.bitBoards[T_G], enemy_board, player_board, middle_game_evaluation,end_game_evaluation, guard_parameters);
 
     return middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count);
 }
