@@ -125,7 +125,6 @@ void mainLoop() {
 
         const int player = stoi(n.getP());
         cout << "You are player " << player << endl;
-        TT::loadFromFile(player);
 
         int moves = 0;
         while (true) {
@@ -134,7 +133,6 @@ void mainLoop() {
                 cout << "Game Over" << endl;
                 cout << "Moves played:  "<< moves << endl;
                 n.close();
-                TT::saveToFile(player);
                 break;
             }
 
