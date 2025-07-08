@@ -27,13 +27,19 @@ void switch_player_string(char *str) {
 
 int Tuning::AiDuel(std::vector<std::array<int, 1>> parameters) {
     char  input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
+    int ai_nr = 0;
     for (int i = 0; i < 100; i++) {
         TT::clear();
         AI ki{input_board};
         int move_count = 0;
         std::cout << "KI berechnet besten Zug..." << std::endl;
 
-        Move best_move_ab = ki.TuningalphaBetaTimed(10000, 0, parameters);
+        if (i % 2 == 0) {
+            ai_nr = 0;
+        }else {
+            ai_nr = 1;
+        }
+        Move best_move_ab = ki.TuningalphaBetaTimed(10000, ai_nr, parameters);
         ki.getGame().printGame();
         std::cout << "best_move: " << best_move_ab.toString() << std::endl;
         std::cout << "move_count: " << move_count << std::endl;
@@ -558,7 +564,7 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
 int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, int ai_nr, std::vector<std::array<int, 1>> parameters) {
     constexpr int pos_tower_faktor_mg = 4;
     constexpr int pos_tower_faktor_eg = 2;
-    int tower_faktor = parameters[0][0];
+    int tower_faktor = parameters[ai_nr][0];
     //std::cout << "tower factor:" <<tower_faktor << std::endl;
 
 
