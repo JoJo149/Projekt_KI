@@ -1,8 +1,12 @@
 #include "Tuning.h"
 
 #include <iostream>
-#include <thread>
+#include <vector>
+#include <execution>
+#include <algorithm>
 #include <mutex>
+
+
 
 constexpr int MATE_SCORE = 214748364;
 #define P_AMOUNT 21
@@ -14,23 +18,24 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 6;
-    constexpr int number_of_runs = 3;
+    constexpr int number_of_ai = 50;
+    constexpr int number_of_runs = 10;
     float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
-    int win_amount[number_of_ai] = {};
+    std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
+    std::array<int, P_AMOUNT> best_parameter = { 46, 25, 3, 131, 299, 508, 531, 591, 517, 99, 315, 373, 299, 311, 243, 29, 100, 5, 2, 51, 16,};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
+        for (auto& w : win_amount) w = 0;  // Initialize all to zero
         const double convergence_factor = (1.0 - ((i - 1.0)/ number_of_runs));
         std::cout << "RUN: " << i << std::endl << "with START PARAMS: ";
         for (int k = 0; k < P_AMOUNT; k++) {
             std::cout << best_parameter[k] << ", ";
         }
         std::cout << std::endl << std::endl;
-        Tuning::Turnament(convergence_factor, number_of_ai, win_amount, parameters, best_parameter, ranges);
+        Tuning::Turnament(convergence_factor, number_of_ai, win_amount.data(), parameters, best_parameter, ranges);
         // index, score
         std::pair<int, int> best_index(0,-10000);
         for (int j = 0; j < number_of_ai; j++) {
@@ -46,7 +51,6 @@ int main() {
             std::cout << std::endl;
         }
         best_parameter = parameters[best_index.first];
-        std::fill_n(win_amount, number_of_ai,0);
         parameters.clear();
         parameters.resize(number_of_ai);
 
@@ -64,14 +68,10 @@ int main() {
 }
 
 
-std::mutex win_mutex;
-
-void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
-    // best parameters play unchanged
+void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<int>* win_amount, std::vector<std::array<int, P_AMOUNT>>& parameters, const std::array<int, P_AMOUNT>& best_parameter, float ranges[P_AMOUNT]) {
     parameters[0] = best_parameter;
     std::random_device rd;
     std::mt19937 gen(rd());
-    //std::cout << "convergence_factor: " << convergence_factor << std::endl;
 
     for (int i = 1; i < number_of_ai; i++) {
         std::array<int, P_AMOUNT> p_set = best_parameter;
@@ -87,46 +87,42 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_am
         parameters[i] = p_set;
     }
 
-    std::vector<std::thread> threads;
-
-    for (int ply = 0; ply < number_of_ai; ply++) {
-        for (int opp = ply + 1; opp < number_of_ai; opp++) {
-            threads.emplace_back([&, ply, opp]() {
-                int erg = Tuning::AiDuel(parameters, ply, opp);
-                {
-                    std::lock_guard<std::mutex> lock(win_mutex);
-                    if (erg % 2 == 0 && erg > 0) {
-                        win_amount[ply]++;
-                        win_amount[opp]--;
-                    } else if (erg % 2 == 1 && erg > 0) {
-                        win_amount[ply]--;
-                        win_amount[opp]++;
-                    }
-                }
-
-                erg = Tuning::AiDuel(parameters, opp, ply);
-                {
-                    std::lock_guard<std::mutex> lock(win_mutex);
-                    if (erg % 2 == 0 && erg > 0) {
-                        win_amount[ply]--;
-                        win_amount[opp]++;
-                    } else if (erg % 2 == 1 && erg > 0) {
-                        win_amount[ply]++;
-                        win_amount[opp]--;
-                    }
-                }
-            });
+    std::vector<std::pair<int, int>> duels;
+    for (int ply = 0; ply < number_of_ai; ++ply) {
+        for (int opp = ply + 1; opp < number_of_ai; ++opp) {
+            duels.emplace_back(ply, opp);
         }
     }
 
-    // Wait for all threads to finish
-    for (auto &t : threads) {
-        t.join();
-    }
+    std::for_each(std::execution::par, duels.begin(), duels.end(), [&](const auto& pair) {
+        int ply = pair.first;
+        int opp = pair.second;
+
+        int erg = Tuning::AiDuel(parameters, ply, opp);
+        if (erg > 0) {
+            if (erg % 2 == 0) {
+                win_amount[ply].fetch_add(1, std::memory_order_relaxed);
+                win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
+            } else {
+                win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
+                win_amount[opp].fetch_add(1, std::memory_order_relaxed);
+            }
+        }
+
+        erg = Tuning::AiDuel(parameters, opp, ply);
+        if (erg > 0) {
+            if (erg % 2 == 0) {
+                win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
+                win_amount[opp].fetch_add(1, std::memory_order_relaxed);
+            } else {
+                win_amount[ply].fetch_add(1, std::memory_order_relaxed);
+                win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
+            }
+        }
+    });
 
     std::cout << std::endl;
 }
-
 
 bool TuningisGameOver(Game game){
     constexpr uint64_t guard_pos_down = 0b0000010000000000000000000000000000000000000000000000000000000000;
