@@ -9,23 +9,11 @@ constexpr int MATE_SCORE = 214748364;
 
 
 int main() {
-    // alt: {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
-    /*
-    std::vector<std::array<int, P_AMOUNT>> parameters = {{2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}, {2, 4, 2, 1, 2, 3, 5, 5, 6, 15, 20, 10}};
-    int erg = Tuning::AiDuel(parameters);
-    std::cout << "Ergebnis: " << erg << std::endl;
-    if (erg % 2 == 0 && erg > 0) {
-        std::cout << "Rot hat gewonnen." << std::endl;
-    }else if (erg % 2 == 1 && erg > 0){
-        std::cout << "Blau hat gewonnen." << std::endl;
-    }else {
-        std::cout << "Unentschieden." << std::endl;
-    }
-    */
     auto now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     std::cout << "Start time: " << now << std::endl;
 
-    constexpr int number_of_ai = 37;
+    constexpr int number_of_ai = 2;
+    constexpr int number_of_runs = 3;
     float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
@@ -34,18 +22,39 @@ int main() {
     //                                          1, 4, 7, 73, 372, 378, 598, 723, 419, 24, 20, 7
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
-
-    Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter, ranges);
-
-    for (int i = 0; i < number_of_ai; i++) {
-        std::cout << "AI Nummer " << i << " Wertung: " << win_amount[i] << std::endl;
-        for (int j = 0; j < P_AMOUNT; j++) {
-            std::cout << parameters[i][j] << ", ";
+    for (int i = 1; i <= number_of_runs; i++) {
+        std::cout << "RUN: " << i << std::endl << "with START PARAMS: ";
+        for (int k = 0; k < P_AMOUNT; k++) {
+            std::cout << best_parameter[k] << ", ";
         }
-        std::cout << std::endl;
-        std::cout << std::endl;
+        std::cout << std::endl << std::endl;
+        Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter, ranges);
+        // index, score
+        std::pair<int, int> best_index(0,-10000);
+        for (int j = 0; j < number_of_ai; j++) {
+            if (win_amount[j] > best_index.second) {
+                best_index.first = j;
+                best_index.second = win_amount[j];
+            }
+            std::cout << "AI Nummer " << j << " Wertung: " << win_amount[j] << std::endl;
+            for (int k = 0; k < P_AMOUNT; k++) {
+                std::cout << parameters[j][k] << ", ";
+            }
+            std::cout << std::endl;
+            std::cout << std::endl;
+        }
+        best_parameter = parameters[best_index.first];
+        std::fill_n(win_amount, number_of_ai,0);
+        parameters.clear();
+        parameters.resize(number_of_ai);
     }
-    //std::cout << "size: " <<  parameters.size() << std::endl;
+
+    std::cout << "BEST FOUND PARAMS: ";
+    for (int k = 0; k < P_AMOUNT; k++) {
+        std::cout << best_parameter[k] << ", ";
+    }
+    std::cout << std::endl << std::endl;
+
     now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     std::cout << "End time: " << now << std::endl;
 }
