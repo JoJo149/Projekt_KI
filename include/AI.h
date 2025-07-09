@@ -3,7 +3,7 @@
 
 #include "Game.h"
 
-#define P_AMOUNT 12
+#define P_AMOUNT 21
 
 class AI {
 private:

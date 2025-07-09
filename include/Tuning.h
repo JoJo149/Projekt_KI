@@ -3,7 +3,7 @@
 #include "AI.h"
 #include "transposition_table.h"
 
-#define P_AMOUNT 12
+#define P_AMOUNT 21
 
 class Tuning {
 public:

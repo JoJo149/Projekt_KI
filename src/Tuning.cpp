@@ -5,7 +5,7 @@
 #include <mutex>
 
 constexpr int MATE_SCORE = 214748364;
-#define P_AMOUNT 12
+#define P_AMOUNT 21
 #include <random>
 
 
@@ -14,14 +14,13 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-
-    constexpr int number_of_ai = 5;
-    constexpr int number_of_runs = 1;
+    constexpr int number_of_ai = 4;
+    constexpr int number_of_runs = 2;
     float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = {8, 1, 6, 123, 311, 404, 433, 636, 605, 10, 13, 13};
+    std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
@@ -52,7 +51,7 @@ int main() {
 
         now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
         auto iter_duration = now.get_sys_time() - start_time.get_sys_time();
-        std::cout << "Duration this run: " << std::chrono::duration_cast<std::chrono::seconds>(iter_duration).count() << " seconds" << std::endl << std::endl;
+        std::cout << "Total Duration: " << std::chrono::duration_cast<std::chrono::seconds>(iter_duration).count() << " seconds" << std::endl << std::endl;
     }
 
     std::cout << "BEST FOUND PARAMS: ";
@@ -69,12 +68,13 @@ std::mutex win_mutex;
 void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
     // best parameters play unchanged
     parameters[0] = best_parameter;
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
     for (int i = 1; i < number_of_ai; i++) {
         // first set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
         std::array<int, P_AMOUNT> p_set = {5, 2, 4, 94, 204, 499, 426, 637, 528, 23, 23, 6};
         for (int p = 0; p < P_AMOUNT; p++) {
-            std::random_device rd;
-            std::mt19937 gen(rd());
             std::uniform_real_distribution<> dis(std::log(1.0 / ranges[p]), std::log(ranges[p]));
             double r = dis(gen);
             double random_number = std::exp(r);
@@ -641,12 +641,12 @@ int AI::TuningevaluationFunction(Game& new_game, const playerName& max_player, i
 
     // Material Value
     int PIECE_WEIGHTS_MG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};
-    //int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][12], parameters[ai_nr][13], parameters[ai_nr][14]};
-    int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};
+    int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][12], parameters[ai_nr][13], parameters[ai_nr][14]};
+    //int PIECE_WEIGHTS_EG[7] = {parameters[ai_nr][3], parameters[ai_nr][4], parameters[ai_nr][5], parameters[ai_nr][6], parameters[ai_nr][7], parameters[ai_nr][8]};
 
 
-    //int guard_parameters[6] = {parameters[ai_nr][15], parameters[ai_nr][16], parameters[ai_nr][17], parameters[ai_nr][18], parameters[ai_nr][19], parameters[ai_nr][20]};
-    int guard_parameters[6] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11]};
+    int guard_parameters[6] = {parameters[ai_nr][15], parameters[ai_nr][16], parameters[ai_nr][17], parameters[ai_nr][18], parameters[ai_nr][19], parameters[ai_nr][20]};
+    //int guard_parameters[6] = {parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11], parameters[ai_nr][9], parameters[ai_nr][10], parameters[ai_nr][11]};
 
 
     int middle_game_evaluation = 0;
