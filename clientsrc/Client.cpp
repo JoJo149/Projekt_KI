@@ -179,7 +179,6 @@ void mainLoop() {
 }
 
 int main() {
-    TT::clear();
     mainLoop();
     return 0;
 }

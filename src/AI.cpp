@@ -130,6 +130,7 @@ void AI::check_move_list(const Move * move_list) {
 }
 
 Move AI::alphaBetaTimed(const int time_left) {
+    TT::clear();
     const auto startTime = std::chrono::steady_clock::now();
     constexpr int max_time = 120000; // 2 min time is constant from Server
     Move best_move{};
