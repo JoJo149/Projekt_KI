@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <thread>
+#include <mutex>
 
 constexpr int MATE_SCORE = 214748364;
 #define P_AMOUNT 12
@@ -9,17 +10,18 @@ constexpr int MATE_SCORE = 214748364;
 
 
 int main() {
-    auto now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
-    std::cout << "Start time: " << now << std::endl;
+    auto start_time = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
+    auto now = start_time;
+    std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 2;
-    constexpr int number_of_runs = 3;
+
+    constexpr int number_of_ai = 5;
+    constexpr int number_of_runs = 1;
     float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
-    std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    //                                          3, 5, 4, 185, 256, 646, 265, 645, 355, 10, 12, 6,
-    //                                          1, 4, 7, 73, 372, 378, 598, 723, 419, 24, 20, 7
+    // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
+    std::array<int, P_AMOUNT> best_parameter = {8, 1, 6, 123, 311, 404, 433, 636, 605, 10, 13, 13};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
@@ -47,6 +49,10 @@ int main() {
         std::fill_n(win_amount, number_of_ai,0);
         parameters.clear();
         parameters.resize(number_of_ai);
+
+        now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
+        auto iter_duration = now.get_sys_time() - start_time.get_sys_time();
+        std::cout << "Duration this run: " << std::chrono::duration_cast<std::chrono::seconds>(iter_duration).count() << " seconds" << std::endl << std::endl;
     }
 
     std::cout << "BEST FOUND PARAMS: ";
@@ -54,58 +60,66 @@ int main() {
         std::cout << best_parameter[k] << ", ";
     }
     std::cout << std::endl << std::endl;
-
-    now = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     std::cout << "End time: " << now << std::endl;
 }
 
 
-void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
+std::mutex win_mutex;
 
+void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
     // best parameters play unchanged
     parameters[0] = best_parameter;
     for (int i = 1; i < number_of_ai; i++) {
-        std::array<int, P_AMOUNT> p_set = {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
+        // first set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
+        std::array<int, P_AMOUNT> p_set = {5, 2, 4, 94, 204, 499, 426, 637, 528, 23, 23, 6};
         for (int p = 0; p < P_AMOUNT; p++) {
-            // get random number
             std::random_device rd;
             std::mt19937 gen(rd());
             std::uniform_real_distribution<> dis(std::log(1.0 / ranges[p]), std::log(ranges[p]));
             double r = dis(gen);
             double random_number = std::exp(r);
             p_set[p] = static_cast<int>(std::round(p_set[p] * random_number));
-            parameters[i] = p_set;
         }
+        parameters[i] = p_set;
     }
+
+    std::vector<std::thread> threads;
 
     for (int ply = 0; ply < number_of_ai; ply++) {
-        std::cout << "AI " << ply << " is playing against the others" << std::endl;
         for (int opp = ply + 1; opp < number_of_ai; opp++) {
-            int erg = 0;
-            erg = Tuning::AiDuel(parameters, ply, opp);
-            if (erg % 2 == 0 && erg > 0) {
-                win_amount[ply]++;
-                win_amount[opp]--;
-            }else if (erg % 2 == 1 && erg > 0){
-                win_amount[ply]--;
-                win_amount[opp]++;
-            }else {
-                // draw -> nothing
-            }
+            threads.emplace_back([&, ply, opp]() {
+                int erg = Tuning::AiDuel(parameters, ply, opp);
+                {
+                    std::lock_guard<std::mutex> lock(win_mutex);
+                    if (erg % 2 == 0 && erg > 0) {
+                        win_amount[ply]++;
+                        win_amount[opp]--;
+                    } else if (erg % 2 == 1 && erg > 0) {
+                        win_amount[ply]--;
+                        win_amount[opp]++;
+                    }
+                }
 
-            // other ai begins
-            erg = Tuning::AiDuel(parameters, opp, ply);
-            if (erg % 2 == 0 && erg > 0) {
-                win_amount[ply]--;
-                win_amount[opp]++;
-            }else if (erg % 2 == 1 && erg > 0){
-                win_amount[ply]++;
-                win_amount[opp]--;
-            }else {
-                // draw -> nothing
-            }
+                erg = Tuning::AiDuel(parameters, opp, ply);
+                {
+                    std::lock_guard<std::mutex> lock(win_mutex);
+                    if (erg % 2 == 0 && erg > 0) {
+                        win_amount[ply]--;
+                        win_amount[opp]++;
+                    } else if (erg % 2 == 1 && erg > 0) {
+                        win_amount[ply]++;
+                        win_amount[opp]--;
+                    }
+                }
+            });
         }
     }
+
+    // Wait for all threads to finish
+    for (auto &t : threads) {
+        t.join();
+    }
+
     std::cout << std::endl;
 }
 
