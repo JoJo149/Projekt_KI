@@ -15,8 +15,8 @@ int main() {
     std::cout << "Start time: " << start_time << std::endl;
 
     constexpr int number_of_ai = 4;
-    constexpr int number_of_runs = 2;
-    float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0};
+    constexpr int number_of_runs = 3;
+    float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
@@ -24,12 +24,13 @@ int main() {
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
+        const double convergence_factor = (1.0 - ((i - 1.0)/ number_of_runs));
         std::cout << "RUN: " << i << std::endl << "with START PARAMS: ";
         for (int k = 0; k < P_AMOUNT; k++) {
             std::cout << best_parameter[k] << ", ";
         }
         std::cout << std::endl << std::endl;
-        Tuning::Turnament(number_of_ai, win_amount, parameters, best_parameter, ranges);
+        Tuning::Turnament(convergence_factor, number_of_ai, win_amount, parameters, best_parameter, ranges);
         // index, score
         std::pair<int, int> best_index(0,-10000);
         for (int j = 0; j < number_of_ai; j++) {
@@ -65,17 +66,17 @@ int main() {
 
 std::mutex win_mutex;
 
-void Tuning::Turnament(int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
+void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
     // best parameters play unchanged
     parameters[0] = best_parameter;
     std::random_device rd;
     std::mt19937 gen(rd());
+    //std::cout << "convergence_factor: " << convergence_factor << std::endl;
 
     for (int i = 1; i < number_of_ai; i++) {
-        // first set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10}
-        std::array<int, P_AMOUNT> p_set = {5, 2, 4, 94, 204, 499, 426, 637, 528, 23, 23, 6};
+        std::array<int, P_AMOUNT> p_set = best_parameter;
         for (int p = 0; p < P_AMOUNT; p++) {
-            std::uniform_real_distribution<> dis(std::log(1.0 / ranges[p]), std::log(ranges[p]));
+            std::uniform_real_distribution<> dis(std::log(1.0 / (ranges[p] * convergence_factor) + 1), std::log(ranges[p] * convergence_factor) + 1);
             double r = dis(gen);
             double random_number = std::exp(r);
             p_set[p] = static_cast<int>(std::round(p_set[p] * random_number));
