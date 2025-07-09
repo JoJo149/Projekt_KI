@@ -14,7 +14,7 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 4;
+    constexpr int number_of_ai = 6;
     constexpr int number_of_runs = 3;
     float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
@@ -76,9 +76,12 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_am
     for (int i = 1; i < number_of_ai; i++) {
         std::array<int, P_AMOUNT> p_set = best_parameter;
         for (int p = 0; p < P_AMOUNT; p++) {
-            std::uniform_real_distribution<> dis(std::log(1.0 / (ranges[p] * convergence_factor) + 1), std::log(ranges[p] * convergence_factor) + 1);
-            double r = dis(gen);
-            double random_number = std::exp(r);
+            double scale_min = 1.0 - (1.0 - 1.0 / ranges[p]) * convergence_factor;
+            double scale_max = 1.0 + (ranges[p] - 1.0) * convergence_factor;
+            double log_min = std::log(scale_min);
+            double log_max = std::log(scale_max);
+            std::uniform_real_distribution<> log_dis(log_min, log_max);
+            double random_number = std::exp(log_dis(gen));
             p_set[p] = static_cast<int>(std::round(p_set[p] * random_number));
         }
         parameters[i] = p_set;
