@@ -11,4 +11,5 @@ public:
 
     static void Turnament(double, int, int *, std::vector<std::array<int, P_AMOUNT>> &, const std::array<int, P_AMOUNT> &, float[P_AMOUNT]);
     static int AiDuel(std::vector<std::array<int, P_AMOUNT>>, int, int);
+    static int run_duel_with_timeout(std::vector<std::array<int, P_AMOUNT>> , int, int);
 };

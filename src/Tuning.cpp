@@ -1,3 +1,5 @@
+#include "ctpl_stl.h"
+
 #include "Tuning.h"
 
 #include <iostream>
@@ -14,13 +16,14 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 6;
-    constexpr int number_of_runs = 3;
+    constexpr int number_of_ai = 20;
+    constexpr int number_of_runs = 5;
     float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     int win_amount[number_of_ai] = {};
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
+    // {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20}
+    std::array<int, P_AMOUNT> best_parameter = {2, 6, 12, 96, 404, 412, 333, 283, 694, 102, 476, 197, 861, 767, 838, 39, 15, 23, 16, 70, 43};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
@@ -67,6 +70,7 @@ int main() {
 std::mutex win_mutex;
 
 void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_amount, std::vector<std::array<int, P_AMOUNT>> &parameters, const std::array<int, P_AMOUNT> &best_parameter, float ranges[P_AMOUNT]) {
+    std::atomic<int> duels_completed = 0;
     // best parameters play unchanged
     parameters[0] = best_parameter;
     std::random_device rd;
@@ -87,12 +91,19 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_am
         parameters[i] = p_set;
     }
 
-    std::vector<std::thread> threads;
+    // Use CTPL thread pool
+    ctpl::thread_pool pool(std::thread::hardware_concurrency());
+    const int total_duels = number_of_ai * (number_of_ai - 1);
 
-    for (int ply = 0; ply < number_of_ai; ply++) {
-        for (int opp = ply + 1; opp < number_of_ai; opp++) {
-            threads.emplace_back([&, ply, opp]() {
-                int erg = Tuning::AiDuel(parameters, ply, opp);
+    for (int ply = 0; ply < number_of_ai; ++ply) {
+        for (int opp = ply + 1; opp < number_of_ai; ++opp) {
+            pool.push([&, ply, opp](int) {
+                auto update_progress = [&]() {
+                    int done = ++duels_completed;
+                        std::cout << "\rProgress: " << done << " / " << total_duels << " duels completed." << std::flush;
+                };
+
+                int erg = Tuning::run_duel_with_timeout(parameters, ply, opp);
                 {
                     std::lock_guard<std::mutex> lock(win_mutex);
                     if (erg % 2 == 0 && erg > 0) {
@@ -103,8 +114,9 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_am
                         win_amount[opp]++;
                     }
                 }
+                update_progress();
 
-                erg = Tuning::AiDuel(parameters, opp, ply);
+                erg = Tuning::run_duel_with_timeout(parameters, opp, ply);
                 {
                     std::lock_guard<std::mutex> lock(win_mutex);
                     if (erg % 2 == 0 && erg > 0) {
@@ -115,16 +127,13 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, int * win_am
                         win_amount[opp]--;
                     }
                 }
+                update_progress();
             });
         }
     }
 
-    // Wait for all threads to finish
-    for (auto &t : threads) {
-        t.join();
-    }
-
-    std::cout << std::endl;
+    pool.stop(true);  // Wait for all duels to finish
+    std::cout << std::endl << std::endl;
 }
 
 
@@ -159,6 +168,25 @@ void switch_player_string(char *str) {
     }
 }
 
+
+constexpr int DUEL_TIMEOUT_MS = 100000; // Timeout per duel in milliseconds
+constexpr int MAX_RETRIES = 3;        // Max retries for a single duel
+int Tuning::run_duel_with_timeout(const std::vector<std::array<int, P_AMOUNT>> parameters, int ai1, int ai2) {
+    for (int attempt = 0; attempt < MAX_RETRIES; ++attempt) {
+        auto fut = std::async(std::launch::async, [&]() {
+            return Tuning::AiDuel(parameters, ai1, ai2);
+        });
+
+        if (fut.wait_for(std::chrono::milliseconds(DUEL_TIMEOUT_MS)) == std::future_status::ready) {
+            return fut.get();
+        } else {
+            std::cerr << "\nDuel timeout between " << ai1 << " and " << ai2 << ". Retrying (" << (attempt + 1) << "/" << MAX_RETRIES << ")...\n";
+        }
+    }
+
+    std::cerr << "\nDuel between " << ai1 << " and " << ai2 << " failed after max retries.\n";
+    return -1; // Return a default value indicating failure
+}
 
 int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters, int ai_ply, int ai_opp) {
     char  input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
