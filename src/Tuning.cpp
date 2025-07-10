@@ -21,11 +21,11 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
+    constexpr float ranges[P_AMOUNT] = {4.0, 4.0, 4.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
     std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = {71, 35, 3, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 1, 85, 19};
+    std::array<int, P_AMOUNT> best_parameter = {20, 20, 8, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 4, 85, 19};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
 
@@ -107,26 +107,30 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
         };
 
         int erg = Tuning::AiDuel(parameters, ply, opp);
-        if (erg > 0) {
-            if (erg % 2 == 0) {
-                win_amount[ply].fetch_add(1, std::memory_order_relaxed);
-                win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
-            } else {
-                win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
-                win_amount[opp].fetch_add(1, std::memory_order_relaxed);
-            }
+        if (erg < 0) { // draw
+            win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
+            win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
+        }
+        else if (erg % 2 == 0) { // win
+            win_amount[ply].fetch_add(3, std::memory_order_relaxed);
+            win_amount[opp].fetch_sub(3, std::memory_order_relaxed);
+        } else { // lose
+            win_amount[ply].fetch_sub(3, std::memory_order_relaxed);
+            win_amount[opp].fetch_add(3, std::memory_order_relaxed);
         }
         update_progress();
 
         erg = Tuning::AiDuel(parameters, opp, ply);
-        if (erg > 0) {
-            if (erg % 2 == 0) {
-                win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
-                win_amount[opp].fetch_add(1, std::memory_order_relaxed);
-            } else {
-                win_amount[ply].fetch_add(1, std::memory_order_relaxed);
-                win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
-            }
+        if (erg < 0) { // draw
+            win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
+            win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
+        }
+        else if (erg % 2 == 0) { // win
+            win_amount[ply].fetch_sub(3, std::memory_order_relaxed);
+            win_amount[opp].fetch_add(3, std::memory_order_relaxed);
+        } else { // lose
+            win_amount[ply].fetch_add(3, std::memory_order_relaxed);
+            win_amount[opp].fetch_sub(3, std::memory_order_relaxed);
         }
         update_progress();
     });
