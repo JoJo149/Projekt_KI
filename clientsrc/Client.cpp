@@ -126,6 +126,7 @@ void mainLoop() {
 
         const int player = stoi(n.getP());
         cout << "You are player " << player << endl;
+
         int moves = 0;
         while (true) {
             string game_data = n.sendData(json("get").dump());

@@ -331,5 +331,4 @@ namespace TT {
     inline void clear() {
         std::fill_n(tt, TT_SIZE, TTEntry{});
     }
-
 }
