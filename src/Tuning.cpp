@@ -18,13 +18,13 @@ int main() {
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 50;
-    constexpr int number_of_runs = 10;
+    constexpr int number_of_ai = 8;
+    constexpr int number_of_runs = 2;
     float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = { 46, 25, 3, 131, 299, 508, 531, 591, 517, 99, 315, 373, 299, 311, 243, 29, 100, 5, 2, 51, 16,};
+    std::array<int, P_AMOUNT> best_parameter = {71, 35, 3, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 1, 85, 19};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
     for (int i = 1; i <= number_of_runs; i++) {
@@ -72,6 +72,8 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
     parameters[0] = best_parameter;
     std::random_device rd;
     std::mt19937 gen(rd());
+    const int total_duels = number_of_ai * (number_of_ai - 1);
+    std::atomic<int> duels_completed = 0;
 
     for (int i = 1; i < number_of_ai; i++) {
         std::array<int, P_AMOUNT> p_set = best_parameter;
@@ -97,6 +99,10 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
     std::for_each(std::execution::par, duels.begin(), duels.end(), [&](const auto& pair) {
         int ply = pair.first;
         int opp = pair.second;
+        auto update_progress = [&]() {
+                    int done = ++duels_completed;
+                        std::cout << "\rProgress: " << done << " / " << total_duels << " duels completed." << std::flush;
+                };
 
         int erg = Tuning::AiDuel(parameters, ply, opp);
         if (erg > 0) {
@@ -108,6 +114,7 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
                 win_amount[opp].fetch_add(1, std::memory_order_relaxed);
             }
         }
+        update_progress();
 
         erg = Tuning::AiDuel(parameters, opp, ply);
         if (erg > 0) {
@@ -119,6 +126,7 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
                 win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
             }
         }
+        update_progress();
     });
 
     std::cout << std::endl;
