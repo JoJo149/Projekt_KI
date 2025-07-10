@@ -5,6 +5,7 @@
 #include <execution>
 #include <algorithm>
 #include <mutex>
+#include <future>
 
 
 
@@ -14,8 +15,8 @@ constexpr int MATE_SCORE = 214748364;
 
 
 int main() {
-    constexpr int number_of_ai = 5;
-    constexpr int number_of_runs = 2;
+    constexpr int number_of_ai = 20;
+    constexpr int number_of_runs = 10;
 
     const auto start_time = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     auto now = start_time;
@@ -106,7 +107,9 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
             std::cout << "\rProgress: " << done << " / " << total_duels << " duels completed." << std::flush;
         };
 
-        int erg = Tuning::AiDuel(parameters, ply, opp);
+        int erg = CallWithTimeout([&]() {
+            return Tuning::AiDuel(parameters, ply, opp);
+        }, std::chrono::seconds(180));
         if (erg > 0) {
             if (erg % 2 == 0) {
                 win_amount[ply].fetch_add(1, std::memory_order_relaxed);
@@ -118,7 +121,9 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
         }
         update_progress();
 
-        erg = Tuning::AiDuel(parameters, opp, ply);
+        erg = CallWithTimeout([&]() {
+            return Tuning::AiDuel(parameters, ply, opp);
+        }, std::chrono::seconds(180));
         if (erg > 0) {
             if (erg % 2 == 0) {
                 win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
@@ -133,6 +138,21 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
 
     std::cout << std::endl;
 }
+
+int CallWithTimeout(const std::function<int()>& func, std::chrono::milliseconds timeout) {
+    std::packaged_task<int()> task(func);
+    auto future = task.get_future();
+    std::thread(std::move(task)).detach();
+
+    if (future.wait_for(timeout) == std::future_status::ready) {
+        return future.get();
+    } else {
+        // Timeout
+        std::cerr << "THREAD DID NOT FINISH IN TIME:" << std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()} << std::endl;
+        return -1; // You can define special return codes
+    }
+}
+
 
 bool TuningisGameOver(Game game){
     constexpr uint64_t guard_pos_down = 0b0000010000000000000000000000000000000000000000000000000000000000;
