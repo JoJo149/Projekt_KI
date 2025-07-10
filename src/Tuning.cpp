@@ -26,7 +26,8 @@ int main() {
     std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
-    std::array<int, P_AMOUNT> best_parameter = {20, 20, 8, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 4, 85, 19};
+    std::array<int, P_AMOUNT> best_parameter = {181, 52, 175, 276, 482, 736, 1186, 461, 702, 195, 574, 270, 320, 285, 378, 113, 63, 30, 9, 695, 17};
+    std::array<int, P_AMOUNT> control = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
 
@@ -38,7 +39,7 @@ int main() {
             std::cout << best_parameter[k] << ", ";
         }
         std::cout << std::endl << std::endl;
-        Tuning::Turnament(convergence_factor, number_of_ai, win_amount.data(), parameters, best_parameter, ranges);
+        Tuning::Turnament(convergence_factor, number_of_ai, win_amount.data(), parameters, best_parameter, control, ranges);
         // index, score
         std::pair<int, int> best_index(0,-10000);
         for (int j = 0; j < number_of_ai; j++) {
@@ -71,7 +72,7 @@ int main() {
 }
 
 
-void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<int>* win_amount, std::vector<std::array<int, P_AMOUNT>>& parameters, const std::array<int, P_AMOUNT>& best_parameter, const float ranges[P_AMOUNT]) {
+void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<int>* win_amount, std::vector<std::array<int, P_AMOUNT>>& parameters, const std::array<int, P_AMOUNT>& best_parameter, const std::array<int, P_AMOUNT>& control, const float ranges[P_AMOUNT]) {
     parameters[0] = best_parameter;
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -79,7 +80,12 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
     std::atomic<int> duels_completed = 0;
 
     for (int i = 1; i < number_of_ai; i++) {
-        std::array<int, P_AMOUNT> p_set = best_parameter;
+        std::array<int, P_AMOUNT> p_set;
+        if (i > 1) {
+            p_set = best_parameter;
+        }else {
+            p_set = control;
+        }
         for (int p = 0; p < P_AMOUNT; p++) {
             double scale_min = 1.0 - (1.0 - 1.0 / ranges[p]) * convergence_factor;
             double scale_max = 1.0 + (ranges[p] - 1.0) * convergence_factor;
@@ -113,8 +119,7 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
         if (erg < 0) { // draw
             win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
             win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
-        }
-        else if (erg % 2 == 0) { // win
+        } else if (erg % 2 == 0) { // win
             win_amount[ply].fetch_add(3, std::memory_order_relaxed);
             win_amount[opp].fetch_sub(3, std::memory_order_relaxed);
         } else { // lose
@@ -124,13 +129,12 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
         update_progress();
 
         erg = CallWithTimeout([&]() {
-            return Tuning::AiDuel(parameters, ply, opp);
+            return Tuning::AiDuel(parameters, opp, ply);
         }, std::chrono::seconds(180));
         if (erg < 0) { // draw
             win_amount[ply].fetch_sub(1, std::memory_order_relaxed);
             win_amount[opp].fetch_sub(1, std::memory_order_relaxed);
-        }
-        else if (erg % 2 == 0) { // win
+        } else if (erg % 2 == 0) { // win
             win_amount[ply].fetch_sub(3, std::memory_order_relaxed);
             win_amount[opp].fetch_add(3, std::memory_order_relaxed);
         } else { // lose
@@ -193,7 +197,7 @@ int Tuning::AiDuel(const std::vector<std::array<int, P_AMOUNT>>& parameters, con
     int ai_nr;
     std::map<std::string, int> position_counts;
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 200; i++) {
         TT::clear();
         AI ki{input_board};
 
