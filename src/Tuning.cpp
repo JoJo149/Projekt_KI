@@ -15,11 +15,12 @@ constexpr int MATE_SCORE = 214748364;
 
 int main() {
     auto start_time = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
+    constexpr int number_of_ai = 8;
+    constexpr int number_of_runs = 2;
+
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    constexpr int number_of_ai = 8;
-    constexpr int number_of_runs = 2;
     float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
@@ -27,6 +28,7 @@ int main() {
     std::array<int, P_AMOUNT> best_parameter = {71, 35, 3, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 1, 85, 19};
     std::cout << number_of_ai << " AIs playing total" << std::endl;
     std::cout << std::endl;
+
     for (int i = 1; i <= number_of_runs; i++) {
         for (auto& w : win_amount) w = 0;  // Initialize all to zero
         const double convergence_factor = (1.0 - ((i - 1.0)/ number_of_runs));
@@ -100,9 +102,9 @@ void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<
         int ply = pair.first;
         int opp = pair.second;
         auto update_progress = [&]() {
-                    int done = ++duels_completed;
-                        std::cout << "\rProgress: " << done << " / " << total_duels << " duels completed." << std::flush;
-                };
+            int done = ++duels_completed;
+            std::cout << "\rProgress: " << done << " / " << total_duels << " duels completed." << std::flush;
+        };
 
         int erg = Tuning::AiDuel(parameters, ply, opp);
         if (erg > 0) {
