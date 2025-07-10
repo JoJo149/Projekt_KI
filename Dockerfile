@@ -20,7 +20,6 @@ COPY benchmark/ ./benchmark/
 
 COPY include/ ./include/
 COPY ext/ ./ext/
-COPY transposition_table/ ./transposition_table/
 
 # Remove old build if any, then create clean build folder
 RUN rm -rf build && mkdir build

@@ -1,10 +1,6 @@
-#include <iostream>
-#include <string>
-#include <thread>
 #include <fstream>
 
 #include "dummyAI.h"
-#include "Utils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -47,7 +43,7 @@ public:
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
 
-        std::cout << "Connecting to " << server_ip << ":" << port << std::endl;
+        cout << "Connecting to " << server_ip << ":" << port << endl;
         int status = getaddrinfo(server_ip.c_str(), std::to_string(port).c_str(), &hints, &res);
         if (status != 0) {
             cerr << "getaddrinfo failed: " << gai_strerror(status) << endl;
@@ -85,18 +81,19 @@ public:
         infile.close();
     }
 
-    string getP() {
+    [[nodiscard]] string getP() const {
         char buffer[2048] = {0};
         recv(sock, buffer, sizeof(buffer), 0);
-        return string(buffer);
+        return string{buffer};
     }
 
-    string sendData(const string& data) {
+     string sendData(const string& data) const {
         send(sock, data.c_str(), data.size(), 0);
-        char buffer[4096] = {0};
-        int len = recv(sock, buffer, sizeof(buffer), 0);
+        char buffer[4096];
+        const size_t len = recv(sock, buffer, sizeof(buffer) - 1, 0);
         if (len <= 0) return "";
-        return string(buffer, len);
+        buffer[len] = '\0';
+        return string{buffer};
     }
 
     void close() const {
@@ -120,16 +117,19 @@ public:
 
 void mainLoop() {
     try {
-        Network n; // start connection in constructor
+        const Network n; // start connection in constructor
+        tuple<string, string> old("", "");
+        tuple<string, string> older("", "");
 
         Game game{};
 
-        int player = stoi(n.getP());
+        const int player = stoi(n.getP());
         cout << "You are player " << player << endl;
+
         int moves = 0;
         while (true) {
             string game_data = n.sendData(json("get").dump());
-            if (game_data.empty()) {
+            if (game_data.empty() || !json::accept(game_data)) {
                 cout << "Game Over" << endl;
                 cout << "Moves played:  "<< moves << endl;
                 n.close();
@@ -141,7 +141,7 @@ void mainLoop() {
             if (input_json["bothConnected"]) {
                 string turn = input_json["turn"];
                 string board = input_json["board"];
-                int time_left = input_json["time"];
+                const int time_left = input_json["time"];
 
                 if ((player == 0 && turn == "r") || (player == 1 && turn == "b")) {
                     cout << "New Board: " << board << endl;
@@ -151,10 +151,19 @@ void mainLoop() {
                     game.stringToGame(board.c_str());
 
                     game.printGame();
+                    string ki_result{};
 
-                    DummyAI d_AI{game};
+                    // if in loop
+                    if (board == std::get<0>(older)) {
+                        ki_result = std::get<1>(older);
+                    } else {
+                        DummyAI d_AI{game};
 
-                    string ki_result = d_AI.alphaBetaTimed().toString();
+                         ki_result = d_AI.alphaBetaTimed().toString();
+                    }
+
+                    older = old;
+                    old = std::make_tuple(board, ki_result);
 
                     cout << "KI makes Move: " << ki_result << endl;
                     cout << endl;

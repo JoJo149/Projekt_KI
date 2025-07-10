@@ -1,10 +1,6 @@
-#include <iostream>
-#include <string>
-#include <thread>
 #include <fstream>
 
 #include "AI.h"
-#include "Utils.h"
 
 #ifdef _WIN32
     #include <winsock2.h>
@@ -41,7 +37,8 @@ public:
                 }
         #endif
 
-        loadConfig( "../clientInfo/config.txt");
+        port = 5555;
+        server_ip = "gameserver";
 
         struct addrinfo hints{}, *res;
         hints.ai_family = AF_UNSPEC;
@@ -66,23 +63,6 @@ public:
 
         freeaddrinfo(res);
 
-    }
-
-    void loadConfig(const string& filename) {
-        ifstream infile(filename);
-        if (!infile) {
-            cerr << "Could not open config file." << endl;
-            exit(1);
-        }
-
-        if (std::getline(infile, server_ip)) {
-            // Remove leading and trailing whitespace
-            server_ip.erase(0, server_ip.find_first_not_of(" \t\r\n"));
-            server_ip.erase(server_ip.find_last_not_of(" \t\r\n") + 1);
-        }
-
-        infile >> port;
-        infile.close();
     }
 
     string getP() {
