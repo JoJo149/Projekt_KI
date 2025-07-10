@@ -14,14 +14,14 @@ constexpr int MATE_SCORE = 214748364;
 
 
 int main() {
-    auto start_time = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
-    constexpr int number_of_ai = 8;
+    constexpr int number_of_ai = 5;
     constexpr int number_of_runs = 2;
 
+    const auto start_time = std::chrono::zoned_time{std::chrono::current_zone(), std::chrono::system_clock::now()};
     auto now = start_time;
     std::cout << "Start time: " << start_time << std::endl;
 
-    float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
+    constexpr float ranges[P_AMOUNT] = {3.0, 3.0, 3.0, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 1.5, 2.0, 2.0, 2.0, 2.0, 2.0, 2.0};
     std::vector<std::atomic<int>> win_amount(number_of_ai);
     std::vector<std::array<int, P_AMOUNT>> parameters(number_of_ai);
     // start set {2, 4, 2, 100, 260, 340, 500, 500, 600, 15, 20, 10};
@@ -70,7 +70,7 @@ int main() {
 }
 
 
-void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<int>* win_amount, std::vector<std::array<int, P_AMOUNT>>& parameters, const std::array<int, P_AMOUNT>& best_parameter, float ranges[P_AMOUNT]) {
+void Tuning::Turnament(double convergence_factor, int number_of_ai, std::atomic<int>* win_amount, std::vector<std::array<int, P_AMOUNT>>& parameters, const std::array<int, P_AMOUNT>& best_parameter, const float ranges[P_AMOUNT]) {
     parameters[0] = best_parameter;
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -154,10 +154,8 @@ bool TuningisGameOver(Game game){
 
 void switch_player_string(char *str) {
     // Find the space character
-    char *space_ptr = strchr(str, ' ');
-    if (space_ptr && *(space_ptr + 1)) {
-        char *player = space_ptr + 1;
-        if (*player == 'r') {
+    if (char *space_ptr = strchr(str, ' '); space_ptr && *(space_ptr + 1)) {
+        if (char *player = space_ptr + 1; *player == 'r') {
             *player = 'b';
         } else if (*player == 'b') {
             *player = 'r';
@@ -166,15 +164,14 @@ void switch_player_string(char *str) {
 }
 
 
-int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters, int ai_ply, int ai_opp) {
-    char  input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
-    int ai_nr = ai_ply;
+int Tuning::AiDuel(const std::vector<std::array<int, P_AMOUNT>>& parameters, const int ai_ply, const int ai_opp) {
+    char input_board[64] = "r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r";
+    int ai_nr;
     std::map<std::string, int> position_counts;
 
     for (int i = 0; i < 100; i++) {
         TT::clear();
         AI ki{input_board};
-        int move_count = 0;
 
         if (i % 2 == 0) {
             ai_nr = ai_ply;
@@ -205,7 +202,7 @@ int Tuning::AiDuel(std::vector<std::array<int, P_AMOUNT>> parameters, int ai_ply
     return -1; //draw
 }
 
-Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
+Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, const std::vector<std::array<int, P_AMOUNT>>& parameters) {
     const auto startTime = std::chrono::steady_clock::now();
     constexpr int max_time = 120000;
     // constexpr int max_time = 180000;
@@ -264,7 +261,7 @@ Move AI::TuningalphaBetaTimed(const int time_left, int ai_nr, std::vector<std::a
     return best_move;
 }
 
-void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
+void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result, Move* move_list_given, int& last_eval, const int ai_nr, const std::vector<std::array<int, P_AMOUNT>>& parameters) {
     constexpr int MAX_RETRIES = 1;
     constexpr int MUL_FACTOR = 4;
     int aspiration_margin = 20;
@@ -296,7 +293,7 @@ void AI::TuningaspirationWindowAlphaBeta(const int depth, int& move_count_result
 }
 
 
-void AI::TuningalphaBeta(const int depth, int& move_count, Move* ordered_move_list, int& last_eval, const int aspiration_margin, bool& aspiration_window_missed, int ai_nr, std::vector<std::array<int, P_AMOUNT>> parameters) {
+void AI::TuningalphaBeta(const int depth, int& move_count, Move* ordered_move_list, int& last_eval, const int aspiration_margin, bool& aspiration_window_missed, const int ai_nr, const std::vector<std::array<int, P_AMOUNT>>& parameters) {
     Move move_list_copy[MOVES_LIST_SIZE];
     int eval_list[MOVES_LIST_SIZE];
     if (depth == 1) {
