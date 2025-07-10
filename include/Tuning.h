@@ -1,5 +1,7 @@
 #pragma once
 
+#include <atomic>
+
 #include "AI.h"
 #include "transposition_table.h"
 
@@ -9,7 +11,6 @@ class Tuning {
 public:
 
 
-    static void Turnament(double, int, int *, std::vector<std::array<int, P_AMOUNT>> &, const std::array<int, P_AMOUNT> &, float[P_AMOUNT]);
-    static int AiDuel(std::vector<std::array<int, P_AMOUNT>>, int, int);
-    static int run_duel_with_timeout(std::vector<std::array<int, P_AMOUNT>> , int, int);
+    static void Turnament(double, int, std::atomic<int>*, std::vector<std::array<int, P_AMOUNT>>&, const std::array<int, P_AMOUNT>& , const float ranges[]);
+    static int AiDuel(const std::vector<std::array<int, P_AMOUNT>>&, int, int);
 };

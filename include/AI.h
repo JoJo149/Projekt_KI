@@ -30,9 +30,9 @@ public:
 
     void check_move_list(const Move *);
 
-    Move TuningalphaBetaTimed(int, int, std::vector<std::array<int, P_AMOUNT>>);
-    void TuningaspirationWindowAlphaBeta(int depth, int &move_count_result, Move *move_list_given, int &last_eval, int, std::vector<std::array<int, P_AMOUNT>>);
-    void TuningalphaBeta(int,int&, Move*, int&, int, bool&, int, std::vector<std::array<int, P_AMOUNT>>);
+    Move TuningalphaBetaTimed(int, int, const std::vector<std::array<int, P_AMOUNT>>&);
+    void TuningaspirationWindowAlphaBeta(int depth, int &move_count_result, Move *move_list_given, int &last_eval, int, const std::vector<std::array<int, P_AMOUNT>>&);
+    void TuningalphaBeta(int,int&, Move*, int&, int, bool&, int, const std::vector<std::array<int, P_AMOUNT>>&);
     int TuningtraverseMovesAlphaBeta(Game&,  int, int&, bool, const playerName&, int, int, uint64_t&, int, std::vector<std::array<int, P_AMOUNT>>);
     int TuningevaluationFunction(Game&, const playerName&, int, std::vector<std::array<int, P_AMOUNT>>);
 };
