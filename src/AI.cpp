@@ -1,6 +1,7 @@
 #include "AI.h"
 
 constexpr int MATE_SCORE = 214748364;
+#define P_AMOUNT 21
 
 
 AI::AI(): game(red) {}
@@ -454,17 +455,17 @@ static const uint8_t guard_table_blue_eg[64] = {
 };
 
 
-inline void evalGuardEdge(const bool player, const uint64_t guard_board, const uint64_t player_board, const uint64_t enemy_board, int& middle_game_evaluation, int& end_game_evaluation) {
+inline void evalGuardEdge(const bool player, const uint64_t guard_board, const uint64_t player_board, const uint64_t enemy_board, int& middle_game_evaluation, int& end_game_evaluation, const int * guard_parameters) {
     int guard_middle_game_evaluation = 0;
     int guard_end_game_evaluation = 0;
 
-    constexpr int player_ortho_mg = 15;
-    constexpr int enemy_ortho_mg = 20;
-    constexpr int enemy_diag_mg = 10;
+    const int player_ortho_mg = guard_parameters[0];
+    const int enemy_ortho_mg = guard_parameters[1];
+    const int enemy_diag_mg = guard_parameters[2];
 
-    constexpr int player_ortho_eg = 25;
-    constexpr int enemy_ortho_eg = 30;
-    constexpr int enemy_diag_eg = 20;
+    const int player_ortho_eg = guard_parameters[3];
+    const int enemy_ortho_eg = guard_parameters[4];
+    const int enemy_diag_eg = guard_parameters[5];
 
 
     const int player_guard_index = std::countr_zero(guard_board);
@@ -544,9 +545,11 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
 
 // make sure generate moves was already run on game, before running eval
 int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
-    constexpr int pos_tower_faktor_mg = 4;
-    constexpr int pos_tower_faktor_eg = 2;
-    constexpr int tower_faktor = 2;
+    constexpr std::array<int, P_AMOUNT> best_parameter = {71, 35, 3, 122, 281, 553, 748, 826, 389, 112, 413, 343, 307, 247, 387, 33, 85, 5, 1, 85, 19};
+
+    constexpr int pos_tower_faktor_mg = best_parameter[0];
+    constexpr int pos_tower_faktor_eg = best_parameter[1];
+    constexpr int tower_faktor = best_parameter[2];
 
 
     int middle_game_evaluation = 0;
@@ -561,8 +564,11 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
     const uint64_t enemy_board = (max_player == red) ? new_game.bitBoards[C_B] : new_game.bitBoards[C_R];
 
     // Material Value
-    constexpr int PIECE_WEIGHTS_MG[7] = {100, 260, 340, 500, 500, 600};
-    constexpr int PIECE_WEIGHTS_EG[7] = {100, 230, 320, 450, 500, 600};
+    constexpr int PIECE_WEIGHTS_MG[7] = {best_parameter[3], best_parameter[4], best_parameter[5], best_parameter[6], best_parameter[7], best_parameter[8]};
+    constexpr int PIECE_WEIGHTS_EG[7] = {best_parameter[9], best_parameter[10], best_parameter[11], best_parameter[12], best_parameter[13], best_parameter[14]};
+
+    // for guard position
+    constexpr int guard_parameters[6] = {best_parameter[15], best_parameter[16], best_parameter[17], best_parameter[18], best_parameter[19], best_parameter[20]};
 
     for (int i = 0; i < T_G; i++) {
         const int player_towers_num = std::popcount(player_board & new_game.bitBoards[i]);
@@ -663,8 +669,8 @@ int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
     end_game_evaluation += (guard_table_player_eg[std::countr_zero(player_board & new_game.bitBoards[T_G])] - guard_table_enemy_eg[std::countr_zero(enemy_board & new_game.bitBoards[T_G])]);
 
 
-    evalGuardEdge(true, player_board & new_game.bitBoards[T_G], player_board, enemy_board, middle_game_evaluation,end_game_evaluation);
-    evalGuardEdge(false, enemy_board & new_game.bitBoards[T_G], enemy_board, player_board, middle_game_evaluation,end_game_evaluation);
+    evalGuardEdge(true, player_board & new_game.bitBoards[T_G], player_board, enemy_board, middle_game_evaluation,end_game_evaluation, guard_parameters);
+    evalGuardEdge(false, enemy_board & new_game.bitBoards[T_G], enemy_board, player_board, middle_game_evaluation,end_game_evaluation, guard_parameters);
 
     return middle_game_evaluation * tower_count + end_game_evaluation * (14 - tower_count);
 }
