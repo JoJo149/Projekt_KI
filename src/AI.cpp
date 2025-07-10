@@ -546,7 +546,7 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
 // make sure generate moves was already run on game, before running eval
 int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
     // old valus                                         {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
-    constexpr std::array<int, P_AMOUNT> best_parameter = {5, 5, 10, 77, 302, 519, 526, 328, 555, 95, 318, 392, 287, 549, 946, 15, 100, 48, 42, 107, 183};
+    constexpr std::array<int, P_AMOUNT> best_parameter = {4, 2, 19, 94, 335, 638, 380, 472, 570, 153, 418, 424, 230, 335, 1465, 27, 106, 145, 57, 122, 183};
 
     constexpr int pos_tower_faktor_mg = best_parameter[0];
     constexpr int pos_tower_faktor_eg = best_parameter[1];

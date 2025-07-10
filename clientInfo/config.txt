@@ -1,2 +1,2 @@
 GAME.guard-and-towers.com
-35003
+35002
