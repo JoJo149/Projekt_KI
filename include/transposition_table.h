@@ -1,12 +1,14 @@
 #pragma once
 #include "Game.h"
 
-#include <fstream>
 #include <cstring> // for std::memset
+#include <tbb/spin_mutex.h>
 
 namespace TT {
-
     constexpr ssize_t TT_SIZE = 1 << 24; // 16M entries
+    constexpr int LOCK_GROUP_SIZE = 1 << 6;
+    constexpr int NUM_LOCKS = TT_SIZE / LOCK_GROUP_SIZE;
+
     constexpr ssize_t ZOBRIST_COLOR_OFFSET = 1 << 23;
 
     constexpr int NUM_TOWER_TYPES = 8;
@@ -253,10 +255,12 @@ namespace TT {
     };
 
     inline TTEntry tt[TT_SIZE]; // Global table
+    inline tbb::spin_mutex tt_locks[NUM_LOCKS]; // mutex for multi threading
 
     inline void store(const uint64_t key, const int score, const Move &bestMove, const int depth, const Flag type) {
         const uint64_t index = key & (TT_SIZE - 1);
-
+        const int lock_index = static_cast<int>(index / LOCK_GROUP_SIZE);
+        tbb::spin_mutex::scoped_lock lock(tt_locks[lock_index]);
         // Replace if deeper or new (move not set)
         if (TTEntry& entry = tt[index]; entry.bestMove == TT_Move{} || depth > entry.depth ||
             (depth == entry.depth && type == Flag::EXACT)) {
@@ -310,7 +314,9 @@ namespace TT {
 
     inline bool probe(const uint64_t key, TTEntry& out) {
         const uint64_t index = key & (TT_SIZE - 1);
+        const int lock_index = static_cast<int>(index / LOCK_GROUP_SIZE);
 
+        tbb::spin_mutex::scoped_lock lock(tt_locks[lock_index]);
         if (const TTEntry& entry = tt[index]; entry.key == key) {
             out = entry;
             return true;

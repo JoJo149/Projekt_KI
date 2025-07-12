@@ -1,5 +1,8 @@
 #include "AI.h"
 
+#include <numeric>
+#include <tbb/parallel_for.h>
+
 constexpr int MATE_SCORE = 214748364;
 #define P_AMOUNT 21
 
@@ -232,44 +235,39 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list, in
     constexpr int beta = std::numeric_limits<int>::max();
 
     const int original_alpha = alpha;
-    const int original_beta = beta;
+    constexpr int original_beta = beta;
 
     const playerName max_player = game.active_player;
 
-    uint64_t key = TT::getKey(game);
+    int valid_size;
+    for (valid_size = 0; valid_size < MOVES_LIST_SIZE && move_list_copy[valid_size].from != 0; valid_size++) {}
 
-    for (int i = 0; i < MOVES_LIST_SIZE && move_list_copy[i].from != 0; i++) {
-        TT::flipHashForMove(game, key, move_list_copy[i]);
-        int captured_piece = game.makeMove(move_list_copy[i]);
-        game.toggleActivePlayer();
-        TT::flipHashForMove(game, key, move_list_copy[i]);
+    // adding multi threading from 0 to n-1
+    tbb::parallel_for(0, valid_size, [&](const int i) {
+        Game game_copy(game);
+        uint64_t key = TT::getKey(game_copy);
+        TT::flipHashForMove(game_copy, key, move_list_copy[i]);
+        game_copy.makeMove(move_list_copy[i]);
+        game_copy.toggleActivePlayer();
+        TT::flipHashForMove(game_copy, key, move_list_copy[i]);
 
-        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key);
+        eval_list[i] = traverseMovesAlphaBeta(game_copy, depth - 1, move_count, false, max_player, alpha, beta, key);
+    });
 
-        TT::flipHashForMove(game, key, move_list_copy[i]);
-        game.toggleActivePlayer();
-        game.unMakeMove(move_list_copy[i], captured_piece);
-        TT::flipHashForMove(game, key, move_list_copy[i]);
+    std::vector<int> indices(valid_size);
+    std::iota(indices.begin(), indices.end(), 0);
 
-        // sort new eval and move into list
-        int eval_index = i;
-        while (eval_index > 0 && eval > eval_list[eval_index - 1]) {
-            eval_list[eval_index] = eval_list[eval_index - 1];
-            ordered_move_list[eval_index] = ordered_move_list[eval_index - 1];
-            eval_index--;
-        }
-
-        eval_list[eval_index] = eval;
-        ordered_move_list[eval_index] = move_list_copy[i];
-
-        alpha = std::max(alpha, eval);
-        if (beta <= alpha) {
-            std::copy_n(&move_list_copy[i + 1], MOVES_LIST_SIZE - (i + 1), &ordered_move_list[i + 1]);
-            break;
-        }
+    std::ranges::sort(indices, [&](const int a, const int b) {
+        return eval_list[a] > eval_list[b];
+    });
+    int sorted_eval_list[MOVES_LIST_SIZE];
+    for (int i = 0; i < valid_size; ++i) {
+        sorted_eval_list[i] = eval_list[indices[i]];
+        ordered_move_list[i] = move_list_copy[indices[i]];
     }
 
-    int best_eval = eval_list[0];
+
+    int best_eval = sorted_eval_list[0];
     if (best_eval <= original_alpha || best_eval >= original_beta) {
         aspiration_window_missed = true;
     } else {

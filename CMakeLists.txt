@@ -17,7 +17,7 @@ file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
 
 # ----------------------------------------------------------------------------
 # Multi Threading
-# find_package(TBB REQUIRED)
+find_package(TBB REQUIRED)
 
 # ----------------------------------------------------------------------------
 # Exclude main.cpp for tests
@@ -33,6 +33,7 @@ endforeach()
 
 add_library(core STATIC ${SRC_FILES_NO_MAIN})
 target_include_directories(core PUBLIC include)
+target_link_libraries(core PUBLIC TBB::tbb)
 
 add_executable(projekt_ki src/main.cpp)
 target_link_libraries(projekt_ki PRIVATE core)
@@ -68,7 +69,6 @@ target_include_directories(tests PRIVATE ext/Catch2/single_include ext/headerOnl
 target_link_libraries(tests
         PRIVATE
         core
-        # TBB::tbb
         Catch2::Catch2WithMain
 )
 
@@ -79,7 +79,6 @@ target_include_directories(benchmarks PRIVATE ext/Catch2/single_include ext/head
 target_link_libraries(benchmarks
         PRIVATE
         core
-        # TBB::tbb
         Catch2::Catch2WithMain
 )
 
