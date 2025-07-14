@@ -4,7 +4,7 @@
 #include "AI.h"
 
 #define MAX_DEPTH_MINMAX 4
-#define MAX_DEPTH_ALPHABETA 6
+#define MAX_DEPTH_ALPHABETA 8
 
 TEST_CASE("Benchmark Bewertungsfunktion", "[benchmarks][evalfunc]") {
     AI ki{"r1r11RG1r1r1/2r11r12/3r13/7/3b13/2b11b12/b1b11BG1b1b1 r"};

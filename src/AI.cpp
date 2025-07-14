@@ -228,8 +228,8 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list, in
         std::copy_n(ordered_move_list, MOVES_LIST_SIZE, move_list_copy);
     }
 
-    int alpha = std::numeric_limits<int>::min();
-    constexpr int beta = std::numeric_limits<int>::max();
+    int alpha = last_eval - aspiration_margin;
+    const int beta = last_eval + aspiration_margin;
 
     const int original_alpha = alpha;
     const int original_beta = beta;
@@ -294,17 +294,17 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     // Probe TT
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth > depth) {
-            bool is_correct = false;
+            bool tt_hit = false;
             const Move best_move = ttEntry.bestMove.convertToMove();
             // extra check if board is the same
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
                 if (best_move == move_list[i]) {
-                    is_correct = true;
+                    tt_hit = true;
                     std::swap(move_list[0], move_list[i]);
                     break;
                 }
             }
-            if (is_correct) {
+            if (tt_hit) {
                 if (ttEntry.type == TT::Flag::EXACT && alpha <= ttEntry.score && ttEntry.score <= beta) {
                     move_count++;
                     return ttEntry.score;
@@ -328,7 +328,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         TT::store(current_key, eval, move_list[0], 0, TT::Flag::EXACT);
         return eval;
     }
-
+    bool first_move = true;
     Move bestMove{};
     auto flag = TT::Flag::EXACT;
     int bestScore = maximizing_player ? std::numeric_limits<int>::min() : std::numeric_limits<int>::max();
@@ -337,8 +337,18 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         int captured = node.makeMove(move_list[i]);
         node.toggleActivePlayer();
         TT::flipHashForMove(node, current_key, move_list[i]);
-
-        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key);
+        int eval;
+        if (first_move) {
+            eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key);
+            first_move = false;
+        } else {
+            // Null-window search
+            eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, alpha + 1, current_key);
+            // Re-search if it failed high
+            if (eval > alpha && eval < beta) {
+                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, eval, beta, current_key);
+            }
+        }
 
         TT::flipHashForMove(node, current_key, move_list[i]);
         node.toggleActivePlayer();
