@@ -339,8 +339,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         node.toggleActivePlayer();
         TT::flipHashForMove(node, current_key, move_list[i]);
 
-        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
-        /*
+        int eval;
         if (first_move) {
             eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
             first_move = false;
@@ -353,10 +352,9 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
             }
             // Re-search if it failed high
             if (eval > alpha && eval < beta) {
-                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, eval, beta, current_key, true);
+                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
             }
         }
-        */
 
         TT::flipHashForMove(node, current_key, move_list[i]);
         node.toggleActivePlayer();
