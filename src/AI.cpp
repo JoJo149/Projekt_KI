@@ -296,7 +296,6 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     bool tt_hit = false;
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth > depth) {
-
             const Move best_move = ttEntry.bestMove.convertToMove();
             // extra check if board is the same
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
