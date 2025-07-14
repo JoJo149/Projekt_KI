@@ -213,7 +213,7 @@ void AI::aspirationWindowAlphaBeta(const int depth, int& move_count_result, Move
     }
     if (retry == true) {
         std::copy_n(move_list_given, MOVES_LIST_SIZE, last_move_list);
-        alphaBeta(depth,move_count_result, last_move_list, last_eval, 999999, aspiration_window_missed);
+        alphaBeta(depth,move_count_result, last_move_list, last_eval, MATE_SCORE, aspiration_window_missed);
         std::copy_n(last_move_list, MOVES_LIST_SIZE, move_list_given);
     }
 }
@@ -339,7 +339,8 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         node.toggleActivePlayer();
         TT::flipHashForMove(node, current_key, move_list[i]);
 
-        int eval;
+        int eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
+        /*
         if (first_move) {
             eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
             first_move = false;
@@ -355,6 +356,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
                 eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, eval, beta, current_key, true);
             }
         }
+        */
 
         TT::flipHashForMove(node, current_key, move_list[i]);
         node.toggleActivePlayer();
