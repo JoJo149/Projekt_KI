@@ -300,6 +300,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
                 if (best_move == move_list[i]) {
                     is_correct = true;
+                    std::swap(move_list[0], move_list[i]);
                     break;
                 }
             }
