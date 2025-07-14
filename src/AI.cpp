@@ -564,7 +564,7 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
 int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
     // old valus
     // constexpr std::array<int, P_AMOUNT> best_parameter = {4, 2, 19, 94, 335, 638, 380, 472, 570, 153, 418, 424, 230, 335, 1465, 27, 106, 145, 57, 122, 183};
-    constexpr std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
+    constexpr std::array<int, P_AMOUNT> best_parameter = {4, 4, 20, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
 
     constexpr int pos_tower_faktor_mg = best_parameter[0];
     constexpr int pos_tower_faktor_eg = best_parameter[1];
