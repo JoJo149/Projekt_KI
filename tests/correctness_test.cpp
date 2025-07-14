@@ -186,5 +186,14 @@ TEST_CASE("right moves") {
     s = best_move.toString();
     INFO(s);
     CHECK(s == "D2-D3-1");
+
+    TT::clear();
+    ai.getGame().stringToGame("7/3b11b11/6RG/2BG4/3b13/7/5b21 r");
+    ai.getGame().printGame();
+    best_move = ai.alphaBetaTimed(120000);
+    s = best_move.toString();
+    INFO(s);
+    CHECK(s == "G5-G4-1");
+
 }
 

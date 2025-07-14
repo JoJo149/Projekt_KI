@@ -212,6 +212,7 @@ void AI::aspirationWindowAlphaBeta(const int depth, int& move_count_result, Move
         }
     }
     if (retry == true) {
+        std::copy_n(move_list_given, MOVES_LIST_SIZE, last_move_list);
         alphaBeta(depth,move_count_result, last_move_list, last_eval, 999999, aspiration_window_missed);
         std::copy_n(last_move_list, MOVES_LIST_SIZE, move_list_given);
     }
@@ -244,7 +245,7 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list, in
         game.toggleActivePlayer();
         TT::flipHashForMove(game, key, move_list_copy[i]);
 
-        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key);
+        int eval = traverseMovesAlphaBeta(game, depth - 1, move_count, false, max_player, alpha, beta, key, true);
 
         TT::flipHashForMove(game, key, move_list_copy[i]);
         game.toggleActivePlayer();
@@ -279,7 +280,7 @@ void AI::alphaBeta(const int depth, int& move_count, Move* ordered_move_list, in
 }
 
 
-int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key) {
+int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, const bool maximizing_player, const playerName& max_player, int alpha, int beta, uint64_t&  current_key, bool use_tt) {
     node.generateMoves();
 
     if (node.isGameOver()) {
@@ -337,16 +338,21 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         int captured = node.makeMove(move_list[i]);
         node.toggleActivePlayer();
         TT::flipHashForMove(node, current_key, move_list[i]);
+
         int eval;
         if (first_move) {
-            eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key);
+            eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
             first_move = false;
         } else {
             // Null-window search
-            eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, alpha + 1, current_key);
+            if (maximizing_player) {
+                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, alpha + 1, current_key, false);
+            }else {
+                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, beta - 1, beta, current_key, false);
+            }
             // Re-search if it failed high
             if (eval > alpha && eval < beta) {
-                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, eval, beta, current_key);
+                eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, eval, beta, current_key, true);
             }
         }
 
@@ -556,8 +562,9 @@ inline void evalGuardEdge(const bool player, const uint64_t guard_board, const u
 
 // make sure generate moves was already run on game, before running eval
 int AI::evaluationFunction(Game& new_game, const playerName& max_player) {
-    // old valus                                         {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
-    constexpr std::array<int, P_AMOUNT> best_parameter = {4, 2, 19, 94, 335, 638, 380, 472, 570, 153, 418, 424, 230, 335, 1465, 27, 106, 145, 57, 122, 183};
+    // old valus
+    // constexpr std::array<int, P_AMOUNT> best_parameter = {4, 2, 19, 94, 335, 638, 380, 472, 570, 153, 418, 424, 230, 335, 1465, 27, 106, 145, 57, 122, 183};
+    constexpr std::array<int, P_AMOUNT> best_parameter = {2, 4, 2, 100, 260, 340, 500, 500, 600, 100, 230, 320, 450, 500, 600, 15, 20, 10, 25, 30, 20};
 
     constexpr int pos_tower_faktor_mg = best_parameter[0];
     constexpr int pos_tower_faktor_eg = best_parameter[1];

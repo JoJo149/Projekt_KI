@@ -23,7 +23,7 @@ public:
     void aspirationWindowAlphaBeta(int depth, int &move_count_result, Move *move_list_given, int &last_eval);
 
     void alphaBeta(int,int&, Move*, int&, int, bool&);
-    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&);
+    int traverseMovesAlphaBeta(Game&, int, int&, bool, const playerName&, int, int, uint64_t&, bool);
 
     [[nodiscard]] int evaluationFunction(Game&, const playerName&);
 
