@@ -293,9 +293,10 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
     std::copy_n(node.getMoveList(), MOVES_LIST_SIZE, move_list);
 
     // Probe TT
+    bool tt_hit = false;
     if (TT::TTEntry ttEntry; TT::probe(current_key, ttEntry)) {
         if (ttEntry.depth > depth) {
-            bool tt_hit = false;
+
             const Move best_move = ttEntry.bestMove.convertToMove();
             // extra check if board is the same
             for (int i = 0; i < MOVES_LIST_SIZE && move_list[i].from != 0; ++i) {
@@ -340,7 +341,7 @@ int AI::traverseMovesAlphaBeta(Game& node, const int depth, int& move_count, con
         TT::flipHashForMove(node, current_key, move_list[i]);
 
         int eval;
-        if (first_move) {
+        if (first_move || tt_hit == false) {
             eval = traverseMovesAlphaBeta(node, depth - 1, move_count, !maximizing_player, max_player, alpha, beta, current_key, true);
             first_move = false;
         } else {
