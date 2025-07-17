@@ -115,7 +115,7 @@ public:
     }
 };
 
-void mainLoop() {
+void runClientGameSession() {
     try {
         const Network n; // start connection in constructor
         tuple<string, string> old("", "");
@@ -179,6 +179,6 @@ void mainLoop() {
 }
 
 int main() {
-    mainLoop();
+    runClientGameSession();
     return 0;
 }
