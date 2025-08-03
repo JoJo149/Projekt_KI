@@ -4,35 +4,11 @@ title Klassendiagramm der KI
 class AI {
   - game : Game
   --
-  ..minmax..
   + minmax(depth : int, move_count_result : int&) : Move
-  + traverseMoves(game : Game, depth : int, move_count_result : int&, maximizing : bool, player : playerName) : int
-  ..alpha beta..
   + alphaBetaTimed(time : int) : Move
-  + aspirationWindowAlphaBeta(depth : int, move_count_result : int&, move_list_given : Move*, last_eval : int&)
-  + alphaBeta(depth : int, move_count_result : int&, move_list_given : Move*, last_eval : int&, time : int, timeOut : bool&)
-  + traverseMovesAlphaBeta(game : Game&, depth : int, move_count_result : int&, maximizing : bool, player : playerName, alpha : int, beta : int, nodes : uint64_t&, timeOut : bool) : int
-  ..evaluation Function..
-  + evaluationFunction(game : Game&, player : playerName) : int
-}
-
-' === ENUMS ===
-enum Flag {
-  EXACT
-  ALPHA_CUTOFF
-  BETA_CUTOFF
-}
-
-' === STRUCT: TT_Move ===
-class TT_Move {
-  - from_sq : uint8_t
-  - to_sq : uint8_t
-  - move_distance : uint8_t
-  --
-  + TT_Move()
-  + TT_Move(move : const Move&)
-  + convertToMove() : Move
-  + operator==(other : const TT_Move&) : bool
+  - aspirationWindowAlphaBeta(depth : int, move_count_result : int&, move_list_given : Move*, last_eval : int&)
+  - alphaBeta(depth : int, move_count_result : int&, move_list_given : Move*, last_eval : int&, time : int, timeOut : bool&)
+  - evaluationFunction(game : Game&, player : playerName) : int
 }
 
 ' === STRUCT: TTEntry ===
@@ -45,68 +21,26 @@ class TTEntry {
 }
 
 ' === NAMESPACE TT as CLASS ===
-class TT <<namespace>> {
-  {static} TT_SIZE : ssize_t
-  {static} ZOBRIST_COLOR_OFFSET : ssize_t
-  {static} NUM_TOWER_TYPES : int
-  {static} NUM_PLAYERS : int
-  {static} BOARD_SIZE : int
+class TT {
+  - tt : TTEntry[2^24]
   --
-  {static} player_keys : uint64_t[]
-  {static} zobrist_table : uint64_t[]
-  {static} tt : TTEntry[]
-  --
-  {static} store(key, score, bestMove, depth, type)
-  {static} getKey(game : Game) : uint64_t
-  {static} flipHashForMove(game : Game, old_key : uint64_t&, move : Move)
-  {static} probe(key : uint64_t, out : TTEntry&) : bool
-  {static} printTT()
-  {static} clear()
-}
-
-' === ENUMS ===
-enum playerName {
-  red = false
-  blue = true
-}
-
-' === KONSTANTEN ===
-class Game_Constants << (C,#FFDD44) >> {
-  {static} BITBOARD_COUNT : int = 10
-  {static} MOVES_LIST_SIZE : int = 32
-  {static} seperating_bit_mask : uint64_t
-  {static} field_mask : uint64_t
-  {static} convert_pos[64] : uint8_t
+  + store(key, score, bestMove, depth, type)
+  + getKey(game : Game) : uint64_t
+  + flipHashForMove(game : Game, old_key : uint64_t&, move : Move)
+  + probe(key : uint64_t, out : TTEntry&) : bool
 }
 
 ' === KLASSE Game ===
 class Game {
-  - moveList : Move[MOVES_LIST_SIZE]
-  --
-  + bitBoards : uint64_t[BITBOARD_COUNT]
+  - moveList : Move[32]
+  + bitBoards : uint64_t[10]
   + active_player : playerName
   --
-  + Game()
-  + Game(player : playerName)
-  + Game(game_string : const char*)
-  + Game(other : const Game&)
-  --
-  + toggleActivePlayer()
-  + stringToGame(input : const char*)
-  + gameToString(output : char*) : void
-  + readableMoves() : std::vector<std::string>
   + isGameOver() : bool
   + generateMoves()
   + getMoveList() : Move*
   + makeMove(move : const Move&) : int
   + unMakeMove(move : const Move&, prevState : const int&)
-  + printGame() : void
-  --
-  - printGameHelper(indent : int) : void
-  - generateMovesHelper(own, enemy, all : const uint64_t&, idx : int&)
-  - generatorBaseCase(from, to : const int&, idx : int&, own, enemy, all : const uint64_t&)
-  - clearField() : void
-  - clearSeparatingBits() : void
 }
 
 
@@ -115,26 +49,18 @@ class Move {
   + to : uint64_t = 0
   + move_distance : int = -1
   --
-  + Move() : default constructor
-  + Move(from : uint64_t, to : uint64_t, steps : int)
-  + Move(str : const std::string&)
-  + operator==(other : const Move&) : bool
   + toString() : std::string
 }
 
 ' === RELATIONSHIPS ===
+AI --> Game : erzeugt
 Game --> Move : verwendet
-Game --> playerName : verwendet
-Game ..> Game_Constants : verwendet
 
 AI ..> TT : verwendet statisch
-TTEntry --> TT_Move : verwendet
-TT_Move <..> Move : konvertiert
-TT --> TTEntry : verwendet
-TTEntry --> Flag : verwendet
+TT --> TTEntry : nutzt
+TTEntry --> Move : verwendet speicher effizientes
 
-AI --> Game : benutzt
-AI --> Move : erzeugt/verarbeitet
-AI --> playerName : verwendet
+
+
 
 @enduml
