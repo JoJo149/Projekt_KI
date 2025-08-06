@@ -76,8 +76,12 @@ public:
             server_ip.erase(0, server_ip.find_first_not_of(" \t\r\n"));
             server_ip.erase(server_ip.find_last_not_of(" \t\r\n") + 1);
         }
-
-        infile >> port;
+        if (string str_port; std::getline(infile, str_port)) {
+            // Remove leading and trailing whitespace
+            str_port.erase(0, str_port.find_first_not_of(" \t\r\n"));
+            str_port.erase(str_port.find_last_not_of(" \t\r\n") + 1);
+            port = stoi(str_port);
+        }
         infile.close();
     }
 
