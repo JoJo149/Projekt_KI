@@ -37,11 +37,28 @@ public:
                 }
         #endif
 
-        loadConfig( "../clientInfo/config.txt");
-
         struct addrinfo hints{}, *res;
         hints.ai_family = AF_UNSPEC;
         hints.ai_socktype = SOCK_STREAM;
+
+
+        if (!loadConfig( "../clientInfo/config.txt")) {
+            // get IP/DNS from Terminal
+            cout << "No network config found. Against whom do you want to play?" << endl;
+            cout << "IP-address/DNS-address:" << endl;
+            if ( getline(cin, server_ip)) {
+                // Remove leading and trailing whitespace
+                server_ip.erase(0, server_ip.find_first_not_of(" \t\r\n"));
+                server_ip.erase(server_ip.find_last_not_of(" \t\r\n") + 1);
+            }
+            cout << "Port:" << endl;
+            if (string str_port; getline(cin, str_port)) {
+                // Remove leading and trailing whitespace
+                str_port.erase(0, str_port.find_first_not_of(" \t\r\n"));
+                str_port.erase(str_port.find_last_not_of(" \t\r\n") + 1);
+                port = stoi(str_port);
+            }
+        }
 
         cout << "Connecting to " << server_ip << ":" << port << endl;
         int status = getaddrinfo(server_ip.c_str(), std::to_string(port).c_str(), &hints, &res);
@@ -64,13 +81,17 @@ public:
 
     }
 
-    void loadConfig(const string& filename) {
+    bool loadConfig(const string& filename) {
         ifstream infile(filename);
         if (!infile) {
             cerr << "Could not open config file." << endl;
             exit(1);
         }
-
+        // if file is empty
+        if (infile.peek() == std::ifstream::traits_type::eof()) {
+            infile.close();
+            return false;
+        }
         if (std::getline(infile, server_ip)) {
             // Remove leading and trailing whitespace
             server_ip.erase(0, server_ip.find_first_not_of(" \t\r\n"));
@@ -83,6 +104,7 @@ public:
             port = stoi(str_port);
         }
         infile.close();
+        return true;
     }
 
     [[nodiscard]] string getP() const {
