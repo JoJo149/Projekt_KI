@@ -22,6 +22,6 @@ Die Datei muss wie folgt aufgebaut sein (jeweils eine Angabe pro Zeile):
 
 Beispiel für lokalen Server:
 ```
-localhost
+127.0.0.1
 5555
 ```
