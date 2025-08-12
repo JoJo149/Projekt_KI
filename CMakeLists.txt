@@ -7,8 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS} -O0")
 
-set(BUILD_SHARED_LIBS OFF)
-
 # ----------------------------------------------------------------------------
 # Source files
 file(GLOB_RECURSE SRC_FILES src/*.cpp)
@@ -17,7 +15,7 @@ file(GLOB_RECURSE BENCHMARKS benchmark/*.cpp)
 
 # ----------------------------------------------------------------------------
 # Multi Threading
-# find_package(TBB REQUIRED)
+find_package(TBB REQUIRED)
 
 # ----------------------------------------------------------------------------
 # Exclude main.cpp for tests
@@ -42,6 +40,12 @@ target_link_libraries(projekt_ki PRIVATE core)
 add_executable(Client clientsrc/Client.cpp)
 target_include_directories(Client PRIVATE ext/headerOnly/json)
 target_link_libraries(Client PRIVATE core)
+
+# ----------------------------------------------------------------------------
+# tuning application
+add_executable(Tuning src/Tuning.cpp)
+target_include_directories(Tuning PRIVATE ext/headerOnly/json)
+target_link_libraries(Tuning PRIVATE TBB::tbb core)
 
 # ----------------------------------------------------------------------------
 # dockerClient application
