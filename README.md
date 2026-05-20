@@ -3,7 +3,8 @@
 ## short info
 Build of a small AI for the 2 player game ["Guard and Towers"](http://www.christoph-endres.de/documents/games/tuw-de.pdf).\
 Projekt contains a small Server using python, a client to play ur self, a client for the AI and the AI itself. \
-To optimize the AI we will use: bitboards, Alpha-Beta Search and other techniques.
+To optimize the AI we will use: bitboards, Alpha-Beta Search and other techniques. \
+More Info under: [Projektbericht](https://github.com/JoJo149/Projekt_KI/blob/main/Projektbericht.pdf)
 
 ## Dependencies for C++ Client and AI
 - #### [cmake](https://cmake.org/download/) as our Build System
